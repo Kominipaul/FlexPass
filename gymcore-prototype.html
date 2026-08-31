@@ -1,98 +1,86 @@
-<title>GymCore Console</title>
+<title>Power Life Access</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 
 <style>
-  /* ---------- Tokens: light is the base, both dark states re-declare ---------- */
+  /* ---------------------------------------------------------------------
+     Power Life Gym — one committed visual world: black iron, volt yellow.
+     Every colour is painted explicitly so the page holds on any host ground.
+     --------------------------------------------------------------------- */
   :root {
-    --ground:#EDEFF1; --surface:#FFFFFF; --raised:#F5F7F9; --line:#DCE1E6; --line-soft:#E8EBEF;
-    --ink:#0F1419; --dim:#57616B; --mute:#8A939D;
-    --accent:#3D6BFF; --accent-ink:#FFFFFF; --accent-soft:#E5EAFF; --accent-line:#B9C7FF;
-    --good:#12864F; --good-soft:#DDF3E7; --warn:#9A6510; --warn-soft:#FBEDD5;
-    --bad:#C0332A; --bad-soft:#FBE3E1; --froze:#2C7793; --froze-soft:#DDEEF5;
-    --s1:#3D6BFF; --s2:#C2582B; --grid:#E4E8EC;
-    --shadow:0 1px 2px rgba(15,20,25,.06), 0 8px 24px -12px rgba(15,20,25,.18);
-    --shadow-lift:0 2px 4px rgba(15,20,25,.08), 0 18px 40px -18px rgba(15,20,25,.32);
-    --tape:rgba(15,20,25,.06);
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground:#0C0F13; --surface:#141A21; --raised:#1B222B; --line:#2A333E; --line-soft:#222A33;
-      --ink:#E9EDF1; --dim:#98A3AE; --mute:#6E7883;
-      --accent:#6685F5; --accent-ink:#0B1020; --accent-soft:#1D2740; --accent-line:#33437A;
-      --good:#3FBF80; --good-soft:#12291F; --warn:#E0A144; --warn-soft:#2A2113;
-      --bad:#F0665C; --bad-soft:#2E1817; --froze:#79BBD6; --froze-soft:#132630;
-      --s1:#6685F5; --s2:#D9764C; --grid:#232C36;
-      --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -12px rgba(0,0,0,.7);
-      --shadow-lift:0 2px 6px rgba(0,0,0,.55), 0 22px 48px -20px rgba(0,0,0,.85);
-      --tape:rgba(233,237,241,.07);
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ground:#0C0F13; --surface:#141A21; --raised:#1B222B; --line:#2A333E; --line-soft:#222A33;
-    --ink:#E9EDF1; --dim:#98A3AE; --mute:#6E7883;
-    --accent:#6685F5; --accent-ink:#0B1020; --accent-soft:#1D2740; --accent-line:#33437A;
-    --good:#3FBF80; --good-soft:#12291F; --warn:#E0A144; --warn-soft:#2A2113;
-    --bad:#F0665C; --bad-soft:#2E1817; --froze:#79BBD6; --froze-soft:#132630;
-    --s1:#6685F5; --s2:#D9764C; --grid:#232C36;
-    --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -12px rgba(0,0,0,.7);
-    --shadow-lift:0 2px 6px rgba(0,0,0,.55), 0 22px 48px -20px rgba(0,0,0,.85);
-    --tape:rgba(233,237,241,.07);
     color-scheme: dark;
+    --bg:#06070A; --surface:#0E1014; --raised:#15181E; --sunk:#0A0C10;
+    --line:#242830; --line-soft:#1B1F26; --grid:#1E222A;
+    --ink:#F2F5F8; --dim:#9AA2AD; --mute:#727A86;
+
+    --volt:#D8FF33; --volt-ink:#0A0D04; --volt-soft:#1F2610; --volt-line:#414E17;
+    --ember:#FF6A1F; --ember-soft:#2A1608; --ember-line:#5A2A0D;
+
+    --good:#3ED88A; --good-soft:#0F2A1D; --warn:#FFB020; --warn-soft:#2B2110;
+    --bad:#FF5A4D; --bad-soft:#2E1512; --froze:#57C7EC; --froze-soft:#0F2733;
+    --s1:#6685F5; --s2:#D96E28;
+
+    --shadow:0 1px 2px rgba(0,0,0,.6), 0 10px 30px -16px rgba(0,0,0,.9);
+    --shadow-lift:0 2px 8px rgba(0,0,0,.6), 0 28px 60px -24px rgba(0,0,0,1);
+    --glow:0 0 0 1px rgba(216,255,51,.28), 0 0 34px -6px rgba(216,255,51,.45);
   }
 
   html { -webkit-text-size-adjust:100%; }
   body {
-    background: var(--ground);
+    background:
+      radial-gradient(1100px 520px at 50% -12%, rgba(216,255,51,.07), transparent 62%),
+      radial-gradient(760px 420px at 100% 0%, rgba(255,106,31,.06), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--ink);
     font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
     font-size:14px; line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
-  .display { font-family:"Archivo", ui-sans-serif, system-ui, sans-serif; font-stretch:112%; text-wrap:balance; }
+  .display { font-family:"Geologica","IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; text-wrap:balance; letter-spacing:-.01em; }
   .mono { font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, monospace; font-variant-numeric: tabular-nums; }
   .tnum { font-variant-numeric: tabular-nums; }
-  .eyebrow { font-family:"Archivo", sans-serif; font-stretch:112%; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:10px; }
+  .eyebrow { font-family:"Geologica", sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.16em; font-size:10px; }
+  .stencil { font-family:"Geologica", sans-serif; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
 
-  /* floor-marking backdrop for the member column */
-  .floor-marks::before {
+  /* iron-plate texture behind the member column */
+  .plate::before {
     content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
-    background-image: repeating-linear-gradient(115deg, var(--tape) 0 2px, transparent 2px 13px);
-    -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
-    mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
+    background-image: repeating-linear-gradient(122deg, rgba(255,255,255,.045) 0 1px, transparent 1px 16px);
+    -webkit-mask-image: radial-gradient(115% 62% at 50% 0%, #000 0%, transparent 74%);
+    mask-image: radial-gradient(115% 62% at 50% 0%, #000 0%, transparent 74%);
   }
-  .tape-edge {
-    background-image: repeating-linear-gradient(135deg, var(--ink) 0 3px, transparent 3px 9px);
-    opacity:.5;
-  }
+  .hazard { background-image: repeating-linear-gradient(115deg, var(--volt) 0 8px, transparent 8px 16px); }
+  .inner-top { box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
 
-  ::selection { background: var(--accent); color: var(--accent-ink); }
-  *:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  ::selection { background: var(--volt); color: var(--volt-ink); }
+  *:focus-visible { outline:2px solid var(--volt); outline-offset:2px; border-radius:3px; }
   input, select, button, textarea { font:inherit; color:inherit; }
   select { -webkit-appearance:none; appearance:none; }
   table { border-collapse:separate; border-spacing:0; }
+  input::placeholder { color: var(--mute); }
 
   .scroll-thin::-webkit-scrollbar { width:9px; height:9px; }
   .scroll-thin::-webkit-scrollbar-thumb { background:var(--line); border-radius:99px; border:2px solid var(--surface); }
   .scroll-thin::-webkit-scrollbar-track { background:transparent; }
 
-  @keyframes gc-pulse-ring { 0%{transform:scale(.92);opacity:.55} 70%{transform:scale(1.22);opacity:0} 100%{opacity:0} }
-  @keyframes gc-sweep { 0%{top:4%} 50%{top:92%} 100%{top:4%} }
-  @keyframes gc-pop { 0%{transform:scale(.94);opacity:0} 60%{transform:scale(1.02)} 100%{transform:scale(1);opacity:1} }
-  @keyframes gc-rise { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @keyframes gc-fade { from{opacity:0} to{opacity:1} }
-  @keyframes gc-bars { 0%,100%{transform:scaleY(.28)} 50%{transform:scaleY(1)} }
-  @keyframes gc-spin { to{transform:rotate(360deg)} }
-  .a-ring { animation: gc-pulse-ring 2.4s cubic-bezier(.2,.6,.3,1) infinite; }
-  .a-sweep { animation: gc-sweep 1.15s cubic-bezier(.45,0,.55,1) infinite; }
-  .a-pop { animation: gc-pop .28s cubic-bezier(.2,.9,.3,1.1) both; }
-  .a-rise { animation: gc-rise .22s cubic-bezier(.2,.8,.3,1) both; }
-  .a-fade { animation: gc-fade .2s ease both; }
-  .a-spin { animation: gc-spin 1s linear infinite; }
-  .a-bar { animation: gc-bars .7s ease-in-out infinite; transform-origin:center; }
+  @keyframes pl-ring { 0%{transform:scale(.94);opacity:.6} 70%{transform:scale(1.2);opacity:0} 100%{opacity:0} }
+  @keyframes pl-sweep { 0%{top:3%} 50%{top:93%} 100%{top:3%} }
+  @keyframes pl-pop { 0%{transform:scale(.94);opacity:0} 60%{transform:scale(1.02)} 100%{transform:scale(1);opacity:1} }
+  @keyframes pl-rise { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes pl-fade { from{opacity:0} to{opacity:1} }
+  @keyframes pl-bars { 0%,100%{transform:scaleY(.25)} 50%{transform:scaleY(1)} }
+  @keyframes pl-spin { to{transform:rotate(360deg)} }
+  @keyframes pl-shine { 0%{transform:translateX(-120%)} 100%{transform:translateX(320%)} }
+  .a-ring { animation: pl-ring 2.4s cubic-bezier(.2,.6,.3,1) infinite; }
+  .a-sweep { animation: pl-sweep 1.1s cubic-bezier(.45,0,.55,1) infinite; }
+  .a-pop { animation: pl-pop .28s cubic-bezier(.2,.9,.3,1.1) both; }
+  .a-rise { animation: pl-rise .22s cubic-bezier(.2,.8,.3,1) both; }
+  .a-fade { animation: pl-fade .2s ease both; }
+  .a-spin { animation: pl-spin 1s linear infinite; }
+  .a-bar { animation: pl-bars .7s ease-in-out infinite; transform-origin:center; }
+  .a-shine { animation: pl-shine 4.5s ease-in-out infinite; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
@@ -102,26 +90,24 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
-    corePlugins: { preflight: true },
     theme: {
       extend: {
         colors: {
-          ground:'var(--ground)', surface:'var(--surface)', raised:'var(--raised)',
+          bg:'var(--bg)', surface:'var(--surface)', raised:'var(--raised)', sunk:'var(--sunk)',
           line:'var(--line)', linesoft:'var(--line-soft)', grid:'var(--grid)',
           ink:'var(--ink)', dim:'var(--dim)', mute:'var(--mute)',
-          accent:'var(--accent)', accentink:'var(--accent-ink)', accentsoft:'var(--accent-soft)', accentline:'var(--accent-line)',
-          good:'var(--good)', goodsoft:'var(--good-soft)',
-          warn:'var(--warn)', warnsoft:'var(--warn-soft)',
-          bad:'var(--bad)', badsoft:'var(--bad-soft)',
-          froze:'var(--froze)', frozesoft:'var(--froze-soft)',
+          volt:'var(--volt)', voltink:'var(--volt-ink)', voltsoft:'var(--volt-soft)', voltline:'var(--volt-line)',
+          ember:'var(--ember)', embersoft:'var(--ember-soft)', emberline:'var(--ember-line)',
+          good:'var(--good)', goodsoft:'var(--good-soft)', warn:'var(--warn)', warnsoft:'var(--warn-soft)',
+          bad:'var(--bad)', badsoft:'var(--bad-soft)', froze:'var(--froze)', frozesoft:'var(--froze-soft)',
           s1:'var(--s1)', s2:'var(--s2)'
         },
         fontFamily: {
-          display:['Archivo','ui-sans-serif','system-ui','sans-serif'],
+          display:['Geologica','IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'],
           sans:['"IBM Plex Sans"','ui-sans-serif','system-ui','sans-serif'],
           mono:['"IBM Plex Mono"','ui-monospace','monospace']
         },
-        boxShadow: { card:'var(--shadow)', lift:'var(--shadow-lift)' }
+        boxShadow: { card:'var(--shadow)', lift:'var(--shadow-lift)', glow:'var(--glow)' }
       }
     }
   };
@@ -137,13 +123,13 @@
 <script>if(!window.Babel){document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"><\/script>');}</script>
 
 <div id="root"></div>
-<noscript><p style="padding:24px">GymCore is an interactive prototype — enable JavaScript to use it.</p></noscript>
+<noscript><p style="padding:24px;color:#F2F5F8">Power Life Gym — ενεργοποιήστε τη JavaScript για να δείτε την εφαρμογή.</p></noscript>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext } = React;
 
 /* ============================================================================
-   1. Icons — thin React wrapper over the Lucide UMD icon set
+   1. Icons — React wrapper over the Lucide UMD set
    ========================================================================== */
 const pascal = (n) => n.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join("");
 function lookupIcon(name) {
@@ -174,97 +160,334 @@ function Icon({ name, size = 16, strokeWidth = 2, className = "", title }) {
 }
 
 /* ============================================================================
-   2. Mock data — every screen reads from this, nothing is hardcoded in markup
+   2. Language — Greek is the default, English is one click away
+   ========================================================================== */
+const STR = {
+  el: {
+    brandTag: "Καλαμάτα · 2 χώροι, 1 κάρτα", clientPortal: "Πύλη Μέλους", staffDashboard: "Πίνακας Προσωπικού",
+    pass: "Κάρτα", classes: "Μαθήματα", account: "Συνδρομή",
+    greeting: "Καλησπέρα", memberPortal: "Πύλη μέλους",
+
+    doorPass: "Κάρτα εισόδου", accessPass: "Power Life Gym — Κάρτα Εισόδου",
+    activeBranch: "Ενεργός χώρος", membershipLabel: "Συνδρομή", memberSince: "μέλος από",
+    rotatesIn: "Ανανέωση σε", tapRefresh: "πατήστε τον κωδικό για ανανέωση",
+    holdCode: "Σκανάρετε τον κωδικό στην είσοδο.", checkedIn: "Καταγράφηκε είσοδος", entryRefused: "Άρνηση εισόδου",
+    visits: "Επισκέψεις", daysLeftShort: "Ημέρες", guestPasses: "Προσκλήσεις",
+
+    announcements: "Ανακοινώσεις", offerTag: "Προσφορά", newsTag: "Νέο",
+    ptTitle: "−20% σε πακέτα Personal Training",
+    ptBody: "10 συνεδρίες με τον προπονητή σας, με ισχύ έως 30 Σεπτεμβρίου. Ιδανικό για επανεκκίνηση μετά το καλοκαίρι.",
+    ptCta: "Κλείστε ραντεβού", ptDone: "Το αίτημα στάλθηκε", ptDoneBody: "Η ρεσεψιόν θα σας καλέσει για το πακέτο PT.",
+    inbodyTitle: "Δωρεάν μέτρηση InBody κάθε Τρίτη",
+    inbodyBody: "Ελάτε 07:00–11:00 στην Αρτέμιδος, χωρίς ραντεβού.",
+
+    searchClasses: "Αναζήτηση μαθήματος ή προπονητή", bothClubs: "Και οι δύο χώροι", all: "Όλα",
+    classesCount: "μαθήματα", youBooked: "έχετε κρατήσει", clearFilters: "Καθαρισμός φίλτρων",
+    noClasses: "Κανένα μάθημα", noClassesHint: "Δοκιμάστε άλλον χώρο ή άλλη κατηγορία.",
+    today: "Σήμερα", tomorrow: "Αύριο", wed: "Τετάρτη",
+    spotsFilled: "θέσεις", left: "ελεύθερες", waitlistOnly: "Λίστα αναμονής", waitlist: "Αναμονή",
+    book: "Κράτηση", cancel: "Ακύρωση", bookedTag: "Κρατημένο", upgrade: "Αναβάθμιση",
+
+    currentPlan: "Τρέχον πακέτο", homeClub: "Βασικός χώρος", perMonth: "τον μήνα",
+    daysRemaining: "Υπόλοιπο ημερών", termDays: "διάρκεια 90 ημερών", renews: "Ανανέωση", heldFrozen: "Σε παύση",
+    renew30: "Ανανέωση 30 ημερών", freezeAccount: "Παύση συνδρομής", unfreeze: "Επανενεργοποίηση",
+    frozenTitle: "Η συνδρομή είναι σε παύση", frozenBody: "Η χρέωση σταμάτησε και η είσοδος δεν επιτρέπεται. Οι υπόλοιπες ημέρες διατηρούνται.",
+    autoRenew: "Αυτόματη ανανέωση", autoRenewBody: "Χρέωση Visa ·· 4417 την 1η κάθε μήνα.",
+    billing: "Ιστορικό πληρωμών", records: "εγγραφές", paid: "Πληρώθηκε", refunded: "Επιστροφή",
+    freezeTitle: "Παύση συνδρομής", freezeSub: "Η χρέωση σταματά και οι ημέρες σας κρατούνται.",
+    keepActive: "Διατήρηση", freezeFor: "Παύση για", weeks: "εβδομάδες",
+    freezeNote1: "Παύση άνω των 4 εβδομάδων χρεώνεται 9€ στην επόμενη ανανέωση.",
+    freezeNote2: "Οι υπόλοιπες ημέρες συνεχίζουν από την ημέρα επιστροφής.",
+    freezeNote3: "Η ρεσεψιόν μπορεί να άρει την παύση αμέσως.",
+
+    operations: "Λειτουργία", frontDesk: "Ρεσεψιόν", membersNav: "Μέλη", classesNav: "Μαθήματα", insights: "Στατιστικά",
+    scanVerify: "Έλεγχος", capacity: "Πληρότητα", liveMetrics: "Ζωντανά", deskLocation: "Θέση ρεσεψιόν",
+    deskOnline: "Σύστημα ενεργό", todaySuffix: "σήμερα", open: "Ώρες",
+
+    reader: "Αναγνώστης εισόδου", lane: "διάδρομος 1", soundOn: "Ήχος ενεργός", soundOff: "Σίγαση",
+    waitingPass: "Αναμονή κάρτας", waitingHint: "Επιλέξτε μέλος και σκανάρετε, ή προσομοιώστε την επόμενη είσοδο.",
+    reading: "Ανάγνωση κωδικού…", verifying: "Έλεγχος παραθύρου ανανέωσης",
+    twoTone: "Διπλό ηχητικό σήμα · η μπάρα άνοιξε", lowBuzz: "Χαμηλός βόμβος · η μπάρα παρέμεινε κλειστή",
+    chooseMember: "Επιλογή μέλους", scanPass: "Σκανάρισμα", simulate: "Προσομοίωση εισόδου", doorLog: "Ιστορικό εισόδων",
+
+    searchMembers: "Αναζήτηση με όνομα, κωδικό ή email", allLocations: "Όλοι οι χώροι", anyStatus: "Κάθε κατάσταση",
+    colMember: "Μέλος", colClub: "Χώρος", colPlan: "Πακέτο", colStatus: "Κατάσταση", colDays: "Ημέρες",
+    colLastScan: "Τελευταία είσοδος", colActions: "Ενέργειες", extend: "Επέκταση", freeze: "Παύση",
+    ofMembers: "από", membersWord: "μέλη", noMembers: "Κανένα μέλος", noMembersHint: "Αλλάξτε φίλτρο ή αναζήτηση.",
+
+    addClass: "Νέο μάθημα", viewRoster: "Λίστα συμμετοχής", bookedWord: "κρατήσεις", full: "πληρότητα",
+    publish: "Δημοσίευση", className: "Όνομα μαθήματος", discipline: "Κατηγορία", trainer: "Προπονητής",
+    location: "Χώρος", day: "Ημέρα", startTime: "Ώρα έναρξης", lengthMin: "Διάρκεια (λεπτά)",
+    maxCap: "Μέγιστη πληρότητα", capHint: "Οι κρατήσεις σταματούν εδώ· οι υπόλοιποι μπαίνουν σε αναμονή.",
+    level: "Επίπεδο", classPublished: "Το μάθημα δημοσιεύτηκε", classCancelled: "Το μάθημα ακυρώθηκε",
+    notified: "μέλη ενημερώθηκαν", noBookings: "Καμία κράτηση ακόμη.", deskBookings: "κρατήσεις έγιναν στη ρεσεψιόν.",
+    openSpots: "ελεύθερες", closeRoster: "Κλείσιμο",
+
+    checkinsToday: "Είσοδοι σήμερα", activeMembers: "Ενεργές συνδρομές", peakHour: "Ώρα αιχμής", refused: "Απορρίψεις",
+    trafficByHour: "Κίνηση ανά ώρα", clubCompare: "Σύγκριση χώρων", last7: "Είσοδοι, τελευταίες 7 ημέρες",
+    bothCombined: "Και οι δύο χώροι · σήμερα", fillRate: "Πληρότητα μαθημάτων", mix: "Κατανομή πακέτων",
+    bookedOf: "κρατήσεις από", spotsWord: "θέσεις", inThatHour: "είσοδοι εκείνη την ώρα",
+    allCleared: "Όλες οι είσοδοι εγκρίθηκαν", refusedHint: "Λήξη, παύση ή λάθος χώρος", vsLast: "+8% σε σχέση με την περασμένη Δευτέρα",
+
+    active: "Ενεργή", expiring: "Λήγει", expired: "Έληξε", frozen: "Παύση",
+    granted: "ΕΙΣΟΔΟΣ ΕΠΙΤΡΕΠΕΤΑΙ", denied: "ΕΙΣΟΔΟΣ ΑΠΑΓΟΡΕΥΕΤΑΙ",
+    rExpired: "Η συνδρομή έχει λήξει — ανανέωση στη ρεσεψιόν",
+    rFrozen: "Η συνδρομή είναι σε παύση — άρση για είσοδο",
+    rNoPilates: "Το πακέτο δεν περιλαμβάνει το Στούντιο Pilates",
+    rExpiring: "Ενεργή — ανανέωση σε", rDays: "ημέρες", rActive: "Ενεργή συνδρομή",
+    upgradeTitle: "Αναβαθμίστε το πακέτο σας", upgradeSub: "Το τρέχον πακέτο δεν καλύπτει αυτό το μάθημα.",
+    upgradeCta: "Αναβάθμιση τώρα", upgradeDone: "Το αίτημα αναβάθμισης στάλθηκε", upgradeDoneBody: "Η ρεσεψιόν θα το ολοκληρώσει στην επόμενη επίσκεψη.",
+    includes: "Περιλαμβάνει", later: "Άλλη φορά", you: "εσείς",
+    bookedToast: "Η θέση κρατήθηκε", cancelToast: "Η κράτηση ακυρώθηκε", waitToast: "Μπήκατε σε λίστα αναμονής",
+    waitToastBody: "Το μάθημα είναι πλήρες — είστε πρώτος στη σειρά.",
+    frozenToast: "Η συνδρομή τέθηκε σε παύση", unfrozenToast: "Η συνδρομή ενεργοποιήθηκε ξανά",
+    unfrozenBody: "Η είσοδος επιτρέπεται ξανά.", renewToast: "Ανανέωση 30 ημερών", charged: "Χρεώθηκε",
+    extendedToast: "Η συνδρομή επεκτάθηκε", accountFrozen: "Ο λογαριασμός τέθηκε σε παύση", accountUnfrozen: "Ο λογαριασμός ενεργοποιήθηκε",
+    extendTitle: "Επέκταση", addDays: "Προσθήκη", daysWord: "ημερών", afterExt: "Ημέρες μετά την επέκταση",
+    extLiftsFreeze: "Η επέκταση αίρει και την παύση του λογαριασμού.",
+    detailPlan: "Πακέτο", detailHome: "Βασικός χώρος", detailDays: "Ημέρες", detailVisits: "Συνολικές επισκέψεις",
+    detailSince: "Μέλος από", detailLast: "Τελευταία είσοδος", doorResultAt: "Αποτέλεσμα εισόδου στον χώρο",
+    close: "Κλείσιμο", oneYear: "ένας χρόνος", days: "ημέρες"
+  },
+  en: {
+    brandTag: "Kalamata · 2 spaces, 1 pass", clientPortal: "Member portal", staffDashboard: "Staff dashboard",
+    pass: "Pass", classes: "Classes", account: "Membership",
+    greeting: "Good evening", memberPortal: "Member portal",
+
+    doorPass: "Door pass", accessPass: "Power Life Gym — Access Pass",
+    activeBranch: "Active branch", membershipLabel: "Membership", memberSince: "member since",
+    rotatesIn: "Rotates in", tapRefresh: "tap the code to refresh",
+    holdCode: "Hold the code to the reader at the entrance.", checkedIn: "Checked in", entryRefused: "Entry refused",
+    visits: "Visits", daysLeftShort: "Days left", guestPasses: "Guest passes",
+
+    announcements: "Announcements", offerTag: "Offer", newsTag: "New",
+    ptTitle: "−20% on Personal Training packages",
+    ptBody: "10 sessions with your coach, valid until 30 September. Built for a strong restart after summer.",
+    ptCta: "Book a consultation", ptDone: "Request sent", ptDoneBody: "The front desk will call you about the PT package.",
+    inbodyTitle: "Free InBody measurement every Tuesday",
+    inbodyBody: "Drop in 07:00–11:00 at Artemidos, no appointment needed.",
+
+    searchClasses: "Search classes or trainers", bothClubs: "Both spaces", all: "All",
+    classesCount: "classes", youBooked: "you have booked", clearFilters: "Clear filters",
+    noClasses: "No classes match", noClassesHint: "Try another space or discipline.",
+    today: "Today", tomorrow: "Tomorrow", wed: "Wed",
+    spotsFilled: "spots filled", left: "left", waitlistOnly: "Waitlist only", waitlist: "Waitlist",
+    book: "Book spot", cancel: "Cancel", bookedTag: "Booked", upgrade: "Upgrade",
+
+    currentPlan: "Current plan", homeClub: "Home space", perMonth: "per month",
+    daysRemaining: "Days remaining", termDays: "90-day term", renews: "Renews", heldFrozen: "Held while frozen",
+    renew30: "Renew 30 days", freezeAccount: "Freeze membership", unfreeze: "Unfreeze",
+    frozenTitle: "Membership frozen", frozenBody: "Billing is paused and door access is off. Your remaining days are held.",
+    autoRenew: "Auto-renew", autoRenewBody: "Charge Visa ·· 4417 on the 1st of each month.",
+    billing: "Billing history", records: "records", paid: "Paid", refunded: "Refunded",
+    freezeTitle: "Freeze membership", freezeSub: "Billing pauses and your days are held.",
+    keepActive: "Keep active", freezeFor: "Freeze for", weeks: "weeks",
+    freezeNote1: "Freezes over 4 weeks carry a €9 hold fee at the next renewal.",
+    freezeNote2: "Your remaining days resume the day you come back.",
+    freezeNote3: "The front desk can lift the freeze instantly.",
+
+    operations: "Operations", frontDesk: "Front desk", membersNav: "Members", classesNav: "Classes", insights: "Insights",
+    scanVerify: "Scan & verify", capacity: "Capacity", liveMetrics: "Live", deskLocation: "Desk location",
+    deskOnline: "Desk online", todaySuffix: "today", open: "Open",
+
+    reader: "Turnstile reader", lane: "lane 1", soundOn: "Sound on", soundOff: "Muted",
+    waitingPass: "Waiting for a pass", waitingHint: "Pick a member and scan, or simulate whoever walks up next.",
+    reading: "Reading token…", verifying: "Verifying rotation window",
+    twoTone: "Two-tone chime · turnstile released", lowBuzz: "Low buzzer · turnstile held",
+    chooseMember: "Choose a member", scanPass: "Scan pass", simulate: "Simulate member scan", doorLog: "Door log",
+
+    searchMembers: "Search name, member ID or email", allLocations: "All spaces", anyStatus: "Any status",
+    colMember: "Member", colClub: "Space", colPlan: "Plan", colStatus: "Status", colDays: "Days left",
+    colLastScan: "Last scan", colActions: "Actions", extend: "Extend", freeze: "Freeze",
+    ofMembers: "of", membersWord: "members", noMembers: "No members match", noMembersHint: "Clear a filter or try another search.",
+
+    addClass: "Add class", viewRoster: "View roster", bookedWord: "booked", full: "full",
+    publish: "Publish class", className: "Class name", discipline: "Discipline", trainer: "Trainer",
+    location: "Space", day: "Day", startTime: "Start time", lengthMin: "Length (minutes)",
+    maxCap: "Maximum capacity", capHint: "Bookings stop here; extras join the waitlist.",
+    level: "Level", classPublished: "Class published", classCancelled: "Class cancelled",
+    notified: "members notified", noBookings: "No one has booked yet.", deskBookings: "bookings were made at the desk.",
+    openSpots: "open", closeRoster: "Close roster",
+
+    checkinsToday: "Check-ins today", activeMembers: "Active memberships", peakHour: "Peak hour", refused: "Refused scans",
+    trafficByHour: "Traffic by hour", clubCompare: "Space comparison", last7: "Check-ins, last 7 days",
+    bothCombined: "Both spaces · today", fillRate: "Class fill rate", mix: "Membership mix",
+    bookedOf: "booked of", spotsWord: "spots", inThatHour: "check-ins in that hour",
+    allCleared: "Every scan cleared today", refusedHint: "Expired, frozen or wrong space", vsLast: "+8% vs. last Monday",
+
+    active: "Active", expiring: "Expiring", expired: "Expired", frozen: "Frozen",
+    granted: "ACCESS GRANTED", denied: "ACCESS DENIED",
+    rExpired: "Membership expired — renew at the desk",
+    rFrozen: "Membership is frozen — lift it to check in",
+    rNoPilates: "This plan does not include the Pilates Studio",
+    rExpiring: "Active — renews in", rDays: "days", rActive: "Active membership",
+    upgradeTitle: "Upgrade your plan", upgradeSub: "Your current plan does not cover this class.",
+    upgradeCta: "Upgrade now", upgradeDone: "Upgrade request sent", upgradeDoneBody: "The front desk will finish it on your next visit.",
+    includes: "Includes", later: "Maybe later", you: "you",
+    bookedToast: "Spot booked", cancelToast: "Booking cancelled", waitToast: "Added to waitlist",
+    waitToastBody: "The class is full — you're next in line.",
+    frozenToast: "Membership frozen", unfrozenToast: "Membership active again",
+    unfrozenBody: "Door access restored.", renewToast: "Renewed 30 days", charged: "Charged",
+    extendedToast: "Membership extended", accountFrozen: "Account frozen", accountUnfrozen: "Account unfrozen",
+    extendTitle: "Extend", addDays: "Add", daysWord: "days", afterExt: "Days remaining after extension",
+    extLiftsFreeze: "Extending also lifts the freeze on this account.",
+    detailPlan: "Plan", detailHome: "Home space", detailDays: "Days left", detailVisits: "Lifetime visits",
+    detailSince: "Member since", detailLast: "Last scan", doorResultAt: "Door result if scanned at",
+    close: "Close", oneYear: "one year", days: "days"
+  }
+};
+
+const LangCtx = createContext({ lang: "el", t: (k) => k, tx: (v) => v });
+const useL = () => useContext(LangCtx);
+
+/* ============================================================================
+   3. Power Life Gym — mock data (bilingual where a human name or label differs)
    ========================================================================== */
 const LOCATIONS = [
-  { id: "dth", name: "Downtown Hub",  short: "DTH", address: "411 Harrow St", open: "05:00 – 23:00", floor: 2 },
-  { id: "nsb", name: "Northside Box", short: "NSB", address: "88 Kestrel Ave", open: "06:00 – 22:00", floor: 1 }
+  {
+    id: "art", short: "ART",
+    name: { el: "Power Life Gym — Αρτέμιδος", en: "Power Life Gym — Artemidos" },
+    tag: { el: "Αρτέμιδος", en: "Artemidos" },
+    address: { el: "Αρτέμιδος 130-134, Καλαμάτα", en: "Artemidos 130-134, Kalamata" },
+    open: "06:00 – 23:00",
+    kind: { el: "Bodybuilding · Cardio · Ομαδικά", en: "Bodybuilding · Cardio · Group" }
+  },
+  {
+    id: "pil", short: "PIL",
+    name: { el: "Power Life Gym — Στούντιο Pilates", en: "Power Life Gym — Pilates Studio" },
+    tag: { el: "Στούντιο Pilates", en: "Pilates Studio" },
+    address: { el: "Αρτέμιδος 130-134, 2ος όροφος", en: "Artemidos 130-134, 2nd floor" },
+    open: "07:00 – 22:00",
+    kind: { el: "Reformer · Mat · Personal", en: "Reformer · Mat · Personal" }
+  }
 ];
-const locName  = (id) => (LOCATIONS.find((l) => l.id === id) || {}).name || "—";
-const locShort = (id) => (LOCATIONS.find((l) => l.id === id) || {}).short || "—";
 
 const PLANS = {
-  pro1:    { id: "pro1",    label: "Unlimited Pro — Tier 1", price: 89, multiClub: true,  perks: ["Both clubs", "Unlimited classes", "Guest pass ×2/mo", "Recovery suite"] },
-  pro2:    { id: "pro2",    label: "Unlimited Pro — Tier 2", price: 69, multiClub: true,  perks: ["Both clubs", "8 classes / month"] },
-  local:   { id: "local",   label: "Local Off-Peak",         price: 39, multiClub: false, perks: ["Home club only", "Weekdays before 16:00"] },
-  student: { id: "student", label: "Student Flex",           price: 29, multiClub: false, perks: ["Home club only", "4 classes / month"] }
+  basic: {
+    id: "basic", price: 35, classes: false, pilates: false,
+    label: { el: "Basic Pass", en: "Basic Pass" },
+    sub: { el: "Bodybuilding & Cardio", en: "Bodybuilding & Cardio" },
+    perks: {
+      el: ["Όργανα & cardio", "Αρτέμιδος", "Ντουλάπι & ντουζιέρες"],
+      en: ["Weights & cardio", "Artemidos", "Locker & showers"]
+    }
+  },
+  group: {
+    id: "group", price: 50, classes: true, pilates: false,
+    label: { el: "Group Pass", en: "Group Pass" },
+    sub: { el: "Bodybuilding + Ομαδικά", en: "Bodybuilding + Group classes" },
+    perks: {
+      el: ["Όλα του Basic", "Zumba, TRX, Functional", "CrossFit & Spinning"],
+      en: ["Everything in Basic", "Zumba, TRX, Functional", "CrossFit & Spinning"]
+    }
+  },
+  premium: {
+    id: "premium", price: 75, classes: true, pilates: true,
+    label: { el: "Premium Pilates", en: "Premium Pilates" },
+    sub: { el: "Πλήρης πρόσβαση + Reformer", en: "Full access + Reformer" },
+    perks: {
+      el: ["Όλα του Group", "Στούντιο Pilates Reformer", "2 προσκλήσεις/μήνα", "Προτεραιότητα κρατήσεων"],
+      en: ["Everything in Group", "Pilates Reformer studio", "2 guest passes / month", "Priority booking"]
+    }
+  }
 };
+const PLAN_ORDER = ["basic", "group", "premium"];
+
+const TRAINERS = [
+  { el: "Κώστας Βλάχος", en: "Kostas Vlachos" },
+  { el: "Μαρία Σπανού", en: "Maria Spanou" },
+  { el: "Γιώργος Αντωνιάδης", en: "Giorgos Antoniadis" },
+  { el: "Ελένη Ζαφειρίου", en: "Eleni Zafeiriou" },
+  { el: "Νίκος Καραλής", en: "Nikos Karalis" },
+  { el: "Δήμητρα Παππά", en: "Dimitra Pappa" }
+];
 
 const MEMBER_SEED = [
-  { id: "GC-4471", name: "Maya Okonkwo",    plan: "pro1",    home: "dth", daysLeft: 47,  frozen: false, joined: "2023-02-14", lastCheckIn: "Yesterday · 18:42", visits: 214, email: "maya.o@fastmail.com" },
-  { id: "GC-4392", name: "Deshawn Barrett", plan: "pro2",    home: "dth", daysLeft: 129, frozen: false, joined: "2022-11-03", lastCheckIn: "Today · 06:12",     visits: 388, email: "d.barrett@mail.com" },
-  { id: "GC-5108", name: "Priya Raghavan",  plan: "local",   home: "nsb", daysLeft: 4,   frozen: false, joined: "2024-08-21", lastCheckIn: "Today · 07:03",     visits: 96,  email: "praghavan@work.io" },
-  { id: "GC-4820", name: "Tomas Lindqvist", plan: "pro1",    home: "nsb", daysLeft: 0,   frozen: false, joined: "2021-06-09", lastCheckIn: "12 Aug · 19:20",    visits: 502, email: "tomas.l@relay.se" },
-  { id: "GC-5334", name: "Amara Nwosu",     plan: "student", home: "dth", daysLeft: 61,  frozen: false, joined: "2025-01-30", lastCheckIn: "Today · 08:55",     visits: 41,  email: "amara.n@uni.edu" },
-  { id: "GC-4109", name: "Grigor Petrov",   plan: "pro1",    home: "dth", daysLeft: 18,  frozen: true,  joined: "2020-09-17", lastCheckIn: "02 Jul · 17:05",    visits: 641, email: "g.petrov@mail.com" },
-  { id: "GC-5502", name: "Hana Sato",       plan: "pro2",    home: "nsb", daysLeft: 212, frozen: false, joined: "2025-03-12", lastCheckIn: "Today · 09:40",     visits: 77,  email: "hana.sato@mail.jp" },
-  { id: "GC-4655", name: "Julián Ferrer",   plan: "local",   home: "nsb", daysLeft: 33,  frozen: false, joined: "2023-05-28", lastCheckIn: "Yesterday · 12:15", visits: 188, email: "jferrer@correo.es" },
-  { id: "GC-5721", name: "Nadia Haddad",    plan: "pro1",    home: "dth", daysLeft: 6,   frozen: false, joined: "2024-04-02", lastCheckIn: "Today · 06:48",     visits: 152, email: "n.haddad@post.com" },
-  { id: "GC-4987", name: "Wes Kowalczyk",   plan: "student", home: "dth", daysLeft: 0,   frozen: false, joined: "2024-09-19", lastCheckIn: "28 Jul · 16:30",    visits: 63,  email: "wes.k@uni.edu" },
-  { id: "GC-5245", name: "Ingrid Halvorsen",plan: "pro2",    home: "nsb", daysLeft: 88,  frozen: false, joined: "2022-02-11", lastCheckIn: "Today · 05:58",     visits: 430, email: "ingrid.h@nord.no" },
-  { id: "GC-5890", name: "Cody Reyes",      plan: "local",   home: "dth", daysLeft: 25,  frozen: true,  joined: "2025-05-06", lastCheckIn: "19 Aug · 20:10",    visits: 29,  email: "cody.reyes@mail.com" },
-  { id: "GC-4733", name: "Fatima Al-Rashid",plan: "pro1",    home: "nsb", daysLeft: 156, frozen: false, joined: "2021-12-01", lastCheckIn: "Yesterday · 07:22", visits: 559, email: "f.alrashid@mail.ae" },
-  { id: "GC-5611", name: "Oskar Brandt",    plan: "pro2",    home: "dth", daysLeft: 2,   frozen: false, joined: "2023-10-14", lastCheckIn: "Today · 12:04",     visits: 201, email: "o.brandt@mail.de" }
+  { id: "PLG-1042", name: { el: "Μαρία Κωνσταντίνου", en: "Maria Konstantinou" }, plan: "group", home: "art", daysLeft: 47,  frozen: false, joined: "2023-02-14", lastCheckIn: { el: "Χθες · 18:42", en: "Yesterday · 18:42" }, visits: 214, email: "maria.k@mail.gr" },
+  { id: "PLG-1108", name: { el: "Γιώργος Παπαδόπουλος", en: "Giorgos Papadopoulos" }, plan: "group", home: "art", daysLeft: 129, frozen: false, joined: "2022-11-03", lastCheckIn: { el: "Σήμερα · 06:12", en: "Today · 06:12" }, visits: 388, email: "g.papadopoulos@mail.gr" },
+  { id: "PLG-1233", name: { el: "Κώστας Δημητρίου", en: "Kostas Dimitriou" }, plan: "basic", home: "art", daysLeft: 4, frozen: false, joined: "2024-08-21", lastCheckIn: { el: "Σήμερα · 07:03", en: "Today · 07:03" }, visits: 96, email: "kdimitriou@mail.gr" },
+  { id: "PLG-1290", name: { el: "Ελένη Νικολάου", en: "Eleni Nikolaou" }, plan: "premium", home: "pil", daysLeft: 0, frozen: false, joined: "2021-06-09", lastCheckIn: { el: "12 Αυγ · 19:20", en: "12 Aug · 19:20" }, visits: 502, email: "eleni.nik@mail.gr" },
+  { id: "PLG-1355", name: { el: "Νίκος Αντωνόπουλος", en: "Nikos Antonopoulos" }, plan: "basic", home: "art", daysLeft: 61, frozen: false, joined: "2025-01-30", lastCheckIn: { el: "Σήμερα · 08:55", en: "Today · 08:55" }, visits: 41, email: "n.antonopoulos@mail.gr" },
+  { id: "PLG-1401", name: { el: "Σοφία Βασιλείου", en: "Sofia Vasileiou" }, plan: "premium", home: "pil", daysLeft: 18, frozen: false, joined: "2020-09-17", lastCheckIn: { el: "02 Ιουλ · 17:05", en: "02 Jul · 17:05" }, visits: 641, email: "sofia.v@mail.gr" },
+  { id: "PLG-1477", name: { el: "Δημήτρης Σταθόπουλος", en: "Dimitris Stathopoulos" }, plan: "group", home: "art", daysLeft: 212, frozen: false, joined: "2025-03-12", lastCheckIn: { el: "Σήμερα · 09:40", en: "Today · 09:40" }, visits: 77, email: "d.stath@mail.gr" },
+  { id: "PLG-1512", name: { el: "Αναστασία Γεωργίου", en: "Anastasia Georgiou" }, plan: "premium", home: "pil", daysLeft: 33, frozen: false, joined: "2023-05-28", lastCheckIn: { el: "Χθες · 12:15", en: "Yesterday · 12:15" }, visits: 188, email: "a.georgiou@mail.gr" },
+  { id: "PLG-1566", name: { el: "Παναγιώτης Μαυρίδης", en: "Panagiotis Mavridis" }, plan: "group", home: "art", daysLeft: 6, frozen: false, joined: "2024-04-02", lastCheckIn: { el: "Σήμερα · 06:48", en: "Today · 06:48" }, visits: 152, email: "p.mavridis@mail.gr" },
+  { id: "PLG-1604", name: { el: "Χριστίνα Λαμπροπούλου", en: "Christina Lampropoulou" }, plan: "basic", home: "art", daysLeft: 0, frozen: false, joined: "2024-09-19", lastCheckIn: { el: "28 Ιουλ · 16:30", en: "28 Jul · 16:30" }, visits: 63, email: "c.lambro@mail.gr" },
+  { id: "PLG-1688", name: { el: "Θανάσης Καραγιάννης", en: "Thanasis Karagiannis" }, plan: "group", home: "art", daysLeft: 88, frozen: true, joined: "2022-02-11", lastCheckIn: { el: "Σήμερα · 05:58", en: "Today · 05:58" }, visits: 430, email: "th.karagiannis@mail.gr" },
+  { id: "PLG-1720", name: { el: "Ιωάννα Παπανικολάου", en: "Ioanna Papanikolaou" }, plan: "premium", home: "pil", daysLeft: 25, frozen: true, joined: "2025-05-06", lastCheckIn: { el: "19 Αυγ · 20:10", en: "19 Aug · 20:10" }, visits: 29, email: "ioanna.p@mail.gr" },
+  { id: "PLG-1783", name: { el: "Στέλιος Ρούσσος", en: "Stelios Roussos" }, plan: "group", home: "art", daysLeft: 156, frozen: false, joined: "2021-12-01", lastCheckIn: { el: "Χθες · 07:22", en: "Yesterday · 07:22" }, visits: 559, email: "s.roussos@mail.gr" },
+  { id: "PLG-1830", name: { el: "Βασιλική Μιχαηλίδου", en: "Vasiliki Michailidou" }, plan: "basic", home: "art", daysLeft: 2, frozen: false, joined: "2023-10-14", lastCheckIn: { el: "Σήμερα · 12:04", en: "Today · 12:04" }, visits: 201, email: "v.michailidou@mail.gr" }
 ];
-const ME_ID = "GC-4471";
-
-const TRAINERS = ["Rio Castellanos", "Nina Vogt", "Kwame Asante", "Sasha Merrill", "Bea Lindgren", "Marcus Oduya"];
+const ME_ID = "PLG-1042";
 
 const DISCIPLINES = {
-  CrossFit: { icon: "dumbbell",    tone: "s1" },
-  Spinning: { icon: "bike",        tone: "s2" },
-  Yoga:     { icon: "flower-2",    tone: "froze" },
-  Boxing:   { icon: "hand-metal",  tone: "warn" }
+  pilates:    { icon: "flower-2",   label: { el: "Pilates Reformer", en: "Pilates Reformer" }, pilatesOnly: true },
+  functional: { icon: "dumbbell",   label: { el: "Λειτουργική Προπόνηση", en: "Functional Training" } },
+  crossfit:   { icon: "hexagon",    label: { el: "CrossFit", en: "CrossFit" } },
+  trx:        { icon: "cable",      label: { el: "TRX", en: "TRX" } },
+  zumba:      { icon: "music-4",    label: { el: "Zumba", en: "Zumba" } },
+  spinning:   { icon: "bike",       label: { el: "Spinning", en: "Spinning" } }
 };
-const disciplineIcon = (d) => (DISCIPLINES[d] || { icon: "activity" }).icon;
+const DISC_KEYS = Object.keys(DISCIPLINES);
+
+const LEVELS = {
+  all:      { el: "Όλα τα επίπεδα", en: "All levels" },
+  beginner: { el: "Αρχάριοι", en: "Beginner" },
+  inter:    { el: "Μεσαίο", en: "Intermediate" },
+  adv:      { el: "Προχωρημένοι", en: "Advanced" }
+};
 
 const CLASS_SEED = [
-  { id: "c1",  name: "Metcon 45",        discipline: "CrossFit", trainer: "Rio Castellanos", loc: "dth", day: "Today",    start: "17:30", mins: 45, cap: 15, booked: 12, level: "All levels", roster: ["Deshawn Barrett","Amara Nwosu","Nadia Haddad","Hana Sato","Oskar Brandt","Ingrid Halvorsen","Julián Ferrer","Fatima Al-Rashid","Priya Raghavan","Cody Reyes","Wes Kowalczyk","Grigor Petrov"] },
-  { id: "c2",  name: "Threshold Ride",   discipline: "Spinning", trainer: "Nina Vogt",       loc: "dth", day: "Today",    start: "18:45", mins: 50, cap: 24, booked: 24, level: "Advanced",   roster: [] },
-  { id: "c3",  name: "Slow Flow Yoga",   discipline: "Yoga",     trainer: "Sasha Merrill",   loc: "nsb", day: "Today",    start: "19:15", mins: 60, cap: 20, booked: 9,  level: "Beginner",   roster: ["Hana Sato","Ingrid Halvorsen","Fatima Al-Rashid"] },
-  { id: "c4",  name: "Boxing Fundamentals", discipline: "Boxing", trainer: "Kwame Asante",   loc: "nsb", day: "Today",    start: "20:00", mins: 55, cap: 16, booked: 11, level: "Beginner",   roster: ["Julián Ferrer","Tomas Lindqvist","Priya Raghavan"] },
-  { id: "c5",  name: "Barbell Club",     discipline: "CrossFit", trainer: "Bea Lindgren",    loc: "dth", day: "Tomorrow", start: "06:30", mins: 60, cap: 12, booked: 7,  level: "Intermediate", roster: ["Deshawn Barrett","Ingrid Halvorsen","Nadia Haddad"] },
-  { id: "c6",  name: "Sprint Intervals", discipline: "Spinning", trainer: "Nina Vogt",       loc: "nsb", day: "Tomorrow", start: "07:15", mins: 40, cap: 22, booked: 16, level: "All levels", roster: ["Hana Sato","Fatima Al-Rashid"] },
-  { id: "c7",  name: "Mobility Reset",   discipline: "Yoga",     trainer: "Sasha Merrill",   loc: "dth", day: "Tomorrow", start: "12:00", mins: 45, cap: 18, booked: 5,  level: "All levels", roster: ["Amara Nwosu"] },
-  { id: "c8",  name: "Pad Work & Combos",discipline: "Boxing",   trainer: "Marcus Oduya",    loc: "dth", day: "Tomorrow", start: "18:30", mins: 60, cap: 14, booked: 13, level: "Intermediate", roster: ["Oskar Brandt","Cody Reyes","Grigor Petrov"] },
-  { id: "c9",  name: "Engine Builder",   discipline: "CrossFit", trainer: "Rio Castellanos", loc: "nsb", day: "Wed",      start: "17:00", mins: 50, cap: 15, booked: 3,  level: "All levels", roster: ["Tomas Lindqvist"] },
-  { id: "c10", name: "Climb & Recover",  discipline: "Spinning", trainer: "Bea Lindgren",    loc: "dth", day: "Wed",      start: "19:30", mins: 45, cap: 24, booked: 18, level: "Beginner",   roster: ["Nadia Haddad","Deshawn Barrett"] }
+  { id: "c1",  disc: "functional", trainer: 0, loc: "art", day: "today",    start: "18:00", mins: 45, cap: 18, booked: 14, level: "all",      roster: [1, 6, 8, 10, 12, 13, 2, 4] },
+  { id: "c2",  disc: "spinning",   trainer: 2, loc: "art", day: "today",    start: "19:00", mins: 50, cap: 20, booked: 20, level: "adv",      roster: [1, 10, 12] },
+  { id: "c3",  disc: "pilates",    trainer: 3, loc: "pil", day: "today",    start: "19:15", mins: 55, cap: 8,  booked: 5,  level: "all",      roster: [7, 11] },
+  { id: "c4",  disc: "zumba",      trainer: 5, loc: "art", day: "today",    start: "20:15", mins: 60, cap: 30, booked: 21, level: "beginner", roster: [6, 8, 13] },
+  { id: "c5",  disc: "crossfit",   trainer: 4, loc: "art", day: "tomorrow", start: "07:00", mins: 60, cap: 14, booked: 9,  level: "inter",    roster: [1, 10, 12] },
+  { id: "c6",  disc: "trx",        trainer: 1, loc: "art", day: "tomorrow", start: "09:30", mins: 45, cap: 12, booked: 7,  level: "all",      roster: [6, 7] },
+  { id: "c7",  disc: "pilates",    trainer: 3, loc: "pil", day: "tomorrow", start: "11:00", mins: 55, cap: 8,  booked: 8,  level: "inter",    roster: [5, 7, 11] },
+  { id: "c8",  disc: "functional", trainer: 0, loc: "art", day: "tomorrow", start: "18:30", mins: 45, cap: 18, booked: 11, level: "all",      roster: [8, 12, 13] },
+  { id: "c9",  disc: "spinning",   trainer: 2, loc: "art", day: "tomorrow", start: "20:00", mins: 45, cap: 20, booked: 16, level: "beginner", roster: [1, 6] },
+  { id: "c10", disc: "crossfit",   trainer: 4, loc: "art", day: "wed",      start: "18:00", mins: 55, cap: 14, booked: 4,  level: "all",      roster: [3] },
+  { id: "c11", disc: "pilates",    trainer: 3, loc: "pil", day: "wed",      start: "10:00", mins: 55, cap: 8,  booked: 3,  level: "beginner", roster: [7] },
+  { id: "c12", disc: "zumba",      trainer: 5, loc: "art", day: "wed",      start: "20:30", mins: 60, cap: 30, booked: 12, level: "all",      roster: [6, 13] }
 ];
 
 const BILLING_SEED = [
-  { id: "INV-2049", date: "01 Aug 2026", desc: "Unlimited Pro — Tier 1 · Monthly", amount: 89, method: "Visa ·· 4417", status: "Paid" },
-  { id: "INV-1988", date: "01 Jul 2026", desc: "Unlimited Pro — Tier 1 · Monthly", amount: 89, method: "Visa ·· 4417", status: "Paid" },
-  { id: "INV-1922", date: "01 Jun 2026", desc: "Unlimited Pro — Tier 1 · Monthly", amount: 89, method: "Visa ·· 4417", status: "Paid" },
-  { id: "INV-1871", date: "18 May 2026", desc: "Personal training · 3 sessions",   amount: 165, method: "Visa ·· 4417", status: "Paid" },
-  { id: "INV-1860", date: "01 May 2026", desc: "Unlimited Pro — Tier 1 · Monthly", amount: 89, method: "Visa ·· 4417", status: "Paid" },
-  { id: "INV-1804", date: "01 Apr 2026", desc: "Unlimited Pro — Tier 1 · Monthly", amount: 89, method: "Visa ·· 4417", status: "Refunded" }
+  { id: "ΑΠΥ-2049", date: { el: "01 Αυγ 2026", en: "01 Aug 2026" }, desc: { el: "Group Pass · Μηνιαία", en: "Group Pass · Monthly" }, amount: 50, method: "Visa ·· 4417", status: "paid" },
+  { id: "ΑΠΥ-1988", date: { el: "01 Ιουλ 2026", en: "01 Jul 2026" }, desc: { el: "Group Pass · Μηνιαία", en: "Group Pass · Monthly" }, amount: 50, method: "Visa ·· 4417", status: "paid" },
+  { id: "ΑΠΥ-1946", date: { el: "18 Ιουν 2026", en: "18 Jun 2026" }, desc: { el: "Personal Training · 3 συνεδρίες", en: "Personal training · 3 sessions" }, amount: 135, method: "Visa ·· 4417", status: "paid" },
+  { id: "ΑΠΥ-1922", date: { el: "01 Ιουν 2026", en: "01 Jun 2026" }, desc: { el: "Group Pass · Μηνιαία", en: "Group Pass · Monthly" }, amount: 50, method: "Visa ·· 4417", status: "paid" },
+  { id: "ΑΠΥ-1860", date: { el: "01 Μαΐ 2026", en: "01 May 2026" }, desc: { el: "Group Pass · Μηνιαία", en: "Group Pass · Monthly" }, amount: 50, method: "Visa ·· 4417", status: "paid" },
+  { id: "ΑΠΥ-1804", date: { el: "01 Απρ 2026", en: "01 Apr 2026" }, desc: { el: "Basic Pass · Μηνιαία", en: "Basic Pass · Monthly" }, amount: 35, method: "Visa ·· 4417", status: "refunded" }
 ];
 
-/* Check-ins per hour, both clubs — drives the peak-hours chart */
 const HOURLY_SEED = [
-  { hour: 5,  dth: 9,  nsb: 4 },  { hour: 6,  dth: 31, nsb: 18 }, { hour: 7,  dth: 44, nsb: 26 },
-  { hour: 8,  dth: 27, nsb: 15 }, { hour: 9,  dth: 14, nsb: 9 },  { hour: 10, dth: 11, nsb: 7 },
-  { hour: 11, dth: 12, nsb: 8 },  { hour: 12, dth: 23, nsb: 13 }, { hour: 13, dth: 19, nsb: 11 },
-  { hour: 14, dth: 10, nsb: 6 },  { hour: 15, dth: 13, nsb: 8 },  { hour: 16, dth: 26, nsb: 17 },
-  { hour: 17, dth: 48, nsb: 29 }, { hour: 18, dth: 57, nsb: 34 }, { hour: 19, dth: 41, nsb: 25 },
-  { hour: 20, dth: 22, nsb: 14 }, { hour: 21, dth: 12, nsb: 6 },  { hour: 22, dth: 5,  nsb: 0 }
+  { hour: 6,  art: 28, pil: 4 },  { hour: 7,  art: 41, pil: 9 },  { hour: 8,  art: 26, pil: 12 },
+  { hour: 9,  art: 17, pil: 14 }, { hour: 10, art: 13, pil: 16 }, { hour: 11, art: 12, pil: 13 },
+  { hour: 12, art: 21, pil: 8 },  { hour: 13, art: 18, pil: 5 },  { hour: 14, art: 11, pil: 4 },
+  { hour: 15, art: 14, pil: 6 },  { hour: 16, art: 25, pil: 9 },  { hour: 17, art: 44, pil: 13 },
+  { hour: 18, art: 58, pil: 17 }, { hour: 19, art: 51, pil: 15 }, { hour: 20, art: 37, pil: 10 },
+  { hour: 21, art: 19, pil: 5 },  { hour: 22, art: 7,  pil: 0 }
 ];
 const WEEK_SEED = [
-  { day: "Mon", dth: 268, nsb: 154 }, { day: "Tue", dth: 291, nsb: 171 }, { day: "Wed", dth: 305, nsb: 166 },
-  { day: "Thu", dth: 284, nsb: 158 }, { day: "Fri", dth: 246, nsb: 139 }, { day: "Sat", dth: 198, nsb: 121 },
-  { day: "Sun", dth: 142, nsb: 88 }
+  { day: { el: "Δευ", en: "Mon" }, art: 268, pil: 74 }, { day: { el: "Τρι", en: "Tue" }, art: 291, pil: 91 },
+  { day: { el: "Τετ", en: "Wed" }, art: 305, pil: 86 }, { day: { el: "Πεμ", en: "Thu" }, art: 284, pil: 78 },
+  { day: { el: "Παρ", en: "Fri" }, art: 246, pil: 69 }, { day: { el: "Σαβ", en: "Sat" }, art: 198, pil: 41 },
+  { day: { el: "Κυρ", en: "Sun" }, art: 122, pil: 0 }
 ];
 
 const SCAN_SEED = [
-  { id: "s0", memberId: "GC-5502", name: "Hana Sato",       loc: "nsb", time: "09:40", result: "granted", reason: "Unlimited Pro — Tier 2" },
-  { id: "s1", memberId: "GC-5334", name: "Amara Nwosu",     loc: "dth", time: "08:55", result: "granted", reason: "Student Flex" },
-  { id: "s2", memberId: "GC-4987", name: "Wes Kowalczyk",   loc: "dth", time: "08:31", result: "denied",  reason: "Membership expired 34 days ago" },
-  { id: "s3", memberId: "GC-5108", name: "Priya Raghavan",  loc: "nsb", time: "07:03", result: "granted", reason: "Local Off-Peak" },
-  { id: "s4", memberId: "GC-4392", name: "Deshawn Barrett", loc: "dth", time: "06:12", result: "granted", reason: "Unlimited Pro — Tier 2" }
+  { id: "s0", memberId: "PLG-1477", loc: "art", time: "09:40", result: "granted", reasonKey: "rActive" },
+  { id: "s1", memberId: "PLG-1355", loc: "art", time: "08:55", result: "granted", reasonKey: "rActive" },
+  { id: "s2", memberId: "PLG-1604", loc: "art", time: "08:31", result: "denied",  reasonKey: "rExpired" },
+  { id: "s3", memberId: "PLG-1233", loc: "art", time: "07:03", result: "granted", reasonKey: "rExpiring" },
+  { id: "s4", memberId: "PLG-1108", loc: "art", time: "06:12", result: "granted", reasonKey: "rActive" }
 ];
 
+const DAY_KEYS = ["today", "tomorrow", "wed"];
+
 /* ============================================================================
-   3. Derived state helpers
+   4. Derived state
    ========================================================================== */
 function statusOf(m) {
   if (m.frozen) return "frozen";
@@ -273,77 +496,91 @@ function statusOf(m) {
   return "active";
 }
 const STATUS_META = {
-  active:   { label: "Active",     icon: "check-circle-2",  fg: "text-good",  bg: "bg-goodsoft" },
-  expiring: { label: "Expiring",   icon: "alert-triangle",  fg: "text-warn",  bg: "bg-warnsoft" },
-  expired:  { label: "Expired",    icon: "x-circle",        fg: "text-bad",   bg: "bg-badsoft" },
-  frozen:   { label: "Frozen",     icon: "snowflake",       fg: "text-froze", bg: "bg-frozesoft" }
+  active:   { icon: "check-circle-2", fg: "text-good",  bg: "bg-goodsoft" },
+  expiring: { icon: "alert-triangle", fg: "text-warn",  bg: "bg-warnsoft" },
+  expired:  { icon: "x-circle",       fg: "text-bad",   bg: "bg-badsoft" },
+  frozen:   { icon: "snowflake",      fg: "text-froze", bg: "bg-frozesoft" }
 };
 
-/** The access rule the door actually runs. */
+/** The rule the door actually runs — plan tier decides which space opens. */
 function evaluateAccess(member, atLoc) {
   const plan = PLANS[member.plan];
   const st = statusOf(member);
-  if (st === "expired")
-    return { ok: false, headline: "Access denied", reason: "Membership expired — renew at the desk", tag: "Expired" };
-  if (st === "frozen")
-    return { ok: false, headline: "Access denied", reason: "Account is frozen — unfreeze to check in", tag: "Frozen" };
-  if (!plan.multiClub && member.home !== atLoc)
-    return { ok: false, headline: "Access denied", reason: plan.label + " is valid at " + locName(member.home) + " only", tag: "Wrong club" };
-  if (st === "expiring")
-    return { ok: true, headline: "Access granted", reason: "Active — renews in " + member.daysLeft + " day" + (member.daysLeft === 1 ? "" : "s"), tag: "Expiring soon" };
-  if (member.home !== atLoc)
-    return { ok: true, headline: "Access granted", reason: "Cross-club access · " + plan.label, tag: "Visiting" };
-  return { ok: true, headline: "Access granted", reason: "Active membership · " + plan.label, tag: plan.label };
+  if (st === "expired") return { ok: false, reasonKey: "rExpired" };
+  if (st === "frozen")  return { ok: false, reasonKey: "rFrozen" };
+  if (atLoc === "pil" && !plan.pilates) return { ok: false, reasonKey: "rNoPilates" };
+  if (st === "expiring") return { ok: true, reasonKey: "rExpiring", days: member.daysLeft };
+  return { ok: true, reasonKey: "rActive" };
+}
+function reasonText(t, entry, member) {
+  const k = entry.reasonKey;
+  if (k === "rExpiring") {
+    const d = entry.days != null ? entry.days : (member ? member.daysLeft : 0);
+    return t("rExpiring") + " " + d + " " + t("rDays");
+  }
+  if (k === "rActive" && member) return t("rActive") + " · " + PLANS[member.plan].label[t.lang];
+  return t(k);
+}
+
+/** Can this plan book this class? */
+function canBook(member, cls) {
+  const plan = PLANS[member.plan];
+  if (DISCIPLINES[cls.disc].pilatesOnly) return plan.pilates;
+  return plan.classes;
 }
 
 const clock = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 const initials = (n) => n.split(" ").map((p) => p[0]).slice(0, 2).join("");
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const euro = (n) => "€" + n;
 
 /* ============================================================================
-   4. Primitives
+   5. Primitives
    ========================================================================== */
 function Button({ variant = "solid", size = "md", icon, iconRight, children, className = "", ...rest }) {
-  const sizes = { sm: "h-8 px-3 text-[12px] gap-1.5", md: "h-9 px-3.5 text-[13px] gap-2", lg: "h-11 px-5 text-[14px] gap-2" };
+  const sizes = { sm: "h-8 px-3 text-[11px] gap-1.5", md: "h-9 px-3.5 text-[11.5px] gap-2", lg: "h-11 px-5 text-[13px] gap-2" };
   const variants = {
-    solid:  "bg-accent text-accentink border border-accent hover:brightness-110 active:brightness-95 shadow-card",
-    quiet:  "bg-surface text-ink border border-line hover:bg-raised",
+    solid:  "bg-volt text-voltink border border-volt hover:shadow-glow active:brightness-95",
+    ember:  "bg-ember text-white border border-ember hover:brightness-110",
+    quiet:  "bg-raised text-ink border border-line hover:border-voltline hover:text-volt",
     ghost:  "bg-transparent text-dim border border-transparent hover:bg-raised hover:text-ink",
-    danger: "bg-badsoft text-bad border border-badsoft hover:brightness-105",
-    good:   "bg-goodsoft text-good border border-goodsoft hover:brightness-105"
+    danger: "bg-badsoft text-bad border border-badsoft hover:brightness-125",
+    good:   "bg-goodsoft text-good border border-goodsoft hover:brightness-125"
   };
   return (
     <button
-      className={"inline-flex items-center justify-center rounded-[6px] font-medium transition-all duration-150 disabled:opacity-45 disabled:pointer-events-none " + sizes[size] + " " + variants[variant] + " " + className}
+      className={"display font-bold uppercase tracking-[.08em] inline-flex items-center justify-center rounded-[6px] transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none " +
+        sizes[size] + " " + variants[variant] + " " + className}
       {...rest}
     >
-      {icon && <Icon name={icon} size={size === "lg" ? 17 : 15} />}
+      {icon && <Icon name={icon} size={size === "lg" ? 17 : 14} strokeWidth={2.3} />}
       {children}
-      {iconRight && <Icon name={iconRight} size={size === "lg" ? 17 : 15} />}
+      {iconRight && <Icon name={iconRight} size={size === "lg" ? 17 : 14} strokeWidth={2.3} />}
     </button>
   );
 }
 
 function StatusPill({ status, size = "md" }) {
+  const { t } = useL();
   const m = STATUS_META[status];
-  const pad = size === "sm" ? "h-5 px-1.5 text-[10px] gap-1" : "h-6 px-2 text-[11px] gap-1.5";
+  const pad = size === "sm" ? "h-5 px-1.5 text-[10px] gap-1" : "h-6 px-2 text-[10.5px] gap-1.5";
   return (
-    <span className={"inline-flex items-center rounded-full font-semibold whitespace-nowrap " + pad + " " + m.bg + " " + m.fg}>
-      <Icon name={m.icon} size={size === "sm" ? 11 : 12} strokeWidth={2.4} />{m.label}
+    <span className={"display font-bold uppercase tracking-[.06em] inline-flex items-center rounded-full whitespace-nowrap " + pad + " " + m.bg + " " + m.fg}>
+      <Icon name={m.icon} size={size === "sm" ? 11 : 12} strokeWidth={2.6} />{t(status)}
     </span>
   );
 }
 
 function Card({ children, className = "", as: Tag = "div", ...rest }) {
-  return <Tag className={"bg-surface border border-line rounded-[10px] shadow-card " + className} {...rest}>{children}</Tag>;
+  return <Tag className={"bg-surface border border-line rounded-[12px] shadow-card inner-top " + className} {...rest}>{children}</Tag>;
 }
 
 function SectionTitle({ children, hint, action }) {
   return (
     <div className="flex items-end justify-between gap-4 mb-3">
       <div>
-        <h2 className="display text-[17px] font-bold tracking-tight">{children}</h2>
-        {hint && <p className="text-[12px] text-dim mt-0.5">{hint}</p>}
+        <h2 className="display text-[15px] font-bold uppercase tracking-[.04em]">{children}</h2>
+        {hint && <p className="text-[12px] text-dim mt-0.5 normal-case">{hint}</p>}
       </div>
       {action}
     </div>
@@ -359,13 +596,11 @@ function Field({ label, children, hint }) {
     </label>
   );
 }
-const inputCls = "w-full h-9 px-3 bg-raised border border-line rounded-[6px] text-[13px] placeholder:text-mute focus:border-accent transition-colors";
-const selectCls = inputCls + " pr-8 cursor-pointer";
-
+const inputCls = "w-full h-9 px-3 bg-sunk border border-line rounded-[6px] text-[13px] focus:border-volt transition-colors";
 function Select({ children, ...rest }) {
   return (
     <div className="relative">
-      <select className={selectCls} {...rest}>{children}</select>
+      <select className={inputCls + " pr-8 cursor-pointer"} {...rest}>{children}</select>
       <Icon name="chevron-down" size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-mute pointer-events-none" />
     </div>
   );
@@ -381,21 +616,21 @@ function Modal({ open, onClose, title, subtitle, icon, children, footer, width =
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
-      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] a-fade" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-[3px] a-fade" onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={title}
-        className={"relative w-full " + width + " bg-surface border border-line rounded-t-[14px] sm:rounded-[12px] shadow-lift a-rise max-h-[92vh] flex flex-col"}>
+        className={"relative w-full " + width + " bg-surface border border-line rounded-t-[16px] sm:rounded-[14px] shadow-lift a-rise max-h-[92vh] flex flex-col"}>
         <div className="flex items-start gap-3 p-4 border-b border-linesoft">
-          {icon && <span className="w-8 h-8 rounded-[6px] bg-accentsoft text-accent grid place-items-center mt-0.5"><Icon name={icon} size={16} /></span>}
+          {icon && <span className="w-8 h-8 rounded-[7px] bg-voltsoft text-volt grid place-items-center mt-0.5 border border-voltline"><Icon name={icon} size={16} /></span>}
           <div className="flex-1 min-w-0">
-            <h3 className="display text-[15px] font-bold">{title}</h3>
-            {subtitle && <p className="text-[12px] text-dim mt-0.5">{subtitle}</p>}
+            <h3 className="display text-[14px] font-bold uppercase tracking-[.05em]">{title}</h3>
+            {subtitle && <p className="text-[12px] text-dim mt-1">{subtitle}</p>}
           </div>
           <button onClick={onClose} aria-label="Close" className="w-7 h-7 grid place-items-center rounded-[6px] text-mute hover:text-ink hover:bg-raised transition-colors">
             <Icon name="x" size={16} />
           </button>
         </div>
         <div className="p-4 overflow-y-auto scroll-thin">{children}</div>
-        {footer && <div className="p-4 border-t border-linesoft flex justify-end gap-2 bg-raised rounded-b-[12px]">{footer}</div>}
+        {footer && <div className="p-4 border-t border-linesoft flex justify-end gap-2 bg-raised rounded-b-[14px]">{footer}</div>}
       </div>
     </div>
   );
@@ -403,12 +638,12 @@ function Modal({ open, onClose, title, subtitle, icon, children, footer, width =
 
 function Toasts({ items, onDismiss }) {
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-[min(94vw,380px)] pointer-events-none">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-[min(94vw,400px)] pointer-events-none">
       {items.map((t) => (
         <div key={t.id} onClick={() => onDismiss(t.id)}
-          className="pointer-events-auto a-rise flex items-start gap-2.5 px-3.5 py-2.5 rounded-[8px] bg-surface border border-line shadow-lift cursor-pointer">
+          className="pointer-events-auto a-rise flex items-start gap-2.5 px-3.5 py-2.5 rounded-[9px] bg-raised border border-line shadow-lift cursor-pointer">
           <Icon name={t.tone === "bad" ? "alert-circle" : t.tone === "warn" ? "alert-triangle" : "check-circle-2"} size={16}
-            className={t.tone === "bad" ? "text-bad mt-0.5" : t.tone === "warn" ? "text-warn mt-0.5" : "text-good mt-0.5"} />
+            className={(t.tone === "bad" ? "text-bad" : t.tone === "warn" ? "text-warn" : "text-volt") + " mt-0.5"} />
           <div className="min-w-0">
             <p className="text-[13px] font-semibold leading-snug">{t.title}</p>
             {t.body && <p className="text-[12px] text-dim leading-snug mt-0.5">{t.body}</p>}
@@ -419,9 +654,9 @@ function Toasts({ items, onDismiss }) {
   );
 }
 
-function Meter({ value, max, tone = "accent", height = "h-1.5" }) {
+function Meter({ value, max, tone = "volt", height = "h-1.5" }) {
   const p = Math.min(100, pct(value, max));
-  const bar = { accent: "bg-accent", good: "bg-good", warn: "bg-warn", bad: "bg-bad", s1: "bg-s1", s2: "bg-s2" }[tone];
+  const bar = { volt: "bg-volt", good: "bg-good", warn: "bg-warn", bad: "bg-bad", ember: "bg-ember", s1: "bg-s1", s2: "bg-s2" }[tone];
   return (
     <div className={"w-full rounded-full bg-grid overflow-hidden " + height} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
       <div className={"h-full rounded-full transition-all duration-500 " + bar} style={{ width: p + "%" }} />
@@ -429,8 +664,15 @@ function Meter({ value, max, tone = "accent", height = "h-1.5" }) {
   );
 }
 
+function Avatar({ name, size = 32 }) {
+  return (
+    <span className="rounded-full bg-raised border border-line grid place-items-center display font-bold shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.34 }}>{initials(name)}</span>
+  );
+}
+
 /* ============================================================================
-   5. Rotating door pass — canvas QR built from the live token
+   6. Door pass — rotating token + canvas QR
    ========================================================================== */
 function hashSeed(str) {
   let h = 2166136261;
@@ -444,10 +686,10 @@ function rng(seed) {
 function makeToken() {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const block = () => Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
-  return [block(), block(), block(), block()].join("-");
+  return ["PLG", block(), block(), block()].join("-");
 }
 
-function QrCode({ token, px = 196 }) {
+function QrCode({ token, px = 190 }) {
   const ref = useRef(null);
   useEffect(() => {
     const cv = ref.current;
@@ -458,95 +700,91 @@ function QrCode({ token, px = 196 }) {
     const ctx = cv.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, px, px);
-    ctx.fillStyle = "#0B0E12";
+    ctx.fillStyle = "#07080A";
     const rand = rng(hashSeed(token));
     const isFinder = (x, y) =>
       (x < 7 && y < 7) || (x >= N - 7 && y < 7) || (x < 7 && y >= N - 7) ||
       (x >= N - 9 && x <= N - 5 && y >= N - 9 && y <= N - 5);
-    const dot = (x, y, on) => {
-      if (!on) return;
-      ctx.fillRect((x + quiet) * cell, (y + quiet) * cell, cell * 0.92, cell * 0.92);
-    };
+    const dot = (x, y, on) => { if (on) ctx.fillRect((x + quiet) * cell, (y + quiet) * cell, cell * 0.92, cell * 0.92); };
     for (let y = 0; y < N; y++)
       for (let x = 0; x < N; x++)
         if (!isFinder(x, y)) dot(x, y, rand() > 0.52);
-    // timing lines + finder eyes, drawn as real QR anatomy
     for (let i = 8; i < N - 8; i++) { dot(i, 6, i % 2 === 0); dot(6, i, i % 2 === 0); }
     const eye = (ox, oy, size) => {
       ctx.fillRect((ox + quiet) * cell, (oy + quiet) * cell, cell * size, cell * size);
       ctx.fillStyle = "#FFFFFF";
       ctx.fillRect((ox + 1 + quiet) * cell, (oy + 1 + quiet) * cell, cell * (size - 2), cell * (size - 2));
-      ctx.fillStyle = "#0B0E12";
+      ctx.fillStyle = "#07080A";
       ctx.fillRect((ox + 2 + quiet) * cell, (oy + 2 + quiet) * cell, cell * (size - 4), cell * (size - 4));
     };
     eye(0, 0, 7); eye(N - 7, 0, 7); eye(0, N - 7, 7); eye(N - 9, N - 9, 5);
   }, [token, px]);
-  return <canvas ref={ref} style={{ width: px, height: px }} className="block rounded-[4px]" aria-label="Door pass QR code" role="img" />;
+  return <canvas ref={ref} style={{ width: px, height: px }} className="block rounded-[3px]" aria-label="Access pass QR" role="img" />;
 }
 
 const TOKEN_TTL = 15;
 
 function MembershipPass({ me, lastScan }) {
+  const { t, tx } = useL();
   const [token, setToken] = useState(makeToken);
   const [left, setLeft] = useState(TOKEN_TTL);
   const plan = PLANS[me.plan];
   const status = statusOf(me);
+  const loc = LOCATIONS.find((l) => l.id === me.home);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setLeft((v) => {
-        if (v <= 1) { setToken(makeToken()); return TOKEN_TTL; }
-        return v - 1;
-      });
+    const id = setInterval(() => {
+      setLeft((v) => { if (v <= 1) { setToken(makeToken()); return TOKEN_TTL; } return v - 1; });
     }, 1000);
-    return () => clearInterval(t);
+    return () => clearInterval(id);
   }, []);
-  const refreshNow = () => { setToken(makeToken()); setLeft(TOKEN_TTL); };
   const ring = 2 * Math.PI * 13;
 
   return (
     <div className="space-y-3">
-      <Card className="overflow-hidden">
-        <div className="h-1.5 tape-edge" />
+      <Card className="overflow-hidden relative">
+        <div className="h-1 hazard opacity-90" />
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="eyebrow text-mute">Door pass</p>
-              <h1 className="display text-[26px] leading-tight font-extrabold mt-1">{me.name}</h1>
-              <p className="mono text-[11px] text-mute mt-1">{me.id} · member since {new Date(me.joined).getFullYear()}</p>
+              <p className="eyebrow text-volt">{t("doorPass")}</p>
+              <h1 className="display text-[24px] leading-tight font-extrabold mt-1.5">{tx(me.name)}</h1>
+              <p className="mono text-[11px] text-mute mt-1">{me.id} · {t("memberSince")} {new Date(me.joined).getFullYear()}</p>
             </div>
             <StatusPill status={status} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div className="rounded-[8px] border border-line bg-raised px-3 py-2.5">
-              <p className="eyebrow text-mute">Active branch</p>
-              <p className="text-[13px] font-semibold mt-1 flex items-center gap-1.5"><Icon name="map-pin" size={13} className="text-accent" />{locName(me.home)}</p>
+          <div className="grid grid-cols-2 gap-2.5 mt-4">
+            <div className="rounded-[9px] border border-line bg-raised px-3 py-2.5">
+              <p className="eyebrow text-mute">{t("activeBranch")}</p>
+              <p className="text-[12.5px] font-semibold mt-1 flex items-center gap-1.5"><Icon name="map-pin" size={13} className="text-volt" />{tx(loc.tag)}</p>
             </div>
-            <div className="rounded-[8px] border border-line bg-raised px-3 py-2.5">
-              <p className="eyebrow text-mute">Membership</p>
-              <p className="text-[13px] font-semibold mt-1 flex items-center gap-1.5"><Icon name="shield-check" size={13} className="text-accent" />{plan.label}</p>
+            <div className="rounded-[9px] border border-line bg-raised px-3 py-2.5">
+              <p className="eyebrow text-mute">{t("membershipLabel")}</p>
+              <p className="text-[12.5px] font-semibold mt-1 flex items-center gap-1.5"><Icon name="shield-check" size={13} className="text-volt" />{tx(plan.label)}</p>
             </div>
           </div>
 
           <div className="mt-5 flex flex-col items-center">
-            <button onClick={refreshNow} className="relative group" aria-label="Refresh pass code now">
-              <span className="absolute inset-0 rounded-[10px] border-2 border-accent a-ring" />
-              <span className="absolute inset-0 rounded-[10px] border-2 border-accent a-ring" style={{ animationDelay: "1.2s" }} />
-              <span className="relative block p-3 bg-white rounded-[10px] border border-line shadow-lift transition-transform group-hover:scale-[1.015]">
+            <button onClick={() => { setToken(makeToken()); setLeft(TOKEN_TTL); }} className="relative group" aria-label={t("tapRefresh")}>
+              <span className="absolute inset-0 rounded-[12px] border-2 border-volt a-ring" />
+              <span className="absolute inset-0 rounded-[12px] border-2 border-volt a-ring" style={{ animationDelay: "1.2s" }} />
+              <span className="relative block p-3 bg-white rounded-[12px] shadow-lift transition-transform group-hover:scale-[1.015]">
                 <QrCode token={token} />
               </span>
             </button>
 
-            <div className="flex items-center gap-2.5 mt-4">
+            <p className="eyebrow text-mute mt-3.5 text-center">{t("accessPass")}</p>
+
+            <div className="flex items-center gap-2.5 mt-2.5">
               <svg width="30" height="30" viewBox="0 0 30 30" className="-rotate-90" aria-hidden="true">
                 <circle cx="15" cy="15" r="13" fill="none" stroke="var(--grid)" strokeWidth="3" />
-                <circle cx="15" cy="15" r="13" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round"
+                <circle cx="15" cy="15" r="13" fill="none" stroke="var(--volt)" strokeWidth="3" strokeLinecap="round"
                   strokeDasharray={ring} strokeDashoffset={ring * (1 - left / TOKEN_TTL)} style={{ transition: "stroke-dashoffset 1s linear" }} />
               </svg>
               <div>
-                <p className="mono text-[13px] font-semibold tracking-[.12em]">{token}</p>
-                <p className="text-[11px] text-dim">Rotates in {left}s · tap the code to refresh</p>
+                <p className="mono text-[12.5px] font-semibold tracking-[.1em] text-volt">{token}</p>
+                <p className="text-[11px] text-dim">{t("rotatesIn")} {left}s · {t("tapRefresh")}</p>
               </div>
             </div>
           </div>
@@ -556,30 +794,30 @@ function MembershipPass({ me, lastScan }) {
           {lastScan ? (
             <>
               <Icon name={lastScan.result === "granted" ? "door-open" : "door-closed"} size={14} className={lastScan.result === "granted" ? "text-good" : "text-bad"} />
-              <span className={lastScan.result === "granted" ? "text-good font-semibold" : "text-bad font-semibold"}>
-                {lastScan.result === "granted" ? "Checked in" : "Entry refused"}
+              <span className={"display font-bold uppercase text-[11px] tracking-[.06em] " + (lastScan.result === "granted" ? "text-good" : "text-bad")}>
+                {lastScan.result === "granted" ? t("checkedIn") : t("entryRefused")}
               </span>
-              <span className="text-dim">{locName(lastScan.loc)} · {lastScan.time}</span>
+              <span className="text-dim">{tx(LOCATIONS.find((l) => l.id === lastScan.loc).tag)} · {lastScan.time}</span>
             </>
           ) : (
             <>
               <Icon name="scan-line" size={14} className="text-mute" />
-              <span className="text-dim">Hold the code to the turnstile reader at either club.</span>
+              <span className="text-dim">{t("holdCode")}</span>
             </>
           )}
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2.5">
         {[
-          { icon: "flame", label: "Visits", value: me.visits },
-          { icon: "calendar-check", label: "Days left", value: me.daysLeft },
-          { icon: "users", label: "Guest passes", value: plan.multiClub ? 2 : 0 }
+          { icon: "flame", label: t("visits"), value: me.visits },
+          { icon: "calendar-check", label: t("daysLeftShort"), value: me.daysLeft },
+          { icon: "users", label: t("guestPasses"), value: plan.pilates ? 2 : 0 }
         ].map((s) => (
           <Card key={s.label} className="p-3">
-            <Icon name={s.icon} size={15} className="text-accent" />
-            <p className="display text-[20px] font-bold mt-1.5 tnum">{s.value}</p>
-            <p className="text-[11px] text-dim">{s.label}</p>
+            <Icon name={s.icon} size={15} className="text-volt" />
+            <p className="display text-[21px] font-extrabold mt-1.5 tnum">{s.value}</p>
+            <p className="text-[11px] text-dim leading-tight">{s.label}</p>
           </Card>
         ))}
       </div>
@@ -588,53 +826,98 @@ function MembershipPass({ me, lastScan }) {
 }
 
 /* ============================================================================
-   6. Client — class schedule & booking
+   7. Announcements — the up-sell surface
    ========================================================================== */
-function ClassRow({ cls, onToggle, mine }) {
+function Announcements({ onPtRequest }) {
+  const { t } = useL();
+  return (
+    <Card className="overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-linesoft flex items-center gap-2">
+        <Icon name="megaphone" size={14} className="text-volt" />
+        <h3 className="display text-[12px] font-bold uppercase tracking-[.1em]">{t("announcements")}</h3>
+      </div>
+
+      <div className="relative p-4 bg-embersoft border-b border-emberline overflow-hidden">
+        <span className="absolute inset-y-0 -left-1/3 w-1/3 bg-white/5 skew-x-12 a-shine pointer-events-none" />
+        <div className="relative flex items-start gap-3">
+          <span className="w-9 h-9 rounded-[8px] bg-ember text-white grid place-items-center shrink-0"><Icon name="zap" size={17} strokeWidth={2.4} /></span>
+          <div className="min-w-0">
+            <span className="display text-[9.5px] font-bold uppercase tracking-[.14em] text-ember">{t("offerTag")}</span>
+            <h4 className="display text-[15px] font-extrabold leading-tight mt-1">{t("ptTitle")}</h4>
+            <p className="text-[12px] text-dim mt-1.5 leading-snug">{t("ptBody")}</p>
+            <Button variant="ember" size="sm" icon="calendar-plus" className="mt-3" onClick={onPtRequest}>{t("ptCta")}</Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 flex items-start gap-3">
+        <span className="w-9 h-9 rounded-[8px] bg-voltsoft border border-voltline text-volt grid place-items-center shrink-0"><Icon name="activity" size={16} /></span>
+        <div className="min-w-0">
+          <span className="display text-[9.5px] font-bold uppercase tracking-[.14em] text-volt">{t("newsTag")}</span>
+          <h4 className="display text-[13.5px] font-bold leading-tight mt-1">{t("inbodyTitle")}</h4>
+          <p className="text-[12px] text-dim mt-1 leading-snug">{t("inbodyBody")}</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/* ============================================================================
+   8. Client — class schedule & booking
+   ========================================================================== */
+const classTitle = (cls, tx) => (cls.name ? tx(cls.name) : tx(DISCIPLINES[cls.disc].label));
+
+function ClassRow({ cls, mine, allowed, onToggle, onUpgrade, trainerName }) {
+  const { t, tx } = useL();
   const full = cls.booked >= cls.cap && !mine;
   const spotsLeft = Math.max(0, cls.cap - cls.booked);
-  const fillTone = full ? "bad" : cls.booked / cls.cap > 0.8 ? "warn" : "accent";
+  const fillTone = full ? "bad" : cls.booked / cls.cap > 0.8 ? "warn" : "volt";
+  const loc = LOCATIONS.find((l) => l.id === cls.loc);
+
   return (
-    <Card className="p-3.5">
+    <Card className={"p-3.5 transition-colors " + (mine ? "border-voltline" : "")}>
       <div className="flex items-start gap-3">
-        <span className="w-9 h-9 rounded-[7px] bg-raised border border-line grid place-items-center text-accent shrink-0">
-          <Icon name={disciplineIcon(cls.discipline)} size={17} />
+        <span className={"w-9 h-9 rounded-[8px] grid place-items-center shrink-0 border " +
+          (mine ? "bg-voltsoft border-voltline text-volt" : "bg-raised border-line text-volt")}>
+          <Icon name={DISCIPLINES[cls.disc].icon} size={17} />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="text-[14px] font-semibold leading-tight truncate">{cls.name}</h3>
-              <p className="text-[12px] text-dim mt-0.5 truncate">{cls.trainer} · {cls.level}</p>
+              <h3 className="display text-[14px] font-bold leading-tight truncate">{classTitle(cls, tx)}</h3>
+              <p className="text-[12px] text-dim mt-0.5 truncate">{trainerName} · {tx(LEVELS[cls.level])}</p>
             </div>
             <div className="text-right shrink-0">
               <p className="mono text-[13px] font-semibold">{cls.start}</p>
-              <p className="text-[11px] text-mute">{cls.day} · {cls.mins}m</p>
+              <p className="text-[11px] text-mute">{t(cls.day)} · {cls.mins}′</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-2.5 text-[11px]">
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
             <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-raised border border-line text-dim">
-              <Icon name="map-pin" size={10} />{locName(cls.loc)}
+              <Icon name="map-pin" size={10} />{tx(loc.tag)}
             </span>
-            <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-raised border border-line text-dim">
-              <Icon name={disciplineIcon(cls.discipline)} size={10} />{cls.discipline}
-            </span>
-            {mine && <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-accentsoft text-accent font-semibold"><Icon name="check" size={10} strokeWidth={3} />Booked</span>}
+            {mine && <span className="display inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-voltsoft text-volt font-bold uppercase tracking-[.06em] text-[9.5px]"><Icon name="check" size={10} strokeWidth={3} />{t("bookedTag")}</span>}
+            {!allowed && <span className="display inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-embersoft text-ember font-bold uppercase tracking-[.06em] text-[9.5px]"><Icon name="lock" size={10} />{t("upgrade")}</span>}
           </div>
 
-          <div className="flex items-center gap-3 mt-3">
+          <div className="flex items-end gap-3 mt-3">
             <div className="flex-1">
               <div className="flex items-center justify-between text-[11px] mb-1">
-                <span className="mono text-dim">{cls.booked}/{cls.cap} spots filled</span>
+                <span className="mono text-dim">{cls.booked}/{cls.cap} {t("spotsFilled")}</span>
                 <span className={full ? "text-bad font-semibold" : spotsLeft <= 3 ? "text-warn font-semibold" : "text-dim"}>
-                  {full ? "Waitlist only" : spotsLeft + " left"}
+                  {full ? t("waitlistOnly") : spotsLeft + " " + t("left")}
                 </span>
               </div>
               <Meter value={cls.booked} max={cls.cap} tone={fillTone} />
             </div>
-            <Button size="sm" variant={mine ? "quiet" : full ? "quiet" : "solid"} icon={mine ? "x" : full ? "clock" : "plus"} onClick={() => onToggle(cls.id)}>
-              {mine ? "Cancel" : full ? "Waitlist" : "Book spot"}
-            </Button>
+            {allowed ? (
+              <Button size="sm" variant={mine || full ? "quiet" : "solid"} icon={mine ? "x" : full ? "clock" : "plus"} onClick={() => onToggle(cls.id)}>
+                {mine ? t("cancel") : full ? t("waitlist") : t("book")}
+              </Button>
+            ) : (
+              <Button size="sm" variant="ember" icon="arrow-up-right" onClick={() => onUpgrade(cls)}>{t("upgrade")}</Button>
+            )}
           </div>
         </div>
       </div>
@@ -642,62 +925,68 @@ function ClassRow({ cls, onToggle, mine }) {
   );
 }
 
-function ClientClasses({ classes, myBookings, onToggle }) {
+function ClientClasses({ me, classes, myBookings, onToggle, onUpgrade }) {
+  const { t, tx } = useL();
   const [loc, setLoc] = useState("all");
   const [disc, setDisc] = useState("all");
   const [q, setQ] = useState("");
 
-  const shown = useMemo(() => classes.filter((c) =>
-    (loc === "all" || c.loc === loc) &&
-    (disc === "all" || c.discipline === disc) &&
-    (q.trim() === "" || (c.name + c.trainer).toLowerCase().includes(q.trim().toLowerCase()))
-  ), [classes, loc, disc, q]);
+  const shown = useMemo(() => classes.filter((c) => {
+    const hay = (classTitle(c, tx) + " " + tx(TRAINERS[c.trainer])).toLowerCase();
+    return (loc === "all" || c.loc === loc) &&
+      (disc === "all" || c.disc === disc) &&
+      (q.trim() === "" || hay.includes(q.trim().toLowerCase()));
+  }), [classes, loc, disc, q, tx]);
 
-  const grouped = useMemo(() => {
-    const order = ["Today", "Tomorrow", "Wed"];
-    return order.map((d) => ({ day: d, items: shown.filter((c) => c.day === d) })).filter((g) => g.items.length);
-  }, [shown]);
+  const grouped = useMemo(
+    () => DAY_KEYS.map((d) => ({ day: d, items: shown.filter((c) => c.day === d) })).filter((g) => g.items.length),
+    [shown]
+  );
 
   const chip = (active) =>
-    "h-7 px-2.5 rounded-full text-[12px] font-medium border transition-colors " +
-    (active ? "bg-accent text-accentink border-accent" : "bg-surface text-dim border-line hover:text-ink");
+    "display h-7 px-2.5 rounded-full text-[11px] font-bold uppercase tracking-[.06em] border transition-colors " +
+    (active ? "bg-volt text-voltink border-volt" : "bg-surface text-dim border-line hover:text-ink hover:border-voltline");
 
   return (
     <div className="space-y-3">
       <Card className="p-3 space-y-2.5">
         <div className="relative">
           <Icon name="search" size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-mute" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search classes or trainers"
-            className={inputCls + " pl-8"} aria-label="Search classes" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("searchClasses")}
+            className={inputCls + " pl-8"} aria-label={t("searchClasses")} />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <button className={chip(loc === "all")} onClick={() => setLoc("all")}>Both clubs</button>
-          {LOCATIONS.map((l) => <button key={l.id} className={chip(loc === l.id)} onClick={() => setLoc(l.id)}>{l.name}</button>)}
-          <span className="w-px bg-line mx-1 my-1" />
-          <button className={chip(disc === "all")} onClick={() => setDisc("all")}>All</button>
-          {Object.keys(DISCIPLINES).map((d) => <button key={d} className={chip(disc === d)} onClick={() => setDisc(d)}>{d}</button>)}
+          <button className={chip(loc === "all")} onClick={() => setLoc("all")}>{t("bothClubs")}</button>
+          {LOCATIONS.map((l) => <button key={l.id} className={chip(loc === l.id)} onClick={() => setLoc(l.id)}>{tx(l.tag)}</button>)}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <button className={chip(disc === "all")} onClick={() => setDisc("all")}>{t("all")}</button>
+          {DISC_KEYS.map((d) => <button key={d} className={chip(disc === d)} onClick={() => setDisc(d)}>{tx(DISCIPLINES[d].label)}</button>)}
         </div>
       </Card>
 
       <div className="flex items-center justify-between px-1">
-        <p className="text-[12px] text-dim">{shown.length} class{shown.length === 1 ? "" : "es"} · you have {myBookings.length} booked</p>
+        <p className="text-[12px] text-dim">{shown.length} {t("classesCount")} · {t("youBooked")} {myBookings.length}</p>
         {(loc !== "all" || disc !== "all" || q) && (
-          <button onClick={() => { setLoc("all"); setDisc("all"); setQ(""); }} className="text-[12px] text-accent font-medium hover:underline">Clear filters</button>
+          <button onClick={() => { setLoc("all"); setDisc("all"); setQ(""); }} className="text-[12px] text-volt font-medium hover:underline">{t("clearFilters")}</button>
         )}
       </div>
 
       {grouped.length === 0 && (
         <Card className="p-8 text-center">
           <Icon name="calendar-x" size={22} className="text-mute mx-auto" />
-          <p className="text-[13px] font-semibold mt-2">No classes match</p>
-          <p className="text-[12px] text-dim mt-0.5">Try another club or discipline.</p>
+          <p className="display text-[13px] font-bold mt-2 uppercase tracking-[.05em]">{t("noClasses")}</p>
+          <p className="text-[12px] text-dim mt-1">{t("noClassesHint")}</p>
         </Card>
       )}
 
       {grouped.map((g) => (
         <div key={g.day} className="space-y-2">
-          <p className="eyebrow text-mute px-1 pt-1">{g.day}</p>
-          {g.items.map((c) => <ClassRow key={c.id} cls={c} mine={myBookings.includes(c.id)} onToggle={onToggle} />)}
+          <p className="eyebrow text-mute px-1 pt-1">{t(g.day)}</p>
+          {g.items.map((c) => (
+            <ClassRow key={c.id} cls={c} mine={myBookings.includes(c.id)} allowed={canBook(me, c)}
+              trainerName={tx(TRAINERS[c.trainer])} onToggle={onToggle} onUpgrade={onUpgrade} />
+          ))}
         </div>
       ))}
     </div>
@@ -705,17 +994,45 @@ function ClientClasses({ classes, myBookings, onToggle }) {
 }
 
 /* ============================================================================
-   7. Client — membership, freeze, billing
+   9. Client — membership, tiers, freeze, billing
    ========================================================================== */
-function ClientMembership({ me, onFreeze, onUnfreeze, onRenew }) {
+function PlanCard({ plan, current, currentPrice, onPick }) {
+  const { t, tx } = useL();
+  const isStepUp = plan.price > currentPrice;
+  return (
+    <div className={"rounded-[10px] border p-3 flex flex-col " + (current ? "border-volt bg-voltsoft" : "border-line bg-raised")}>
+      <div className="flex items-baseline justify-between gap-2">
+        <h4 className={"display text-[13px] font-extrabold uppercase tracking-[.04em] " + (current ? "text-volt" : "")}>{tx(plan.label)}</h4>
+        <span className="display text-[16px] font-extrabold tnum">{euro(plan.price)}</span>
+      </div>
+      <p className="text-[11.5px] text-dim mt-1 leading-snug">{tx(plan.sub)}</p>
+      <ul className="mt-2 space-y-1 flex-1">
+        {tx(plan.perks).map((p) => (
+          <li key={p} className="text-[11.5px] text-dim flex items-start gap-1.5">
+            <Icon name="check" size={11} className={current ? "text-volt mt-1" : "text-good mt-1"} strokeWidth={3} />{p}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3">
+        {current
+          ? <span className="display block text-center text-[10px] font-bold uppercase tracking-[.1em] text-volt border border-voltline rounded-[6px] py-1.5">{t("currentPlan")}</span>
+          : <Button size="sm" variant={isStepUp ? "solid" : "quiet"} className="w-full" icon={isStepUp ? "arrow-up-right" : "repeat"}
+              onClick={() => onPick(plan)}>{isStepUp ? t("upgrade") : t("changePlan")}</Button>}
+      </div>
+    </div>
+  );
+}
+
+function ClientMembership({ me, onFreeze, onUnfreeze, onRenew, onUpgradePlan }) {
+  const { t, tx } = useL();
   const [freezeOpen, setFreezeOpen] = useState(false);
   const [weeks, setWeeks] = useState(4);
   const [autoRenew, setAutoRenew] = useState(true);
   const plan = PLANS[me.plan];
   const status = statusOf(me);
-  const TERM = 90; // paid-up term the remaining-days meter is read against
+  const TERM = 90;
   const renews = new Date(Date.now() + me.daysLeft * 86400000)
-    .toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    .toLocaleDateString(t.lang === "el" ? "el-GR" : "en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   return (
     <div className="space-y-3">
@@ -723,63 +1040,62 @@ function ClientMembership({ me, onFreeze, onUnfreeze, onRenew }) {
         <Card className="p-3.5 border-froze bg-frozesoft flex items-start gap-2.5">
           <Icon name="snowflake" size={16} className="text-froze mt-0.5" />
           <div className="flex-1">
-            <p className="text-[13px] font-semibold text-froze">Membership frozen</p>
-            <p className="text-[12px] text-dim mt-0.5">Billing is paused and door access is off. Your {me.daysLeft} remaining days are held.</p>
+            <p className="display text-[12.5px] font-bold uppercase tracking-[.05em] text-froze">{t("frozenTitle")}</p>
+            <p className="text-[12px] text-dim mt-1">{t("frozenBody")}</p>
           </div>
-          <Button size="sm" variant="quiet" icon="play" onClick={onUnfreeze}>Unfreeze</Button>
+          <Button size="sm" variant="quiet" icon="play" onClick={onUnfreeze}>{t("unfreeze")}</Button>
         </Card>
       )}
 
       <Card className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="eyebrow text-mute">Current plan</p>
-            <h2 className="display text-[22px] font-extrabold mt-1">{plan.label}</h2>
-            <p className="text-[12px] text-dim mt-1">Home club · {locName(me.home)}</p>
+            <p className="eyebrow text-volt">{t("currentPlan")}</p>
+            <h2 className="display text-[22px] font-extrabold mt-1.5">{tx(plan.label)}</h2>
+            <p className="text-[12px] text-dim mt-1">{tx(plan.sub)}</p>
           </div>
           <div className="text-right">
-            <p className="display text-[22px] font-extrabold tnum">${plan.price}</p>
-            <p className="text-[11px] text-mute">per month</p>
+            <p className="display text-[24px] font-extrabold tnum">{euro(plan.price)}</p>
+            <p className="text-[11px] text-mute">{t("perMonth")}</p>
           </div>
         </div>
 
         <div className="mt-4">
           <div className="flex items-baseline justify-between mb-1.5">
-            <span className="text-[12px] text-dim">Days remaining</span>
-            <span className="mono text-[13px] font-semibold">{me.daysLeft} days</span>
+            <span className="text-[12px] text-dim">{t("daysRemaining")}</span>
+            <span className="mono text-[13px] font-semibold">{me.daysLeft} {t("days")}</span>
           </div>
-          <Meter value={Math.min(me.daysLeft, TERM)} max={TERM} tone={status === "expiring" ? "warn" : status === "expired" ? "bad" : "good"} height="h-2" />
+          <Meter value={Math.min(me.daysLeft, TERM)} max={TERM} height="h-2"
+            tone={status === "expiring" ? "warn" : status === "expired" ? "bad" : "volt"} />
           <div className="flex justify-between mt-1.5 text-[11px] text-mute">
-            <span>{TERM}-day term</span>
-            <span>{me.frozen ? "Held while frozen" : "Renews " + renews}</span>
+            <span>{t("termDays")}</span>
+            <span>{me.frozen ? t("heldFrozen") : t("renews") + " " + renews}</span>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 mt-4">
-          {plan.perks.map((p) => (
-            <span key={p} className="inline-flex items-center gap-1 h-6 px-2 rounded-full bg-raised border border-line text-[11px] text-dim">
-              <Icon name="check" size={11} className="text-good" strokeWidth={3} />{p}
-            </span>
-          ))}
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Button icon="zap" onClick={onRenew} className="flex-1">Renew 30 days</Button>
-          {!me.frozen && <Button variant="quiet" icon="snowflake" onClick={() => setFreezeOpen(true)} className="flex-1">Freeze account</Button>}
+          <Button icon="zap" onClick={onRenew} className="flex-1">{t("renew30")}</Button>
+          {!me.frozen && <Button variant="quiet" icon="snowflake" onClick={() => setFreezeOpen(true)} className="flex-1">{t("freezeAccount")}</Button>}
         </div>
       </Card>
+
+      <div className="grid sm:grid-cols-3 gap-2.5">
+        {PLAN_ORDER.map((id) => (
+          <PlanCard key={id} plan={PLANS[id]} current={id === me.plan} currentPrice={plan.price} onPick={onUpgradePlan} />
+        ))}
+      </div>
 
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            <Icon name="repeat" size={16} className="text-accent mt-0.5" />
+            <Icon name="repeat" size={16} className="text-volt mt-0.5" />
             <div>
-              <p className="text-[13px] font-semibold">Auto-renew</p>
-              <p className="text-[12px] text-dim">Charge Visa ·· 4417 on the 1st of each month.</p>
+              <p className="display text-[12.5px] font-bold uppercase tracking-[.05em]">{t("autoRenew")}</p>
+              <p className="text-[12px] text-dim mt-0.5">{t("autoRenewBody")}</p>
             </div>
           </div>
           <button role="switch" aria-checked={autoRenew} onClick={() => setAutoRenew((v) => !v)}
-            className={"w-11 h-6 rounded-full p-0.5 transition-colors shrink-0 " + (autoRenew ? "bg-accent" : "bg-grid")}>
+            className={"w-11 h-6 rounded-full p-0.5 transition-colors shrink-0 " + (autoRenew ? "bg-volt" : "bg-grid")}>
             <span className={"block w-5 h-5 rounded-full bg-white shadow transition-transform " + (autoRenew ? "translate-x-5" : "")} />
           </button>
         </div>
@@ -787,20 +1103,20 @@ function ClientMembership({ me, onFreeze, onUnfreeze, onRenew }) {
 
       <Card>
         <div className="px-4 py-3 border-b border-linesoft flex items-center justify-between">
-          <h3 className="display text-[14px] font-bold">Billing history</h3>
-          <span className="text-[11px] text-mute mono">6 records</span>
+          <h3 className="display text-[13px] font-bold uppercase tracking-[.06em]">{t("billing")}</h3>
+          <span className="mono text-[11px] text-mute">6 {t("records")}</span>
         </div>
         <div className="divide-y divide-linesoft">
           {BILLING_SEED.map((b) => (
             <div key={b.id} className="px-4 py-2.5 flex items-center gap-3">
               <Icon name="receipt" size={15} className="text-mute" />
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium truncate">{b.desc}</p>
-                <p className="text-[11px] text-mute mono">{b.id} · {b.date} · {b.method}</p>
+                <p className="text-[13px] font-medium truncate">{tx(b.desc)}</p>
+                <p className="mono text-[11px] text-mute">{b.id} · {tx(b.date)} · {b.method}</p>
               </div>
               <div className="text-right">
-                <p className="mono text-[13px] font-semibold">${b.amount}</p>
-                <p className={"text-[11px] " + (b.status === "Paid" ? "text-good" : "text-warn")}>{b.status}</p>
+                <p className="mono text-[13px] font-semibold">{euro(b.amount)}</p>
+                <p className={"text-[11px] " + (b.status === "paid" ? "text-good" : "text-warn")}>{t(b.status)}</p>
               </div>
             </div>
           ))}
@@ -808,25 +1124,27 @@ function ClientMembership({ me, onFreeze, onUnfreeze, onRenew }) {
       </Card>
 
       <Modal open={freezeOpen} onClose={() => setFreezeOpen(false)} icon="snowflake"
-        title="Freeze membership" subtitle="Billing pauses and remaining days are held for later."
+        title={t("freezeTitle")} subtitle={t("freezeSub")}
         footer={<>
-          <Button variant="ghost" onClick={() => setFreezeOpen(false)}>Keep active</Button>
-          <Button icon="snowflake" onClick={() => { onFreeze(weeks); setFreezeOpen(false); }}>Freeze for {weeks} weeks</Button>
+          <Button variant="ghost" onClick={() => setFreezeOpen(false)}>{t("keepActive")}</Button>
+          <Button icon="snowflake" onClick={() => { onFreeze(weeks); setFreezeOpen(false); }}>{t("freezeFor")} {weeks} {t("weeks")}</Button>
         </>}>
         <div className="space-y-3">
           <div className="grid grid-cols-3 gap-2">
             {[2, 4, 8].map((w) => (
               <button key={w} onClick={() => setWeeks(w)}
-                className={"h-16 rounded-[8px] border text-center transition-colors " + (weeks === w ? "border-accent bg-accentsoft text-accent" : "border-line bg-raised text-dim hover:text-ink")}>
-                <span className="display block text-[20px] font-bold">{w}</span>
-                <span className="text-[11px]">weeks</span>
+                className={"h-16 rounded-[9px] border text-center transition-colors " + (weeks === w ? "border-volt bg-voltsoft text-volt" : "border-line bg-raised text-dim hover:text-ink")}>
+                <span className="display block text-[20px] font-extrabold">{w}</span>
+                <span className="text-[11px]">{t("weeks")}</span>
               </button>
             ))}
           </div>
-          <div className="rounded-[8px] bg-raised border border-line p-3 text-[12px] text-dim space-y-1.5">
-            <p className="flex items-start gap-2"><Icon name="info" size={13} className="text-accent mt-0.5" />Freezes over 4 weeks carry a $9 hold fee at the next billing date.</p>
-            <p className="flex items-start gap-2"><Icon name="calendar" size={13} className="text-accent mt-0.5" />Your {me.daysLeft} remaining days resume the day you unfreeze.</p>
-            <p className="flex items-start gap-2"><Icon name="scan-line" size={13} className="text-accent mt-0.5" />Door scans are refused while frozen — front desk can lift it instantly.</p>
+          <div className="rounded-[9px] bg-raised border border-line p-3 text-[12px] text-dim space-y-1.5">
+            {["freezeNote1", "freezeNote2", "freezeNote3"].map((k, i) => (
+              <p key={k} className="flex items-start gap-2">
+                <Icon name={["info", "calendar", "scan-line"][i]} size={13} className="text-volt mt-0.5" />{t(k)}
+              </p>
+            ))}
           </div>
         </div>
       </Modal>
@@ -835,7 +1153,7 @@ function ClientMembership({ me, onFreeze, onUnfreeze, onRenew }) {
 }
 
 /* ============================================================================
-   8. Staff — front-desk scanner
+   10. Staff — front-desk scanner
    ========================================================================== */
 function beep(kind, muted) {
   if (muted) return;
@@ -860,23 +1178,23 @@ function beep(kind, muted) {
   } catch (e) { /* audio unavailable — the visual indicator still fires */ }
 }
 
-function SoundBars({ active, tone }) {
+function SoundBars({ tone }) {
   return (
     <span className="inline-flex items-end gap-[3px] h-4" aria-hidden="true">
       {[0, 1, 2, 3].map((i) => (
         <span key={i} style={{ animationDelay: i * 0.09 + "s", height: "100%" }}
-          className={"w-[3px] rounded-full " + (tone === "granted" ? "bg-good" : "bg-bad") + (active ? " a-bar" : " opacity-30")} />
+          className={"w-[3px] rounded-full a-bar " + (tone === "granted" ? "bg-good" : "bg-bad")} />
       ))}
     </span>
   );
 }
 
 function Scanner({ members, atLoc, onResult, muted, setMuted, scans }) {
+  const { t, tx, lang } = useL();
   const [pick, setPick] = useState(members[0].id);
-  const [phase, setPhase] = useState("idle"); // idle | scanning | result
+  const [phase, setPhase] = useState("idle");
   const [result, setResult] = useState(null);
   const timers = useRef([]);
-
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const runScan = (memberId) => {
@@ -888,92 +1206,94 @@ function Scanner({ members, atLoc, onResult, muted, setMuted, scans }) {
       setTimeout(() => {
         const verdict = evaluateAccess(member, atLoc);
         const entry = {
-          id: "s" + Date.now(), memberId: member.id, name: member.name, loc: atLoc,
-          time: clock(), result: verdict.ok ? "granted" : "denied", reason: verdict.reason
+          id: "s" + Date.now(), memberId: member.id, loc: atLoc, time: clock(),
+          result: verdict.ok ? "granted" : "denied", reasonKey: verdict.reasonKey, days: verdict.days
         };
         setResult({ member, verdict, entry });
         setPhase("result");
         beep(verdict.ok ? "granted" : "denied", muted);
         onResult(entry);
       }, 950),
-      setTimeout(() => setPhase("idle"), 6000)
+      setTimeout(() => setPhase("idle"), 7000)
     ];
   };
-
   const randomScan = () => {
     const m = members[Math.floor(Math.random() * members.length)];
-    setPick(m.id);
-    runScan(m.id);
+    setPick(m.id); runScan(m.id);
   };
 
   const ok = result && result.verdict.ok;
-  // Set the verdict tint directly: two competing bg-* utilities would resolve by
-  // stylesheet order, not by the order they are written on the element.
+  const key = ok ? "granted" : "denied";
+  const primary = STR[lang][key];
+  const secondary = STR[lang === "el" ? "en" : "el"][key];
   const panelTone = phase === "result"
     ? { background: ok ? "var(--good-soft)" : "var(--bad-soft)", borderColor: ok ? "var(--good)" : "var(--bad)" }
     : undefined;
 
   return (
-    <div className="grid lg:grid-cols-[1fr_320px] gap-4">
-      <Card className="relative overflow-hidden transition-colors duration-300" style={panelTone}>
+    <div className="grid lg:grid-cols-[1fr_330px] gap-4">
+      <Card className="relative overflow-hidden min-w-0 transition-colors duration-300" style={panelTone}>
         <div className="px-4 py-3 border-b border-linesoft flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-[6px] bg-accentsoft text-accent grid place-items-center"><Icon name="scan-line" size={15} /></span>
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-[7px] bg-voltsoft border border-voltline text-volt grid place-items-center"><Icon name="scan-line" size={16} /></span>
             <div>
-              <p className="display text-[14px] font-bold leading-none">Turnstile reader</p>
-              <p className="text-[11px] text-mute mt-1">{locName(atLoc)} · lane 1</p>
+              <p className="display text-[13px] font-bold uppercase tracking-[.06em] leading-none">{t("reader")}</p>
+              <p className="text-[11px] text-mute mt-1">{tx(LOCATIONS.find((l) => l.id === atLoc).tag)} · {t("lane")}</p>
             </div>
           </div>
           <button onClick={() => setMuted(!muted)} aria-pressed={!muted}
-            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-[6px] border border-line bg-surface text-[12px] text-dim hover:text-ink transition-colors">
-            <Icon name={muted ? "volume-x" : "volume-2"} size={14} />{muted ? "Muted" : "Sound on"}
+            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-[6px] border border-line bg-raised text-[11.5px] text-dim hover:text-ink transition-colors">
+            <Icon name={muted ? "volume-x" : "volume-2"} size={14} />{muted ? t("soundOff") : t("soundOn")}
           </button>
         </div>
 
-        <div className="p-5 min-h-[330px] grid place-items-center text-center">
+        <div className="p-5 min-h-[340px] grid place-items-center text-center">
           {phase === "idle" && (
             <div className="a-fade">
-              <div className="relative w-28 h-28 mx-auto rounded-[12px] border-2 border-dashed border-line grid place-items-center text-mute">
+              <div className="relative w-28 h-28 mx-auto rounded-[14px] border-2 border-dashed border-line grid place-items-center text-mute">
                 <Icon name="qr-code" size={40} strokeWidth={1.4} />
               </div>
-              <p className="display text-[15px] font-bold mt-4">Waiting for a pass</p>
-              <p className="text-[12px] text-dim mt-1 max-w-xs">Pick a member and scan, or simulate whoever walks up next.</p>
+              <p className="display text-[15px] font-bold uppercase tracking-[.05em] mt-4">{t("waitingPass")}</p>
+              <p className="text-[12px] text-dim mt-1.5 max-w-xs mx-auto">{t("waitingHint")}</p>
             </div>
           )}
 
           {phase === "scanning" && (
             <div className="a-fade">
-              <div className="relative w-28 h-28 mx-auto rounded-[12px] border-2 border-accent overflow-hidden bg-raised grid place-items-center">
-                <Icon name="qr-code" size={40} strokeWidth={1.4} className="text-accent opacity-70" />
-                <span className="absolute left-0 right-0 h-[2px] bg-accent a-sweep shadow-[0_0_12px_var(--accent)]" />
+              <div className="relative w-28 h-28 mx-auto rounded-[14px] border-2 border-volt overflow-hidden bg-raised grid place-items-center">
+                <Icon name="qr-code" size={40} strokeWidth={1.4} className="text-volt opacity-60" />
+                <span className="absolute left-0 right-0 h-[2px] bg-volt a-sweep shadow-[0_0_14px_var(--volt)]" />
               </div>
-              <p className="display text-[15px] font-bold mt-4 flex items-center justify-center gap-2">
-                <Icon name="loader-2" size={15} className="a-spin" />Reading token…
+              <p className="display text-[15px] font-bold uppercase tracking-[.05em] mt-4 flex items-center justify-center gap-2">
+                <Icon name="loader-2" size={15} className="a-spin" />{t("reading")}
               </p>
-              <p className="mono text-[12px] text-dim mt-1">Verifying rotation window</p>
+              <p className="mono text-[12px] text-dim mt-1">{t("verifying")}</p>
             </div>
           )}
 
           {phase === "result" && result && (
             <div className="a-pop w-full">
-              <div className={"w-16 h-16 mx-auto rounded-full grid place-items-center " + (ok ? "bg-good text-white" : "bg-bad text-white")}>
-                <Icon name={ok ? "check" : "x"} size={34} strokeWidth={3.2} />
+              <div className={"w-16 h-16 mx-auto rounded-full grid place-items-center " + (ok ? "bg-good text-black" : "bg-bad text-black")}>
+                <Icon name={ok ? "check" : "x"} size={34} strokeWidth={3.4} />
               </div>
-              <h2 className={"display text-[30px] sm:text-[38px] font-extrabold uppercase tracking-tight mt-4 leading-none " + (ok ? "text-good" : "text-bad")}>
-                {result.verdict.headline}
+              <h2 className={"display text-[26px] sm:text-[34px] font-extrabold uppercase tracking-[-.01em] mt-4 leading-none " + (ok ? "text-good" : "text-bad")}>
+                {primary}
               </h2>
-              <p className="text-[13px] text-ink font-medium mt-2">{result.verdict.reason}</p>
+              <p className={"display text-[13px] sm:text-[15px] font-bold uppercase tracking-[.14em] mt-1.5 opacity-70 " + (ok ? "text-good" : "text-bad")}>
+                {secondary}
+              </p>
+              <p className="text-[13px] font-medium mt-2.5">{reasonText(t, result.entry, result.member)}</p>
 
               <div className="flex items-center justify-center gap-2 mt-3">
-                <SoundBars active tone={ok ? "granted" : "denied"} />
-                <span className="text-[11px] text-dim">{ok ? "Two-tone chime · turnstile released" : "Low buzzer · turnstile held"}</span>
+                <SoundBars tone={ok ? "granted" : "denied"} />
+                <span className="text-[11px] text-dim">{ok ? t("twoTone") : t("lowBuzz")}</span>
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-3 px-3 py-2.5 rounded-[8px] bg-surface border border-line text-left">
-                <span className="w-9 h-9 rounded-full bg-raised border border-line grid place-items-center display text-[12px] font-bold">{initials(result.member.name)}</span>
+              <div className="mt-5 inline-flex items-center gap-3 px-3 py-2.5 rounded-[9px] bg-surface border border-line text-left">
+                <Avatar name={tx(result.member.name)} size={36} />
                 <div>
-                  <p className="text-[13px] font-semibold leading-tight">{result.member.name}</p>
-                  <p className="mono text-[11px] text-mute">{result.member.id} · {PLANS[result.member.plan].label}</p>
+                  <p className="text-[13px] font-semibold leading-tight">{tx(result.member.name)}</p>
+                  <p className="mono text-[11px] text-mute">{result.member.id} · {tx(PLANS[result.member.plan].label)}</p>
                 </div>
                 <StatusPill status={statusOf(result.member)} size="sm" />
               </div>
@@ -982,39 +1302,42 @@ function Scanner({ members, atLoc, onResult, muted, setMuted, scans }) {
         </div>
 
         <div className="p-4 border-t border-linesoft bg-raised flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
-            <Select value={pick} onChange={(e) => setPick(e.target.value)} aria-label="Choose a member to scan">
+          <div className="flex-1 min-w-0">
+            <Select value={pick} onChange={(e) => setPick(e.target.value)} aria-label={t("chooseMember")}>
               {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name} · {m.id} · {STATUS_META[statusOf(m)].label}</option>
+                <option key={m.id} value={m.id}>{tx(m.name)} · {m.id} · {t(statusOf(m))}</option>
               ))}
             </Select>
           </div>
-          <Button icon="scan-line" onClick={() => runScan(pick)} disabled={phase === "scanning"}>Scan pass</Button>
-          <Button variant="quiet" icon="shuffle" onClick={randomScan} disabled={phase === "scanning"}>Simulate member scan</Button>
+          <Button icon="scan-line" onClick={() => runScan(pick)} disabled={phase === "scanning"}>{t("scanPass")}</Button>
+          <Button variant="quiet" icon="shuffle" onClick={randomScan} disabled={phase === "scanning"}>{t("simulate")}</Button>
         </div>
       </Card>
 
-      <Card className="flex flex-col">
+      <Card className="flex flex-col min-w-0">
         <div className="px-4 py-3 border-b border-linesoft flex items-center justify-between">
-          <h3 className="display text-[14px] font-bold">Door log</h3>
+          <h3 className="display text-[13px] font-bold uppercase tracking-[.06em]">{t("doorLog")}</h3>
           <span className="mono text-[11px] text-mute">{scans.length}</span>
         </div>
-        <div className="divide-y divide-linesoft overflow-y-auto scroll-thin max-h-[420px]">
-          {scans.map((s) => (
-            <div key={s.id} className="px-4 py-2.5 flex items-start gap-2.5">
-              <span className={"w-6 h-6 rounded-full grid place-items-center shrink-0 " + (s.result === "granted" ? "bg-goodsoft text-good" : "bg-badsoft text-bad")}>
-                <Icon name={s.result === "granted" ? "check" : "x"} size={13} strokeWidth={3} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium truncate">{s.name}</p>
-                <p className="text-[11px] text-dim truncate">{s.reason}</p>
+        <div className="divide-y divide-linesoft overflow-y-auto scroll-thin max-h-[430px]">
+          {scans.map((s) => {
+            const m = members.find((x) => x.id === s.memberId);
+            return (
+              <div key={s.id} className="px-4 py-2.5 flex items-start gap-2.5">
+                <span className={"w-6 h-6 rounded-full grid place-items-center shrink-0 " + (s.result === "granted" ? "bg-goodsoft text-good" : "bg-badsoft text-bad")}>
+                  <Icon name={s.result === "granted" ? "check" : "x"} size={13} strokeWidth={3} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-medium truncate">{m ? tx(m.name) : s.memberId}</p>
+                  <p className="text-[11px] text-dim truncate">{reasonText(t, s, m)}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="mono text-[11px]">{s.time}</p>
+                  <p className="text-[10px] text-mute">{LOCATIONS.find((l) => l.id === s.loc).short}</p>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                <p className="mono text-[11px]">{s.time}</p>
-                <p className="text-[10px] text-mute">{locShort(s.loc)}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
     </div>
@@ -1022,9 +1345,10 @@ function Scanner({ members, atLoc, onResult, muted, setMuted, scans }) {
 }
 
 /* ============================================================================
-   9. Staff — member management
+   11. Staff — member management
    ========================================================================== */
 function MemberTable({ members, onExtend, onToggleFreeze, onOpen }) {
+  const { t, tx } = useL();
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("all");
   const [status, setStatus] = useState("all");
@@ -1032,10 +1356,10 @@ function MemberTable({ members, onExtend, onToggleFreeze, onOpen }) {
   const rows = useMemo(() => members.filter((m) =>
     (loc === "all" || m.home === loc) &&
     (status === "all" || statusOf(m) === status) &&
-    (q.trim() === "" || (m.name + m.id + m.email).toLowerCase().includes(q.trim().toLowerCase()))
-  ), [members, q, loc, status]);
+    (q.trim() === "" || (tx(m.name) + m.id + m.email).toLowerCase().includes(q.trim().toLowerCase()))
+  ), [members, q, loc, status, tx]);
 
-  const th = "text-left eyebrow text-mute font-bold px-3 py-2 whitespace-nowrap";
+  const th = "text-left eyebrow text-mute px-3 py-2.5 whitespace-nowrap";
   const td = "px-3 py-2.5 align-middle";
 
   return (
@@ -1043,60 +1367,57 @@ function MemberTable({ members, onExtend, onToggleFreeze, onOpen }) {
       <div className="p-3 border-b border-linesoft flex flex-col md:flex-row gap-2 md:items-center">
         <div className="relative flex-1 min-w-0">
           <Icon name="search" size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-mute" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, member ID or email"
-            className={inputCls + " pl-8"} aria-label="Search members" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("searchMembers")}
+            className={inputCls + " pl-8"} aria-label={t("searchMembers")} />
         </div>
         <div className="flex gap-2">
-          <div className="w-40"><Select value={loc} onChange={(e) => setLoc(e.target.value)} aria-label="Filter by location">
-            <option value="all">All locations</option>
-            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          <div className="w-44"><Select value={loc} onChange={(e) => setLoc(e.target.value)} aria-label={t("allLocations")}>
+            <option value="all">{t("allLocations")}</option>
+            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{tx(l.tag)}</option>)}
           </Select></div>
-          <div className="w-36"><Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status">
-            <option value="all">Any status</option>
-            {Object.keys(STATUS_META).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+          <div className="w-36"><Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t("anyStatus")}>
+            <option value="all">{t("anyStatus")}</option>
+            {Object.keys(STATUS_META).map((s) => <option key={s} value={s}>{t(s)}</option>)}
           </Select></div>
         </div>
       </div>
 
       <div className="overflow-x-auto scroll-thin">
-        <table className="w-full min-w-[760px]">
+        <table className="w-full min-w-[820px]">
           <thead className="bg-raised">
             <tr>
-              <th className={th}>Member</th><th className={th}>Club</th><th className={th}>Plan</th>
-              <th className={th}>Status</th><th className={th}>Days left</th><th className={th}>Last scan</th>
-              <th className={th + " text-right"}>Actions</th>
+              <th className={th}>{t("colMember")}</th><th className={th}>{t("colClub")}</th><th className={th}>{t("colPlan")}</th>
+              <th className={th}>{t("colStatus")}</th><th className={th}>{t("colDays")}</th><th className={th}>{t("colLastScan")}</th>
+              <th className={th + " text-right"}>{t("colActions")}</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((m) => {
-              const st = statusOf(m);
-              return (
-                <tr key={m.id} className="border-t border-linesoft hover:bg-raised transition-colors">
-                  <td className={td}>
-                    <button onClick={() => onOpen(m)} className="flex items-center gap-2.5 text-left group">
-                      <span className="w-8 h-8 rounded-full bg-raised border border-line grid place-items-center display text-[11px] font-bold">{initials(m.name)}</span>
-                      <span className="min-w-0">
-                        <span className="block text-[13px] font-semibold truncate group-hover:text-accent transition-colors">{m.name}</span>
-                        <span className="mono block text-[11px] text-mute">{m.id}</span>
-                      </span>
-                    </button>
-                  </td>
-                  <td className={td}><span className="text-[12px] text-dim">{locName(m.home)}</span></td>
-                  <td className={td}><span className="text-[12px]">{PLANS[m.plan].label}</span></td>
-                  <td className={td}><StatusPill status={st} size="sm" /></td>
-                  <td className={td}><span className={"mono text-[13px] " + (m.daysLeft <= 7 ? "text-warn font-semibold" : "")}>{m.daysLeft}</span></td>
-                  <td className={td}><span className="text-[12px] text-dim whitespace-nowrap">{m.lastCheckIn}</span></td>
-                  <td className={td}>
-                    <div className="flex justify-end gap-1.5">
-                      <Button size="sm" variant="quiet" icon="calendar-plus" onClick={() => onExtend(m)}>Extend</Button>
-                      <Button size="sm" className="w-[96px]" variant={m.frozen ? "good" : "ghost"} icon={m.frozen ? "play" : "snowflake"} onClick={() => onToggleFreeze(m)}>
-                        {m.frozen ? "Unfreeze" : "Freeze"}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {rows.map((m) => (
+              <tr key={m.id} className="border-t border-linesoft hover:bg-raised transition-colors">
+                <td className={td}>
+                  <button onClick={() => onOpen(m)} className="flex items-center gap-2.5 text-left group">
+                    <Avatar name={tx(m.name)} />
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-semibold truncate group-hover:text-volt transition-colors">{tx(m.name)}</span>
+                      <span className="mono block text-[11px] text-mute">{m.id}</span>
+                    </span>
+                  </button>
+                </td>
+                <td className={td}><span className="text-[12px] text-dim">{tx(LOCATIONS.find((l) => l.id === m.home).tag)}</span></td>
+                <td className={td}><span className="text-[12px]">{tx(PLANS[m.plan].label)}</span></td>
+                <td className={td}><StatusPill status={statusOf(m)} size="sm" /></td>
+                <td className={td}><span className={"mono text-[13px] " + (m.daysLeft <= 7 ? "text-warn font-semibold" : "")}>{m.daysLeft}</span></td>
+                <td className={td}><span className="text-[12px] text-dim whitespace-nowrap">{tx(m.lastCheckIn)}</span></td>
+                <td className={td}>
+                  <div className="flex justify-end gap-1.5">
+                    <Button size="sm" variant="quiet" icon="calendar-plus" onClick={() => onExtend(m)}>{t("extend")}</Button>
+                    <Button size="sm" className="w-[108px]" variant={m.frozen ? "good" : "ghost"} icon={m.frozen ? "play" : "snowflake"} onClick={() => onToggleFreeze(m)}>
+                      {m.frozen ? t("unfreeze") : t("freeze")}
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -1104,13 +1425,13 @@ function MemberTable({ members, onExtend, onToggleFreeze, onOpen }) {
       {rows.length === 0 && (
         <div className="p-10 text-center">
           <Icon name="user-x" size={22} className="text-mute mx-auto" />
-          <p className="text-[13px] font-semibold mt-2">No members match</p>
-          <p className="text-[12px] text-dim mt-0.5">Clear a filter or try a different search.</p>
+          <p className="display text-[13px] font-bold uppercase tracking-[.05em] mt-2">{t("noMembers")}</p>
+          <p className="text-[12px] text-dim mt-1">{t("noMembersHint")}</p>
         </div>
       )}
 
       <div className="px-3 py-2 border-t border-linesoft flex items-center justify-between text-[11px] text-dim">
-        <span>{rows.length} of {members.length} members</span>
+        <span>{rows.length} {t("ofMembers")} {members.length} {t("membersWord")}</span>
         <span className="mono">{LOCATIONS.map((l) => l.short + " " + members.filter((m) => m.home === l.id).length).join("  ·  ")}</span>
       </div>
     </Card>
@@ -1118,18 +1439,19 @@ function MemberTable({ members, onExtend, onToggleFreeze, onOpen }) {
 }
 
 /* ============================================================================
-   10. Staff — class & capacity manager
+   12. Staff — class & capacity manager
    ========================================================================== */
 function ClassManager({ classes, onAdd, onOpenRoster, onDrop, atLoc }) {
+  const { t, tx } = useL();
   const [addOpen, setAddOpen] = useState(false);
   const [scope, setScope] = useState("all");
-  const blank = { name: "", discipline: "CrossFit", trainer: TRAINERS[0], loc: atLoc, day: "Today", start: "18:00", mins: 45, cap: 16, level: "All levels" };
+  const blank = { title: "", disc: "functional", trainer: 0, loc: atLoc, day: "today", start: "18:00", mins: 45, cap: 16, level: "all" };
   const [draft, setDraft] = useState(blank);
 
   const shown = classes.filter((c) => scope === "all" || c.loc === scope);
   const submit = () => {
-    if (!draft.name.trim()) return;
-    onAdd({ ...draft, cap: Number(draft.cap) || 1, mins: Number(draft.mins) || 45 });
+    if (!draft.title.trim()) return;
+    onAdd({ ...draft, cap: Number(draft.cap) || 1, mins: Number(draft.mins) || 45, trainer: Number(draft.trainer) });
     setDraft(blank); setAddOpen(false);
   };
 
@@ -1137,15 +1459,15 @@ function ClassManager({ classes, onAdd, onOpenRoster, onDrop, atLoc }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-1.5">
-          {[{ id: "all", name: "Both clubs" }, ...LOCATIONS].map((l) => (
+          {[{ id: "all", tag: { el: "Και οι δύο", en: "Both" } }, ...LOCATIONS].map((l) => (
             <button key={l.id} onClick={() => setScope(l.id)}
-              className={"h-8 px-3 rounded-[6px] text-[12px] font-medium border transition-colors " +
-                (scope === l.id ? "bg-accent text-accentink border-accent" : "bg-surface text-dim border-line hover:text-ink")}>
-              {l.name}
+              className={"display h-8 px-3 rounded-[6px] text-[11px] font-bold uppercase tracking-[.06em] border transition-colors " +
+                (scope === l.id ? "bg-volt text-voltink border-volt" : "bg-surface text-dim border-line hover:text-ink hover:border-voltline")}>
+              {tx(l.tag)}
             </button>
           ))}
         </div>
-        <Button icon="plus" onClick={() => { setDraft({ ...blank, loc: atLoc }); setAddOpen(true); }}>Add class</Button>
+        <Button icon="plus" onClick={() => { setDraft({ ...blank, loc: atLoc }); setAddOpen(true); }}>{t("addClass")}</Button>
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -1155,86 +1477,86 @@ function ClassManager({ classes, onAdd, onOpenRoster, onDrop, atLoc }) {
           return (
             <Card key={c.id} className="p-3.5 flex flex-col">
               <div className="flex items-start gap-2.5">
-                <span className="w-8 h-8 rounded-[7px] bg-raised border border-line grid place-items-center text-accent shrink-0">
-                  <Icon name={disciplineIcon(c.discipline)} size={15} />
+                <span className="w-8 h-8 rounded-[8px] bg-raised border border-line grid place-items-center text-volt shrink-0">
+                  <Icon name={DISCIPLINES[c.disc].icon} size={15} />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[13.5px] font-semibold leading-tight truncate">{c.name}</h3>
-                  <p className="text-[11.5px] text-dim truncate">{c.trainer}</p>
+                  <h3 className="display text-[13px] font-bold leading-tight truncate">{classTitle(c, tx)}</h3>
+                  <p className="text-[11.5px] text-dim truncate">{tx(TRAINERS[c.trainer])}</p>
                 </div>
-                <button onClick={() => onDrop(c.id)} aria-label={"Cancel " + c.name}
+                <button onClick={() => onDrop(c.id)} aria-label={t("classCancelled")}
                   className="w-7 h-7 grid place-items-center rounded-[6px] text-mute hover:text-bad hover:bg-badsoft transition-colors">
                   <Icon name="trash-2" size={14} />
                 </button>
               </div>
 
               <div className="flex flex-wrap gap-1.5 mt-2.5 text-[11px] text-dim">
-                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="clock" size={10} />{c.day} {c.start}</span>
-                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="map-pin" size={10} />{locShort(c.loc)}</span>
-                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="timer" size={10} />{c.mins}m</span>
+                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="clock" size={10} />{t(c.day)} {c.start}</span>
+                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="map-pin" size={10} />{LOCATIONS.find((l) => l.id === c.loc).short}</span>
+                <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full bg-raised border border-line"><Icon name="timer" size={10} />{c.mins}′</span>
               </div>
 
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[11px] mb-1">
-                  <span className="mono text-dim">{c.booked}/{c.cap} booked</span>
-                  <span className={full ? "text-bad font-semibold" : fill >= 80 ? "text-warn font-semibold" : "text-dim"}>{fill}% full</span>
+                  <span className="mono text-dim">{c.booked}/{c.cap} {t("bookedWord")}</span>
+                  <span className={full ? "text-bad font-semibold" : fill >= 80 ? "text-warn font-semibold" : "text-dim"}>{fill}% {t("full")}</span>
                 </div>
-                <Meter value={c.booked} max={c.cap} tone={full ? "bad" : fill >= 80 ? "warn" : "accent"} />
+                <Meter value={c.booked} max={c.cap} tone={full ? "bad" : fill >= 80 ? "warn" : "volt"} />
               </div>
 
-              <Button size="sm" variant="quiet" icon="clipboard-list" className="mt-3 w-full" onClick={() => onOpenRoster(c)}>View roster</Button>
+              <Button size="sm" variant="quiet" icon="clipboard-list" className="mt-3 w-full" onClick={() => onOpenRoster(c)}>{t("viewRoster")}</Button>
             </Card>
           );
         })}
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} icon="calendar-plus" width="max-w-lg"
-        title="Add a class" subtitle="It appears on the member schedule the moment you save."
+        title={t("addClass")} subtitle={t("classPublished")}
         footer={<>
-          <Button variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
-          <Button icon="check" onClick={submit} disabled={!draft.name.trim()}>Publish class</Button>
+          <Button variant="ghost" onClick={() => setAddOpen(false)}>{t("cancel")}</Button>
+          <Button icon="check" onClick={submit} disabled={!draft.title.trim()}>{t("publish")}</Button>
         </>}>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <Field label="Class name">
-              <input className={inputCls} value={draft.name} placeholder="e.g. Sunrise Metcon"
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+            <Field label={t("className")}>
+              <input className={inputCls} value={draft.title} placeholder="Functional Bootcamp"
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
             </Field>
           </div>
-          <Field label="Discipline">
-            <Select value={draft.discipline} onChange={(e) => setDraft({ ...draft, discipline: e.target.value })}>
-              {Object.keys(DISCIPLINES).map((d) => <option key={d}>{d}</option>)}
+          <Field label={t("discipline")}>
+            <Select value={draft.disc} onChange={(e) => setDraft({ ...draft, disc: e.target.value })}>
+              {DISC_KEYS.map((d) => <option key={d} value={d}>{tx(DISCIPLINES[d].label)}</option>)}
             </Select>
           </Field>
-          <Field label="Trainer">
+          <Field label={t("trainer")}>
             <Select value={draft.trainer} onChange={(e) => setDraft({ ...draft, trainer: e.target.value })}>
-              {TRAINERS.map((t) => <option key={t}>{t}</option>)}
+              {TRAINERS.map((tr, i) => <option key={i} value={i}>{tx(tr)}</option>)}
             </Select>
           </Field>
-          <Field label="Location">
+          <Field label={t("location")}>
             <Select value={draft.loc} onChange={(e) => setDraft({ ...draft, loc: e.target.value })}>
-              {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+              {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{tx(l.tag)}</option>)}
             </Select>
           </Field>
-          <Field label="Day">
+          <Field label={t("day")}>
             <Select value={draft.day} onChange={(e) => setDraft({ ...draft, day: e.target.value })}>
-              {["Today", "Tomorrow", "Wed"].map((d) => <option key={d}>{d}</option>)}
+              {DAY_KEYS.map((d) => <option key={d} value={d}>{t(d)}</option>)}
             </Select>
           </Field>
-          <Field label="Start time">
+          <Field label={t("startTime")}>
             <input type="time" className={inputCls} value={draft.start} onChange={(e) => setDraft({ ...draft, start: e.target.value })} />
           </Field>
-          <Field label="Length (minutes)">
+          <Field label={t("lengthMin")}>
             <input type="number" min="15" max="120" step="5" className={inputCls} value={draft.mins}
               onChange={(e) => setDraft({ ...draft, mins: e.target.value })} />
           </Field>
-          <Field label="Maximum capacity" hint="Bookings stop at this number; extras join the waitlist.">
+          <Field label={t("maxCap")} hint={t("capHint")}>
             <input type="number" min="1" max="60" className={inputCls} value={draft.cap}
               onChange={(e) => setDraft({ ...draft, cap: e.target.value })} />
           </Field>
-          <Field label="Level">
+          <Field label={t("level")}>
             <Select value={draft.level} onChange={(e) => setDraft({ ...draft, level: e.target.value })}>
-              {["All levels", "Beginner", "Intermediate", "Advanced"].map((l) => <option key={l}>{l}</option>)}
+              {Object.keys(LEVELS).map((l) => <option key={l} value={l}>{tx(LEVELS[l])}</option>)}
             </Select>
           </Field>
         </div>
@@ -1244,27 +1566,25 @@ function ClassManager({ classes, onAdd, onOpenRoster, onDrop, atLoc }) {
 }
 
 /* ============================================================================
-   11. Staff — analytics
+   13. Staff — analytics
    ========================================================================== */
 function barPath(x, y, w, h, r) {
   const rr = Math.max(0, Math.min(r, w / 2, h));
   return "M" + x + "," + (y + h) + "V" + (y + rr) + "a" + rr + "," + rr + " 0 0 1 " + rr + ",-" + rr +
          "h" + (w - 2 * rr) + "a" + rr + "," + rr + " 0 0 1 " + rr + "," + rr + "V" + (y + h) + "Z";
 }
-
 function ChartTooltip({ x, y, children }) {
   return (
-    <div className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full px-2.5 py-1.5 rounded-[6px] bg-surface border border-line shadow-lift text-[11.5px] whitespace-nowrap"
-      style={{ left: x, top: y - 8 }}>
-      {children}
-    </div>
+    <div className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full px-2.5 py-1.5 rounded-[6px] bg-raised border border-line shadow-lift text-[11.5px] whitespace-nowrap"
+      style={{ left: x, top: y - 8 }}>{children}</div>
   );
 }
 
 function PeakHoursChart({ data, scope }) {
+  const { t } = useL();
   const [hover, setHover] = useState(null);
-  const W = 720, H = 190, padL = 30, padR = 8, padT = 14, padB = 26;
-  const vals = data.map((d) => (scope === "all" ? d.dth + d.nsb : d[scope]));
+  const W = 720, H = 190, padL = 30, padR = 8, padT = 16, padB = 26;
+  const vals = data.map((d) => (scope === "all" ? d.art + d.pil : d[scope]));
   const max = Math.max(...vals, 1);
   const peakIdx = vals.indexOf(Math.max(...vals));
   const iw = (W - padL - padR) / data.length;
@@ -1273,14 +1593,13 @@ function PeakHoursChart({ data, scope }) {
 
   return (
     <div className="relative">
-      <svg viewBox={"0 0 " + W + " " + H} className="w-full h-[190px]" role="img"
-        aria-label="Check-ins by hour of day">
-        {ticks.map((t) => {
-          const y = padT + (1 - t / max) * (H - padT - padB);
+      <svg viewBox={"0 0 " + W + " " + H} className="w-full h-[190px]" role="img" aria-label={t("trafficByHour")}>
+        {ticks.map((tick) => {
+          const y = padT + (1 - tick / max) * (H - padT - padB);
           return (
-            <g key={t}>
+            <g key={tick}>
               <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="var(--grid)" strokeWidth="1" />
-              <text x={padL - 6} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="var(--mute)" className="mono">{t}</text>
+              <text x={padL - 6} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="var(--mute)" className="mono">{tick}</text>
             </g>
           );
         })}
@@ -1293,8 +1612,8 @@ function PeakHoursChart({ data, scope }) {
           return (
             <g key={d.hour} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
               <rect x={padL + i * iw} y={padT} width={iw} height={H - padT - padB} fill="transparent" />
-              <path d={barPath(x, y, bw, h, 4)} fill="var(--s1)" opacity={hover === null || hover === i ? (isPeak ? 1 : 0.72) : 0.34}
-                style={{ transition: "opacity .15s" }} />
+              <path d={barPath(x, y, bw, h, 4)} fill={isPeak ? "var(--volt)" : "var(--s1)"}
+                opacity={hover === null || hover === i ? (isPeak ? 1 : 0.78) : 0.34} style={{ transition: "opacity .15s" }} />
               {isPeak && <text x={x + bw / 2} y={y - 5} textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--ink)" className="mono">{v}</text>}
               {i % 3 === 0 && <text x={x + bw / 2} y={H - 8} textAnchor="middle" fontSize="9.5" fill="var(--mute)" className="mono">{String(d.hour).padStart(2, "0")}</text>}
             </g>
@@ -1304,8 +1623,7 @@ function PeakHoursChart({ data, scope }) {
       {hover !== null && (
         <ChartTooltip x={((padL + hover * iw + iw / 2) / W) * 100 + "%"} y={40}>
           <span className="mono font-semibold">{String(data[hover].hour).padStart(2, "0")}:00</span>
-          <span className="text-dim"> · </span>
-          <span className="mono">{vals[hover]} check-ins</span>
+          <span className="text-dim"> · </span><span className="mono">{vals[hover]}</span>
         </ChartTooltip>
       )}
     </div>
@@ -1313,9 +1631,10 @@ function PeakHoursChart({ data, scope }) {
 }
 
 function WeekChart({ data }) {
+  const { t, tx } = useL();
   const [hover, setHover] = useState(null);
   const W = 720, H = 190, padL = 34, padR = 8, padT = 20, padB = 26;
-  const max = Math.max(...data.map((d) => Math.max(d.dth, d.nsb)), 1);
+  const max = Math.max(...data.map((d) => Math.max(d.art, d.pil)), 1);
   const gw = (W - padL - padR) / data.length;
   const bw = (gw - 10) / 2;
   const ticks = [0, Math.round(max / 2), max];
@@ -1325,17 +1644,17 @@ function WeekChart({ data }) {
       <div className="flex items-center gap-4 mb-1.5">
         {LOCATIONS.map((l, i) => (
           <span key={l.id} className="inline-flex items-center gap-1.5 text-[11.5px] text-dim">
-            <span className="w-2.5 h-2.5 rounded-[2px]" style={{ background: i === 0 ? "var(--s1)" : "var(--s2)" }} />{l.name}
+            <span className="w-2.5 h-2.5 rounded-[2px]" style={{ background: i === 0 ? "var(--s1)" : "var(--s2)" }} />{tx(l.tag)}
           </span>
         ))}
       </div>
-      <svg viewBox={"0 0 " + W + " " + H} className="w-full h-[190px]" role="img" aria-label="Check-ins over the last seven days by location">
-        {ticks.map((t) => {
-          const y = padT + (1 - t / max) * (H - padT - padB);
+      <svg viewBox={"0 0 " + W + " " + H} className="w-full h-[190px]" role="img" aria-label={t("clubCompare")}>
+        {ticks.map((tick) => {
+          const y = padT + (1 - tick / max) * (H - padT - padB);
           return (
-            <g key={t}>
+            <g key={tick}>
               <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="var(--grid)" strokeWidth="1" />
-              <text x={padL - 6} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="var(--mute)" className="mono">{t}</text>
+              <text x={padL - 6} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="var(--mute)" className="mono">{tick}</text>
             </g>
           );
         })}
@@ -1343,99 +1662,104 @@ function WeekChart({ data }) {
           const base = padL + i * gw + 5;
           const last = i === data.length - 1;
           return (
-            <g key={d.day} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
+            <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
               <rect x={padL + i * gw} y={padT} width={gw} height={H - padT - padB} fill="transparent" />
-              {[["dth", "var(--s1)", 0], ["nsb", "var(--s2)", bw + 2]].map(([key, color, off]) => {
+              {[["art", "var(--s1)", 0], ["pil", "var(--s2)", bw + 2]].map(([key, color, off]) => {
                 const h = (d[key] / max) * (H - padT - padB);
                 const y = padT + (H - padT - padB - h);
                 return (
                   <g key={key}>
                     <path d={barPath(base + off, y, bw, h, 4)} fill={color} opacity={hover === null || hover === i ? 1 : 0.35} style={{ transition: "opacity .15s" }} />
-                    {last && <text x={base + off + bw / 2} y={y - 5} textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--ink)" className="mono">{d[key]}</text>}
+                    {last && d[key] > 0 && <text x={base + off + bw / 2} y={y - 5} textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--ink)" className="mono">{d[key]}</text>}
                   </g>
                 );
               })}
-              <text x={base + bw + 1} y={H - 8} textAnchor="middle" fontSize="9.5" fill="var(--mute)">{d.day}</text>
+              <text x={base + bw + 1} y={H - 8} textAnchor="middle" fontSize="9.5" fill="var(--mute)">{tx(d.day)}</text>
             </g>
           );
         })}
       </svg>
       {hover !== null && (
         <ChartTooltip x={((padL + hover * gw + gw / 2) / W) * 100 + "%"} y={54}>
-          <span className="font-semibold">{data[hover].day}</span>
-          <span className="mono block text-dim">{locShort("dth")} {data[hover].dth} · {locShort("nsb")} {data[hover].nsb}</span>
+          <span className="font-semibold">{tx(data[hover].day)}</span>
+          <span className="mono block text-dim">ART {data[hover].art} · PIL {data[hover].pil}</span>
         </ChartTooltip>
       )}
     </div>
   );
 }
 
-function MetricCard({ icon, label, value, unit, sub, tone = "accent", children }) {
-  const toneCls = { accent: "text-accent bg-accentsoft", good: "text-good bg-goodsoft", warn: "text-warn bg-warnsoft", bad: "text-bad bg-badsoft" }[tone];
+function MetricCard({ icon, label, value, sub, tone = "volt" }) {
+  const toneCls = {
+    volt: "text-volt bg-voltsoft border-voltline", good: "text-good bg-goodsoft border-goodsoft",
+    warn: "text-warn bg-warnsoft border-warnsoft", bad: "text-bad bg-badsoft border-badsoft"
+  }[tone];
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="eyebrow text-mute">{label}</span>
-        <span className={"w-7 h-7 rounded-[6px] grid place-items-center " + toneCls}><Icon name={icon} size={14} /></span>
+        <span className={"w-7 h-7 rounded-[7px] grid place-items-center border " + toneCls}><Icon name={icon} size={14} /></span>
       </div>
-      <p className="display text-[30px] font-extrabold leading-none mt-3 tnum">
-        {value}{unit && <span className="text-[15px] font-bold text-dim ml-1">{unit}</span>}
-      </p>
-      {sub && <p className="text-[11.5px] text-dim mt-1.5">{sub}</p>}
-      {children}
+      <p className="display text-[30px] font-extrabold leading-none mt-3 tnum">{value}</p>
+      {sub && <p className="text-[11.5px] text-dim mt-2">{sub}</p>}
     </Card>
   );
 }
 
 function Analytics({ members, classes, scans, checkinsToday, scope }) {
-  const active = members.filter((m) => statusOf(m) === "active" || statusOf(m) === "expiring");
-  const hourly = HOURLY_SEED;
-  const totals = hourly.map((d) => (scope === "all" ? d.dth + d.nsb : d[scope]));
-  const peak = hourly[totals.indexOf(Math.max(...totals))];
+  const { t, tx } = useL();
+  const active = members.filter((m) => ["active", "expiring"].includes(statusOf(m)));
+  const totals = HOURLY_SEED.map((d) => (scope === "all" ? d.art + d.pil : d[scope]));
+  const peak = HOURLY_SEED[totals.indexOf(Math.max(...totals))];
   const denied = scans.filter((s) => s.result === "denied").length;
   const capTotal = classes.reduce((a, c) => a + c.cap, 0);
   const bookedTotal = classes.reduce((a, c) => a + c.booked, 0);
+  const revenue = members.reduce((a, m) => a + PLANS[m.plan].price, 0);
 
   return (
     <div className="space-y-4">
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <MetricCard icon="door-open" label="Check-ins today" value={checkinsToday} sub={"+8% vs. last " + new Date().toLocaleDateString([], { weekday: "long" })} />
-        <MetricCard icon="users" label="Active memberships" value={active.length} tone="good"
-          sub={LOCATIONS.map((l) => locShort(l.id) + " " + active.filter((m) => m.home === l.id).length).join("  ·  ")} />
-        <MetricCard icon="trending-up" label="Peak hour" value={String(peak.hour).padStart(2, "0") + ":00"} tone="accent"
-          sub={(scope === "all" ? peak.dth + peak.nsb : peak[scope]) + " check-ins in that hour"} />
-        <MetricCard icon="scan-line" label="Refused scans" value={denied} tone={denied ? "bad" : "good"}
-          sub={denied ? "Expired, frozen or wrong club" : "Every scan cleared today"} />
+        <MetricCard icon="door-open" label={t("checkinsToday")} value={checkinsToday} sub={t("vsLast")} />
+        <MetricCard icon="users" label={t("activeMembers")} value={active.length} tone="good"
+          sub={LOCATIONS.map((l) => l.short + " " + active.filter((m) => m.home === l.id).length).join("  ·  ")} />
+        <MetricCard icon="trending-up" label={t("peakHour")} value={String(peak.hour).padStart(2, "0") + ":00"}
+          sub={(scope === "all" ? peak.art + peak.pil : peak[scope]) + " " + t("inThatHour")} />
+        <MetricCard icon="scan-line" label={t("refused")} value={denied} tone={denied ? "bad" : "good"}
+          sub={denied ? t("refusedHint") : t("allCleared")} />
       </div>
 
       <div className="grid xl:grid-cols-2 gap-3">
         <Card className="p-4">
-          <SectionTitle hint={scope === "all" ? "Both clubs combined · today" : locName(scope) + " · today"}>Traffic by hour</SectionTitle>
-          <PeakHoursChart data={hourly} scope={scope} />
+          <SectionTitle hint={scope === "all" ? t("bothCombined") : tx(LOCATIONS.find((l) => l.id === scope).tag) + " · " + t("today").toLowerCase()}>{t("trafficByHour")}</SectionTitle>
+          <PeakHoursChart data={HOURLY_SEED} scope={scope} />
         </Card>
         <Card className="p-4">
-          <SectionTitle hint="Door check-ins, last 7 days">Club comparison</SectionTitle>
+          <SectionTitle hint={t("last7")}>{t("clubCompare")}</SectionTitle>
           <WeekChart data={WEEK_SEED} />
         </Card>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-3">
         <Card className="p-4">
-          <span className="eyebrow text-mute">Class fill rate</span>
+          <span className="eyebrow text-mute">{t("fillRate")}</span>
           <p className="display text-[30px] font-extrabold mt-2 tnum">{pct(bookedTotal, capTotal)}%</p>
-          <p className="text-[11.5px] text-dim mb-2.5">{bookedTotal} booked of {capTotal} spots</p>
-          <Meter value={bookedTotal} max={capTotal} tone="accent" height="h-2" />
+          <p className="text-[11.5px] text-dim mb-2.5">{bookedTotal} {t("bookedOf")} {capTotal} {t("spotsWord")}</p>
+          <Meter value={bookedTotal} max={capTotal} tone="volt" height="h-2" />
         </Card>
         <Card className="p-4 sm:col-span-2">
-          <span className="eyebrow text-mute">Membership mix</span>
+          <div className="flex items-baseline justify-between">
+            <span className="eyebrow text-mute">{t("mix")}</span>
+            <span className="mono text-[12px] text-volt font-semibold">{euro(revenue)} / {t("perMonth")}</span>
+          </div>
           <div className="mt-3 space-y-2">
-            {Object.values(PLANS).map((p) => {
-              const n = members.filter((m) => m.plan === p.id).length;
+            {PLAN_ORDER.map((id) => {
+              const p = PLANS[id];
+              const n = members.filter((m) => m.plan === id).length;
               return (
-                <div key={p.id} className="flex items-center gap-3">
-                  <span className="text-[12px] w-40 shrink-0 truncate">{p.label}</span>
+                <div key={id} className="flex items-center gap-3">
+                  <span className="text-[12px] w-36 shrink-0 truncate">{tx(p.label)}</span>
                   <div className="flex-1"><Meter value={n} max={members.length} tone="s1" /></div>
-                  <span className="mono text-[12px] w-16 text-right">{n} · ${n * p.price}</span>
+                  <span className="mono text-[12px] w-20 text-right">{n} · {euro(n * p.price)}</span>
                 </div>
               );
             })}
@@ -1447,67 +1771,79 @@ function Analytics({ members, classes, scans, checkinsToday, scope }) {
 }
 
 /* ============================================================================
-   12. App shell — shared state across both views
+   14. App shell
    ========================================================================== */
-function useTheme() {
-  const [mode, setMode] = useState(() => document.documentElement.getAttribute("data-theme"));
-  const resolved = mode || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  const toggle = () => {
-    const next = resolved === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    setMode(next);
-  };
-  return [resolved, toggle];
-}
-
 function ViewSwitch({ view, setView }) {
+  const { t } = useL();
   const tab = (id, icon, label) => (
     <button key={id} onClick={() => setView(id)} aria-pressed={view === id}
-      className={"relative inline-flex items-center gap-2 h-9 px-3.5 rounded-[6px] text-[13px] font-semibold transition-colors " +
-        (view === id ? "bg-surface text-ink shadow-card" : "text-dim hover:text-ink")}>
+      className={"display font-bold uppercase tracking-[.07em] relative inline-flex items-center gap-2 h-9 px-3.5 rounded-[6px] text-[11.5px] transition-colors " +
+        (view === id ? "bg-volt text-voltink" : "text-dim hover:text-ink")}>
       <Icon name={icon} size={15} />{label}
     </button>
   );
   return (
     <div className="inline-flex items-center gap-1 p-1 rounded-[8px] bg-raised border border-line">
-      {tab("client", "smartphone", "Client portal")}
-      {tab("staff", "layout-dashboard", "Staff dashboard")}
+      {tab("client", "smartphone", t("clientPortal"))}
+      {tab("staff", "layout-dashboard", t("staffDashboard"))}
     </div>
   );
 }
 
-function ClientView({ me, classes, myBookings, onToggleBooking, lastScan, actions }) {
+function LangSwitch({ lang, setLang }) {
+  return (
+    <div className="inline-flex items-center rounded-[6px] border border-line bg-raised overflow-hidden" role="group" aria-label="Language">
+      {[["el", "ΕΛ"], ["en", "EN"]].map(([id, label]) => (
+        <button key={id} onClick={() => setLang(id)} aria-pressed={lang === id}
+          className={"display h-8 px-2.5 text-[11px] font-bold tracking-[.08em] transition-colors " +
+            (lang === id ? "bg-volt text-voltink" : "text-dim hover:text-ink")}>{label}</button>
+      ))}
+    </div>
+  );
+}
+
+function ClientView({ me, classes, myBookings, lastScan, actions }) {
+  const { t, tx } = useL();
   const [tab, setTab] = useState("pass");
   const tabs = [
-    { id: "pass", label: "Pass", icon: "qr-code" },
-    { id: "classes", label: "Classes", icon: "calendar-days" },
-    { id: "account", label: "Membership", icon: "user" }
+    { id: "pass", label: t("pass"), icon: "qr-code" },
+    { id: "classes", label: t("classes"), icon: "calendar-days" },
+    { id: "account", label: t("account"), icon: "user" }
   ];
   return (
-    <div className="relative floor-marks min-h-[calc(100vh-57px)]">
-      <div className="relative z-10 mx-auto w-full max-w-[560px] px-4 py-5">
+    <div className="relative plate min-h-[calc(100vh-57px)]">
+      <div className="relative z-10 mx-auto w-full max-w-[580px] px-4 py-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="eyebrow text-mute">Member portal</p>
-            <h1 className="display text-[19px] font-extrabold leading-tight">Good evening, {me.name.split(" ")[0]}</h1>
+            <p className="eyebrow text-mute">{t("memberPortal")}</p>
+            <h1 className="display text-[18px] font-extrabold leading-tight mt-1">{t("greeting")}, {tx(me.name).split(" ")[0]}</h1>
           </div>
-          <span className="w-10 h-10 rounded-full bg-surface border border-line grid place-items-center display text-[13px] font-bold shadow-card">{initials(me.name)}</span>
+          <Avatar name={tx(me.name)} size={40} />
         </div>
 
-        <div className="grid grid-cols-3 gap-1 p-1 rounded-[8px] bg-raised border border-line mb-4 sticky top-[65px] z-20 backdrop-blur">
-          {tabs.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} aria-pressed={tab === t.id}
-              className={"h-9 rounded-[6px] text-[12.5px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors " +
-                (tab === t.id ? "bg-surface text-ink shadow-card" : "text-dim hover:text-ink")}>
-              <Icon name={t.icon} size={14} />{t.label}
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-[9px] bg-raised border border-line mb-4 sticky top-[65px] z-20">
+          {tabs.map((tb) => (
+            <button key={tb.id} onClick={() => setTab(tb.id)} aria-pressed={tab === tb.id}
+              className={"display h-9 rounded-[6px] text-[11.5px] font-bold uppercase tracking-[.06em] inline-flex items-center justify-center gap-1.5 transition-colors " +
+                (tab === tb.id ? "bg-volt text-voltink" : "text-dim hover:text-ink")}>
+              <Icon name={tb.icon} size={14} />{tb.label}
             </button>
           ))}
         </div>
 
-        <div key={tab} className="a-fade">
-          {tab === "pass" && <MembershipPass me={me} lastScan={lastScan} />}
-          {tab === "classes" && <ClientClasses classes={classes} myBookings={myBookings} onToggle={onToggleBooking} />}
-          {tab === "account" && <ClientMembership me={me} onFreeze={actions.freeze} onUnfreeze={actions.unfreeze} onRenew={actions.renew} />}
+        <div key={tab} className="a-fade space-y-3">
+          {tab === "pass" && <>
+            <MembershipPass me={me} lastScan={lastScan} />
+            <Announcements onPtRequest={actions.requestPt} />
+          </>}
+          {tab === "classes" && (
+            <ClientClasses me={me} classes={classes} myBookings={myBookings}
+              onToggle={actions.toggleBooking} onUpgrade={actions.upgradeForClass} />
+          )}
+          {tab === "account" && (
+            <ClientMembership me={me} onFreeze={actions.freeze} onUnfreeze={actions.unfreeze}
+              onRenew={actions.renew} onUpgradePlan={actions.openUpgrade} />
+          )}
         </div>
       </div>
     </div>
@@ -1515,27 +1851,28 @@ function ClientView({ me, classes, myBookings, onToggleBooking, lastScan, action
 }
 
 const STAFF_NAV = [
-  { id: "scanner", label: "Front desk", icon: "scan-line", hint: "Scan & verify" },
-  { id: "members", label: "Members", icon: "users", hint: "Both clubs" },
-  { id: "classes", label: "Classes", icon: "calendar-days", hint: "Capacity" },
-  { id: "insights", label: "Insights", icon: "bar-chart-3", hint: "Live metrics" }
+  { id: "scanner", icon: "scan-line", label: "frontDesk", hint: "scanVerify" },
+  { id: "members", icon: "users", label: "membersNav", hint: "bothClubs" },
+  { id: "classes", icon: "calendar-days", label: "classesNav", hint: "capacity" },
+  { id: "insights", icon: "bar-chart-3", label: "insights", hint: "liveMetrics" }
 ];
 
-function StaffView(props) {
-  const { page, setPage, atLoc, setAtLoc, members, classes, scans, checkinsToday, muted, setMuted, actions } = props;
+function StaffView({ page, setPage, atLoc, setAtLoc, members, classes, scans, checkinsToday, muted, setMuted, actions }) {
+  const { t, tx } = useL();
   const [navOpen, setNavOpen] = useState(false);
   const current = STAFF_NAV.find((n) => n.id === page);
+  const loc = LOCATIONS.find((l) => l.id === atLoc);
 
   const NavList = ({ onPick }) => (
     <nav className="flex flex-col gap-0.5">
       {STAFF_NAV.map((n) => (
         <button key={n.id} onClick={() => { setPage(n.id); onPick && onPick(); }}
-          className={"relative flex items-center gap-2.5 h-10 px-3 rounded-[6px] text-[13px] font-medium transition-colors " +
-            (page === n.id ? "bg-accentsoft text-accent" : "text-dim hover:text-ink hover:bg-raised")}>
-          {page === n.id && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-accent" />}
+          className={"relative flex items-center gap-2.5 h-10 px-3 rounded-[6px] text-[13px] transition-colors " +
+            (page === n.id ? "bg-voltsoft text-volt" : "text-dim hover:text-ink hover:bg-raised")}>
+          {page === n.id && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-volt" />}
           <Icon name={n.icon} size={16} />
-          <span className="flex-1 text-left">{n.label}</span>
-          <span className="text-[10.5px] text-mute">{n.hint}</span>
+          <span className="flex-1 text-left display font-bold uppercase tracking-[.05em] text-[11.5px]">{t(n.label)}</span>
+          <span className="text-[10px] text-mute">{t(n.hint)}</span>
         </button>
       ))}
     </nav>
@@ -1543,66 +1880,57 @@ function StaffView(props) {
 
   return (
     <div className="flex min-h-[calc(100vh-57px)]">
-      <aside className="hidden lg:flex flex-col w-[232px] shrink-0 border-r border-line bg-surface p-3 gap-4">
+      <aside className="hidden lg:flex flex-col w-[244px] shrink-0 border-r border-line bg-surface p-3 gap-4">
         <div>
-          <p className="eyebrow text-mute px-3 mb-2">Operations</p>
+          <p className="eyebrow text-mute px-3 mb-2">{t("operations")}</p>
           <NavList />
         </div>
         <div className="mt-auto">
-          <p className="eyebrow text-mute px-3 mb-2">Desk location</p>
-          <div className="px-1"><Select value={atLoc} onChange={(e) => setAtLoc(e.target.value)} aria-label="Desk location">
-            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          <p className="eyebrow text-mute px-3 mb-2">{t("deskLocation")}</p>
+          <div className="px-1"><Select value={atLoc} onChange={(e) => setAtLoc(e.target.value)} aria-label={t("deskLocation")}>
+            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{tx(l.tag)}</option>)}
           </Select></div>
-          <div className="mt-3 mx-1 p-3 rounded-[8px] bg-raised border border-line">
-            {LOCATIONS.filter((l) => l.id === atLoc).map((l) => (
-              <div key={l.id} className="text-[11.5px] text-dim space-y-1">
-                <p className="flex items-center gap-1.5 text-ink font-semibold text-[12px]"><Icon name="building-2" size={13} className="text-accent" />{l.name}</p>
-                <p className="mono">{l.address}</p>
-                <p className="mono">Open {l.open} · {l.floor} floors</p>
-              </div>
-            ))}
+          <div className="mt-3 mx-1 p-3 rounded-[9px] bg-raised border border-line">
+            <p className="display flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[.04em]">
+              <Icon name="building-2" size={13} className="text-volt" />{tx(loc.tag)}
+            </p>
+            <p className="mono text-[11px] text-dim mt-1.5">{tx(loc.address)}</p>
+            <p className="mono text-[11px] text-dim">{t("open")} {loc.open}</p>
+            <p className="text-[11px] text-mute mt-1.5">{tx(loc.kind)}</p>
           </div>
         </div>
       </aside>
 
       <div className="flex-1 min-w-0">
         <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-line bg-surface">
-          <Button size="sm" variant="quiet" icon="menu" onClick={() => setNavOpen((v) => !v)}>{current.label}</Button>
-          <div className="ml-auto w-40"><Select value={atLoc} onChange={(e) => setAtLoc(e.target.value)} aria-label="Desk location">
-            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          <Button size="sm" variant="quiet" icon="menu" onClick={() => setNavOpen((v) => !v)}>{t(current.label)}</Button>
+          <div className="ml-auto flex-1 min-w-0 max-w-[220px]"><Select value={atLoc} onChange={(e) => setAtLoc(e.target.value)} aria-label={t("deskLocation")}>
+            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{tx(l.tag)}</option>)}
           </Select></div>
         </div>
         {navOpen && <div className="lg:hidden p-2 border-b border-line bg-surface a-fade"><NavList onPick={() => setNavOpen(false)} /></div>}
 
-        <div className="p-4 sm:p-5 max-w-[1180px]">
+        <div className="p-4 sm:p-5 max-w-[1200px]">
           <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
             <div>
-              <p className="eyebrow text-mute">{locName(atLoc)}</p>
-              <h1 className="display text-[22px] font-extrabold leading-tight">{current.label}</h1>
+              <p className="eyebrow text-volt">{tx(loc.name)}</p>
+              <h1 className="display text-[22px] font-extrabold leading-tight mt-1">{t(current.label)}</h1>
             </div>
             <div className="flex items-center gap-2 text-[12px] text-dim">
               <span className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-surface border border-line">
-                <span className="w-1.5 h-1.5 rounded-full bg-good" />Desk online
+                <span className="w-1.5 h-1.5 rounded-full bg-good" />{t("deskOnline")}
               </span>
               <span className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-surface border border-line mono">
-                <Icon name="door-open" size={13} className="text-accent" />{checkinsToday} today
+                <Icon name="door-open" size={13} className="text-volt" />{checkinsToday} {t("todaySuffix")}
               </span>
             </div>
           </div>
 
           <div key={page} className="a-fade">
-            {page === "scanner" && (
-              <Scanner members={members} atLoc={atLoc} onResult={actions.logScan} muted={muted} setMuted={setMuted} scans={scans} />
-            )}
-            {page === "members" && (
-              <MemberTable members={members} onExtend={actions.openExtend} onToggleFreeze={actions.toggleFreeze} onOpen={actions.openMember} />
-            )}
-            {page === "classes" && (
-              <ClassManager classes={classes} atLoc={atLoc} onAdd={actions.addClass} onOpenRoster={actions.openRoster} onDrop={actions.dropClass} />
-            )}
-            {page === "insights" && (
-              <Analytics members={members} classes={classes} scans={scans} checkinsToday={checkinsToday} scope={atLoc} />
-            )}
+            {page === "scanner" && <Scanner members={members} atLoc={atLoc} onResult={actions.logScan} muted={muted} setMuted={setMuted} scans={scans} />}
+            {page === "members" && <MemberTable members={members} onExtend={actions.openExtend} onToggleFreeze={actions.toggleFreeze} onOpen={actions.openMember} />}
+            {page === "classes" && <ClassManager classes={classes} atLoc={atLoc} onAdd={actions.addClass} onOpenRoster={actions.openRoster} onDrop={actions.dropClass} />}
+            {page === "insights" && <Analytics members={members} classes={classes} scans={scans} checkinsToday={checkinsToday} scope={atLoc} />}
           </div>
         </div>
       </div>
@@ -1611,238 +1939,271 @@ function StaffView(props) {
 }
 
 function App() {
+  const [lang, setLang] = useState("el");
   const [view, setView] = useState("client");
   const [page, setPage] = useState("scanner");
-  const [atLoc, setAtLoc] = useState("dth");
-  const [theme, toggleTheme] = useTheme();
+  const [atLoc, setAtLoc] = useState("art");
   const [muted, setMuted] = useState(false);
 
   const [members, setMembers] = useState(MEMBER_SEED);
-  const [classes, setClasses] = useState(CLASS_SEED);
+  const [classes, setClasses] = useState(() => CLASS_SEED.map((c) => ({ ...c, roster: c.roster.map((i) => MEMBER_SEED[i].id) })));
   const [scans, setScans] = useState(SCAN_SEED);
   const [toasts, setToasts] = useState([]);
   const [extendFor, setExtendFor] = useState(null);
   const [extendDays, setExtendDays] = useState(30);
   const [rosterFor, setRosterFor] = useState(null);
   const [memberFor, setMemberFor] = useState(null);
+  const [upgradeTo, setUpgradeTo] = useState(null);
+
+  const ctx = useMemo(() => {
+    const t = (k) => (STR[lang][k] !== undefined ? STR[lang][k] : (STR.en[k] !== undefined ? STR.en[k] : k));
+    t.lang = lang;
+    const tx = (v) => (v && typeof v === "object" && !Array.isArray(v) ? (v[lang] !== undefined ? v[lang] : v.en) : v);
+    return { lang, t, tx };
+  }, [lang]);
+  const { t, tx } = ctx;
 
   const me = members.find((m) => m.id === ME_ID);
-  const myBookings = useMemo(() => classes.filter((c) => c.roster.includes(me.name)).map((c) => c.id), [classes, me.name]);
+  const myBookings = useMemo(() => classes.filter((c) => c.roster.includes(ME_ID)).map((c) => c.id), [classes]);
   const lastScan = useMemo(() => scans.find((s) => s.memberId === ME_ID), [scans]);
 
-  const baseCheckins = useMemo(() => HOURLY_SEED.reduce((a, d) => a + (atLoc === "all" ? d.dth + d.nsb : d[atLoc]), 0), [atLoc]);
+  const baseCheckins = useMemo(() => HOURLY_SEED.reduce((a, d) => a + d[atLoc], 0), [atLoc]);
   const liveGrants = scans.filter((s) => s.live && s.result === "granted" && s.loc === atLoc).length;
   const checkinsToday = baseCheckins + liveGrants;
 
   const toast = useCallback((title, body, tone) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts((t) => [...t, { id, title, body, tone }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
+    setToasts((ts) => [...ts, { id, title, body, tone }]);
+    setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), 3800);
   }, []);
-  const dismiss = (id) => setToasts((t) => t.filter((x) => x.id !== id));
+  const dismiss = (id) => setToasts((ts) => ts.filter((x) => x.id !== id));
   const patchMember = (id, patch) => setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
   const actions = {
-    /* member portal */
-    freeze: (weeks) => {
-      patchMember(ME_ID, { frozen: true });
-      toast("Membership frozen", "Paused for " + weeks + " weeks — unfreeze any time.", "warn");
-    },
-    unfreeze: () => {
-      patchMember(ME_ID, { frozen: false });
-      toast("Membership active again", "Door access restored at both clubs.");
-    },
-    renew: () => {
-      patchMember(ME_ID, { daysLeft: me.daysLeft + 30 });
-      toast("Renewed 30 days", "Visa ·· 4417 charged $" + PLANS[me.plan].price + ".");
-    },
+    requestPt: () => toast(t("ptDone"), t("ptDoneBody")),
+    freeze: (weeks) => { patchMember(ME_ID, { frozen: true }); toast(t("frozenToast"), t("freezeFor") + " " + weeks + " " + t("weeks"), "warn"); },
+    unfreeze: () => { patchMember(ME_ID, { frozen: false }); toast(t("unfrozenToast"), t("unfrozenBody")); },
+    renew: () => { patchMember(ME_ID, { daysLeft: me.daysLeft + 30 }); toast(t("renewToast"), t("charged") + " " + euro(PLANS[me.plan].price)); },
     toggleBooking: (classId) => {
       setClasses((cs) => cs.map((c) => {
         if (c.id !== classId) return c;
-        const booked = c.roster.includes(me.name);
-        if (booked) {
-          toast("Booking cancelled", c.name + " · " + c.day + " " + c.start, "warn");
-          return { ...c, booked: Math.max(0, c.booked - 1), roster: c.roster.filter((n) => n !== me.name) };
+        const title = classTitle(c, tx);
+        if (c.roster.includes(ME_ID)) {
+          toast(t("cancelToast"), title + " · " + t(c.day) + " " + c.start, "warn");
+          return { ...c, booked: Math.max(0, c.booked - 1), roster: c.roster.filter((x) => x !== ME_ID) };
         }
-        if (c.booked >= c.cap) {
-          toast("Added to waitlist", c.name + " is full — you're next in line.", "warn");
-          return c;
-        }
-        toast("Spot booked", c.name + " · " + c.day + " " + c.start + " · " + locName(c.loc));
-        return { ...c, booked: c.booked + 1, roster: [...c.roster, me.name] };
+        if (c.booked >= c.cap) { toast(t("waitToast"), t("waitToastBody"), "warn"); return c; }
+        toast(t("bookedToast"), title + " · " + t(c.day) + " " + c.start);
+        return { ...c, booked: c.booked + 1, roster: [...c.roster, ME_ID] };
       }));
     },
-    /* staff */
+    upgradeForClass: (cls) => setUpgradeTo(PLANS[DISCIPLINES[cls.disc].pilatesOnly ? "premium" : "group"]),
+    openUpgrade: (plan) => setUpgradeTo(plan),
     logScan: (entry) => {
       setScans((s) => [{ ...entry, live: true }, ...s].slice(0, 40));
-      if (entry.result === "granted") patchMember(entry.memberId, { lastCheckIn: "Today · " + entry.time });
+      if (entry.result === "granted") {
+        patchMember(entry.memberId, { lastCheckIn: { el: "Σήμερα · " + entry.time, en: "Today · " + entry.time } });
+      }
     },
     openExtend: (m) => { setExtendDays(30); setExtendFor(m); },
     toggleFreeze: (m) => {
       patchMember(m.id, { frozen: !m.frozen });
-      toast(m.frozen ? "Account unfrozen" : "Account frozen", m.name + " · " + m.id, m.frozen ? "good" : "warn");
+      toast(m.frozen ? t("accountUnfrozen") : t("accountFrozen"), tx(m.name) + " · " + m.id, m.frozen ? "good" : "warn");
     },
     openMember: (m) => setMemberFor(m),
     addClass: (draft) => {
       const id = "c" + Date.now();
-      setClasses((cs) => [...cs, { ...draft, id, booked: 0, roster: [] }]);
-      toast("Class published", draft.name + " · " + draft.day + " " + draft.start + " · " + locName(draft.loc));
+      const { title, ...rest } = draft;
+      setClasses((cs) => [...cs, { ...rest, id, name: { el: title, en: title }, booked: 0, roster: [] }]);
+      toast(t("classPublished"), title + " · " + t(draft.day) + " " + draft.start);
     },
     dropClass: (id) => {
       const c = classes.find((x) => x.id === id);
       setClasses((cs) => cs.filter((x) => x.id !== id));
-      toast("Class cancelled", c.name + " — " + c.booked + " member" + (c.booked === 1 ? "" : "s") + " notified.", "warn");
+      toast(t("classCancelled"), classTitle(c, tx) + " — " + c.booked + " " + t("notified"), "warn");
     },
     openRoster: (c) => setRosterFor(c)
   };
 
+  // Greek uppercasing drops the tonos (ΜΑΘΗΜΑΤΑ, not ΜΑΘΉΜΑΤΑ) — but only when the
+  // browser knows the content language, so stamp it on the root and on our own tree.
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+
   const liveRoster = rosterFor ? classes.find((c) => c.id === rosterFor.id) : null;
+  const nameOf = (id) => { const m = members.find((x) => x.id === id); return m ? tx(m.name) : id; };
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 h-[57px] border-b border-line bg-surface backdrop-blur flex items-center gap-3 px-4">
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="w-8 h-8 rounded-[7px] bg-ink text-ground grid place-items-center">
-            <Icon name="dumbbell" size={17} strokeWidth={2.4} />
-          </span>
-          <div className="leading-none">
-            <p className="display text-[15px] font-extrabold tracking-tight">GYMCORE</p>
-            <p className="text-[10.5px] text-mute mt-0.5">2 clubs · 1 pass</p>
+    <LangCtx.Provider value={ctx}>
+      <div className="min-h-screen" lang={lang}>
+        <header className="sticky top-0 z-40 h-[57px] border-b border-line bg-surface flex items-center gap-3 px-4">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="w-9 h-9 rounded-[8px] bg-volt text-voltink grid place-items-center display text-[13px] font-extrabold tracking-tight">PL</span>
+            <div className="leading-none">
+              <p className="display text-[14px] font-extrabold uppercase tracking-[.06em]">Power Life <span className="text-volt">Gym</span></p>
+              <p className="text-[10px] text-mute mt-1">{t("brandTag")}</p>
+            </div>
           </div>
-        </div>
-
-        <div className="mx-auto"><ViewSwitch view={view} setView={setView} /></div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-raised border border-line text-[11.5px] text-dim mono">
-            <Icon name="clock" size={12} />{clock()}
-          </span>
-          <button onClick={toggleTheme} aria-label="Switch theme"
-            className="w-8 h-8 grid place-items-center rounded-[6px] border border-line bg-surface text-dim hover:text-ink transition-colors">
-            <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
-          </button>
-        </div>
-      </header>
-
-      {view === "client" ? (
-        <ClientView me={me} classes={classes} myBookings={myBookings} lastScan={lastScan}
-          onToggleBooking={actions.toggleBooking} actions={actions} />
-      ) : (
-        <StaffView page={page} setPage={setPage} atLoc={atLoc} setAtLoc={setAtLoc}
-          members={members} classes={classes} scans={scans} checkinsToday={checkinsToday}
-          muted={muted} setMuted={setMuted} actions={actions} />
-      )}
-
-      {/* Extend membership */}
-      <Modal open={!!extendFor} onClose={() => setExtendFor(null)} icon="calendar-plus"
-        title={extendFor ? "Extend " + extendFor.name : ""} subtitle={extendFor ? extendFor.id + " · " + PLANS[extendFor.plan].label : ""}
-        footer={<>
-          <Button variant="ghost" onClick={() => setExtendFor(null)}>Cancel</Button>
-          <Button icon="check" onClick={() => {
-            patchMember(extendFor.id, { daysLeft: extendFor.daysLeft + extendDays, frozen: false });
-            toast("Membership extended", extendFor.name + " · +" + extendDays + " days");
-            setExtendFor(null);
-          }}>Add {extendDays} days</Button>
-        </>}>
-        {extendFor && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              {[30, 90, 365].map((d) => (
-                <button key={d} onClick={() => setExtendDays(d)}
-                  className={"h-16 rounded-[8px] border transition-colors " + (extendDays === d ? "border-accent bg-accentsoft text-accent" : "border-line bg-raised text-dim hover:text-ink")}>
-                  <span className="display block text-[19px] font-bold">+{d}</span>
-                  <span className="text-[11px]">{d === 365 ? "one year" : "days"}</span>
-                </button>
-              ))}
-            </div>
-            <div className="rounded-[8px] bg-raised border border-line p-3 flex items-center justify-between text-[12px]">
-              <span className="text-dim">Days remaining after extension</span>
-              <span className="mono font-semibold text-[14px]">{extendFor.daysLeft} → {extendFor.daysLeft + extendDays}</span>
-            </div>
-            {extendFor.frozen && (
-              <p className="text-[12px] text-froze flex items-start gap-2"><Icon name="snowflake" size={13} className="mt-0.5" />Extending also lifts the freeze on this account.</p>
-            )}
+          <div className="mx-auto hidden sm:block"><ViewSwitch view={view} setView={setView} /></div>
+          <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+            <span className="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-raised border border-line text-[11.5px] text-dim mono">
+              <Icon name="clock" size={12} />{clock()}
+            </span>
+            <LangSwitch lang={lang} setLang={setLang} />
           </div>
-        )}
-      </Modal>
+        </header>
+        <div className="sm:hidden px-4 py-2 border-b border-line bg-surface flex justify-center"><ViewSwitch view={view} setView={setView} /></div>
 
-      {/* Class roster */}
-      <Modal open={!!liveRoster} onClose={() => setRosterFor(null)} icon="clipboard-list" width="max-w-lg"
-        title={liveRoster ? liveRoster.name : ""}
-        subtitle={liveRoster ? liveRoster.trainer + " · " + liveRoster.day + " " + liveRoster.start + " · " + locName(liveRoster.loc) : ""}
-        footer={<Button variant="quiet" onClick={() => setRosterFor(null)}>Close roster</Button>}>
-        {liveRoster && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-[12px]">
-              <span className="mono text-dim">{liveRoster.booked}/{liveRoster.cap} booked · {Math.max(0, liveRoster.cap - liveRoster.booked)} open</span>
-              <span className="text-dim">{pct(liveRoster.booked, liveRoster.cap)}% full</span>
-            </div>
-            <Meter value={liveRoster.booked} max={liveRoster.cap} tone={liveRoster.booked >= liveRoster.cap ? "bad" : "accent"} height="h-2" />
-            <div className="border border-line rounded-[8px] divide-y divide-linesoft max-h-64 overflow-y-auto scroll-thin">
-              {liveRoster.roster.length === 0 && <p className="p-4 text-[12.5px] text-dim text-center">No one has booked yet.</p>}
-              {liveRoster.roster.map((n, i) => (
-                <div key={n + i} className="flex items-center gap-2.5 px-3 py-2">
-                  <span className="w-7 h-7 rounded-full bg-raised border border-line grid place-items-center display text-[10.5px] font-bold">{initials(n)}</span>
-                  <span className="text-[13px] flex-1">{n}{n === me.name && <span className="text-mute"> · you</span>}</span>
-                  <span className="mono text-[11px] text-mute">#{String(i + 1).padStart(2, "0")}</span>
-                </div>
-              ))}
-            </div>
-            {liveRoster.booked > liveRoster.roster.length && (
-              <p className="text-[11.5px] text-mute">{liveRoster.booked - liveRoster.roster.length} booking(s) made at the desk are not named on this roster.</p>
-            )}
-          </div>
-        )}
-      </Modal>
+        {view === "client"
+          ? <ClientView me={me} classes={classes} myBookings={myBookings} lastScan={lastScan} actions={actions} />
+          : <StaffView page={page} setPage={setPage} atLoc={atLoc} setAtLoc={setAtLoc} members={members} classes={classes}
+              scans={scans} checkinsToday={checkinsToday} muted={muted} setMuted={setMuted} actions={actions} />}
 
-      {/* Member detail */}
-      <Modal open={!!memberFor} onClose={() => setMemberFor(null)} icon="user" width="max-w-md"
-        title={memberFor ? memberFor.name : ""} subtitle={memberFor ? memberFor.email : ""}
-        footer={<>
-          <Button variant="quiet" icon="snowflake" onClick={() => { actions.toggleFreeze(memberFor); setMemberFor(null); }}>
-            {memberFor && memberFor.frozen ? "Unfreeze" : "Freeze"}
-          </Button>
-          <Button icon="calendar-plus" onClick={() => { const m = memberFor; setMemberFor(null); actions.openExtend(m); }}>Extend</Button>
-        </>}>
-        {memberFor && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="w-12 h-12 rounded-full bg-raised border border-line grid place-items-center display text-[15px] font-bold">{initials(memberFor.name)}</span>
-              <div className="flex-1">
-                <StatusPill status={statusOf(memberFor)} />
-                <p className="mono text-[11.5px] text-mute mt-1">{memberFor.id}</p>
+        {/* Upgrade / up-sell */}
+        <Modal open={!!upgradeTo} onClose={() => setUpgradeTo(null)} icon="arrow-up-right"
+          title={upgradeTo && upgradeTo.price < PLANS[me.plan].price ? t("changePlan") : t("upgradeTitle")}
+          subtitle={t("upgradeSub")}
+          footer={<>
+            <Button variant="ghost" onClick={() => setUpgradeTo(null)}>{t("later")}</Button>
+            <Button icon="zap" onClick={() => {
+              patchMember(ME_ID, { plan: upgradeTo.id });
+              toast(t("upgradeDone"), tx(upgradeTo.label) + " · " + euro(upgradeTo.price) + "/" + t("perMonth"));
+              setUpgradeTo(null);
+            }}>{t("upgradeCta")}</Button>
+          </>}>
+          {upgradeTo && (
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <h4 className="display text-[19px] font-extrabold">{tx(upgradeTo.label)}</h4>
+                <span className="display text-[19px] font-extrabold tnum text-volt">{euro(upgradeTo.price)}<span className="text-[12px] text-dim font-bold"> /{t("perMonth")}</span></span>
+              </div>
+              <p className="text-[12.5px] text-dim">{tx(upgradeTo.sub)}</p>
+              <div className="rounded-[9px] border border-line bg-raised p-3">
+                <p className="eyebrow text-mute mb-2">{t("includes")}</p>
+                <ul className="space-y-1.5">
+                  {tx(upgradeTo.perks).map((p) => (
+                    <li key={p} className="text-[12.5px] flex items-start gap-2"><Icon name="check" size={13} className="text-volt mt-0.5" strokeWidth={3} />{p}</li>
+                  ))}
+                </ul>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                ["Plan", PLANS[memberFor.plan].label], ["Home club", locName(memberFor.home)],
-                ["Days left", memberFor.daysLeft + " days"], ["Lifetime visits", String(memberFor.visits)],
-                ["Member since", memberFor.joined], ["Last scan", memberFor.lastCheckIn]
-              ].map(([k, v]) => (
-                <div key={k} className="rounded-[8px] border border-line bg-raised px-3 py-2">
-                  <p className="eyebrow text-mute">{k}</p>
-                  <p className="text-[12.5px] font-medium mt-1">{v}</p>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-[8px] border border-line p-3">
-              <p className="eyebrow text-mute mb-2">Door result if scanned at {locName(atLoc)}</p>
-              {(() => {
-                const v = evaluateAccess(memberFor, atLoc);
-                return (
-                  <p className={"text-[13px] font-semibold flex items-center gap-2 " + (v.ok ? "text-good" : "text-bad")}>
-                    <Icon name={v.ok ? "check-circle-2" : "x-circle"} size={15} />{v.headline}
-                    <span className="font-normal text-dim">— {v.reason}</span>
-                  </p>
-                );
-              })()}
-            </div>
-          </div>
-        )}
-      </Modal>
+          )}
+        </Modal>
 
-      <Toasts items={toasts} onDismiss={dismiss} />
-    </div>
+        {/* Extend */}
+        <Modal open={!!extendFor} onClose={() => setExtendFor(null)} icon="calendar-plus"
+          title={extendFor ? t("extendTitle") + " · " + tx(extendFor.name) : ""}
+          subtitle={extendFor ? extendFor.id + " · " + tx(PLANS[extendFor.plan].label) : ""}
+          footer={<>
+            <Button variant="ghost" onClick={() => setExtendFor(null)}>{t("cancel")}</Button>
+            <Button icon="check" onClick={() => {
+              patchMember(extendFor.id, { daysLeft: extendFor.daysLeft + extendDays, frozen: false });
+              toast(t("extendedToast"), tx(extendFor.name) + " · +" + extendDays + " " + t("days"));
+              setExtendFor(null);
+            }}>{t("addDays")} {extendDays} {t("daysWord")}</Button>
+          </>}>
+          {extendFor && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {[30, 90, 365].map((d) => (
+                  <button key={d} onClick={() => setExtendDays(d)}
+                    className={"h-16 rounded-[9px] border transition-colors " + (extendDays === d ? "border-volt bg-voltsoft text-volt" : "border-line bg-raised text-dim hover:text-ink")}>
+                    <span className="display block text-[19px] font-extrabold">+{d}</span>
+                    <span className="text-[11px]">{d === 365 ? t("oneYear") : t("days")}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-[9px] bg-raised border border-line p-3 flex items-center justify-between text-[12px]">
+                <span className="text-dim">{t("afterExt")}</span>
+                <span className="mono font-semibold text-[14px]">{extendFor.daysLeft} → {extendFor.daysLeft + extendDays}</span>
+              </div>
+              {extendFor.frozen && <p className="text-[12px] text-froze flex items-start gap-2"><Icon name="snowflake" size={13} className="mt-0.5" />{t("extLiftsFreeze")}</p>}
+            </div>
+          )}
+        </Modal>
+
+        {/* Roster */}
+        <Modal open={!!liveRoster} onClose={() => setRosterFor(null)} icon="clipboard-list" width="max-w-lg"
+          title={liveRoster ? classTitle(liveRoster, tx) : ""}
+          subtitle={liveRoster ? tx(TRAINERS[liveRoster.trainer]) + " · " + t(liveRoster.day) + " " + liveRoster.start + " · " + tx(LOCATIONS.find((l) => l.id === liveRoster.loc).tag) : ""}
+          footer={<Button variant="quiet" onClick={() => setRosterFor(null)}>{t("closeRoster")}</Button>}>
+          {liveRoster && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="mono text-dim">{liveRoster.booked}/{liveRoster.cap} {t("bookedWord")} · {Math.max(0, liveRoster.cap - liveRoster.booked)} {t("openSpots")}</span>
+                <span className="text-dim">{pct(liveRoster.booked, liveRoster.cap)}% {t("full")}</span>
+              </div>
+              <Meter value={liveRoster.booked} max={liveRoster.cap} tone={liveRoster.booked >= liveRoster.cap ? "bad" : "volt"} height="h-2" />
+              <div className="border border-line rounded-[9px] divide-y divide-linesoft max-h-64 overflow-y-auto scroll-thin">
+                {liveRoster.roster.length === 0 && <p className="p-4 text-[12.5px] text-dim text-center">{t("noBookings")}</p>}
+                {liveRoster.roster.map((id, i) => (
+                  <div key={id + i} className="flex items-center gap-2.5 px-3 py-2">
+                    <Avatar name={nameOf(id)} size={28} />
+                    <span className="text-[13px] flex-1">{nameOf(id)}{id === ME_ID && <span className="text-mute"> · {t("you")}</span>}</span>
+                    <span className="mono text-[11px] text-mute">#{String(i + 1).padStart(2, "0")}</span>
+                  </div>
+                ))}
+              </div>
+              {liveRoster.booked > liveRoster.roster.length && (
+                <p className="text-[11.5px] text-mute">{liveRoster.booked - liveRoster.roster.length} {t("deskBookings")}</p>
+              )}
+            </div>
+          )}
+        </Modal>
+
+        {/* Member detail */}
+        <Modal open={!!memberFor} onClose={() => setMemberFor(null)} icon="user" width="max-w-md"
+          title={memberFor ? tx(memberFor.name) : ""} subtitle={memberFor ? memberFor.email : ""}
+          footer={<>
+            <Button variant="quiet" icon="snowflake" onClick={() => { actions.toggleFreeze(memberFor); setMemberFor(null); }}>
+              {memberFor && memberFor.frozen ? t("unfreeze") : t("freeze")}
+            </Button>
+            <Button icon="calendar-plus" onClick={() => { const m = memberFor; setMemberFor(null); actions.openExtend(m); }}>{t("extend")}</Button>
+          </>}>
+          {memberFor && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Avatar name={tx(memberFor.name)} size={48} />
+                <div className="flex-1">
+                  <StatusPill status={statusOf(memberFor)} />
+                  <p className="mono text-[11.5px] text-mute mt-1.5">{memberFor.id}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  [t("detailPlan"), tx(PLANS[memberFor.plan].label)],
+                  [t("detailHome"), tx(LOCATIONS.find((l) => l.id === memberFor.home).tag)],
+                  [t("detailDays"), memberFor.daysLeft + " " + t("days")],
+                  [t("detailVisits"), String(memberFor.visits)],
+                  [t("detailSince"), memberFor.joined],
+                  [t("detailLast"), tx(memberFor.lastCheckIn)]
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-[9px] border border-line bg-raised px-3 py-2">
+                    <p className="eyebrow text-mute">{k}</p>
+                    <p className="text-[12.5px] font-medium mt-1">{v}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-[9px] border border-line p-3">
+                <p className="eyebrow text-mute mb-2">{t("doorResultAt")} {tx(LOCATIONS.find((l) => l.id === atLoc).tag)}</p>
+                {(() => {
+                  const v = evaluateAccess(memberFor, atLoc);
+                  return (
+                    <p className={"text-[13px] font-semibold flex items-start gap-2 " + (v.ok ? "text-good" : "text-bad")}>
+                      <Icon name={v.ok ? "check-circle-2" : "x-circle"} size={15} className="mt-0.5" />
+                      <span>{v.ok ? t("granted") : t("denied")}
+                        <span className="font-normal text-dim"> — {reasonText(t, v, memberFor)}</span>
+                      </span>
+                    </p>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        <Toasts items={toasts} onDismiss={dismiss} />
+      </div>
+    </LangCtx.Provider>
   );
 }
 
