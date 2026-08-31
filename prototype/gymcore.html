@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GymCore</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            50: '#eefdf4', 100: '#d5fbe4', 200: '#adf5cd', 300: '#74e8ac',
+            400: '#3fd287', 500: '#1ab568', 600: '#0f9256', 700: '#0f7548',
+            800: '#115c3c', 900: '#0f4b33', 950: '#062b1c'
+          }
+        },
+        boxShadow: {
+          glow: '0 0 40px -10px rgba(26,181,104,0.55)'
+        }
+      }
+    }
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body { background: #f4f6f5; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120,120,120,0.4); border-radius: 8px; }
+
+  @keyframes qrsweep {
+    0% { top: -10%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 105%; opacity: 0; }
+  }
+  .qr-sweep { animation: qrsweep 2.8s ease-in-out infinite; }
+
+  @keyframes flashPop {
+    0% { transform: scale(0.92); opacity: 0; }
+    60% { transform: scale(1.02); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .flash-pop { animation: flashPop 0.35s ease-out; }
+
+  @keyframes ringPulse {
+    0% { box-shadow: 0 0 0 0 currentColor; opacity: .55;}
+    100% { box-shadow: 0 0 0 22px transparent; opacity: 0; }
+  }
+  .ring-pulse::after {
+    content: '';
+    position: absolute; inset: 0; border-radius: inherit;
+    animation: ringPulse 1.6s ease-out infinite;
+  }
+
+  @keyframes toastIn {
+    from { transform: translateY(12px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .toast-in { animation: toastIn 0.25s ease-out; }
+
+  @keyframes barGrow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+  .bar-grow { animation: barGrow 0.5s ease-out; transform-origin: bottom; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react,env">
+const { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext, Fragment } = React;
+
+/* =========================================================================
+   ICONS — minimal, hand-crafted line icon set in the Lucide visual style
+   (stroke="currentColor", 24x24 viewBox, rounded caps) so the whole app
+   works with zero external icon-font / icon-bundle dependency.
+   ========================================================================= */
+function mkIcon(paths) {
+  return function Icon({ size = 18, className = '', strokeWidth = 2, ...rest }) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
+           className={className} {...rest}>
+        {paths}
+      </svg>
+    );
+  };
+}
+
+const Icons = {
+  Dumbbell: mkIcon(<>
+    <rect x="1.5" y="9" width="3" height="6" rx="1" />
+    <rect x="19.5" y="9" width="3" height="6" rx="1" />
+    <rect x="4.5" y="7" width="2.2" height="10" rx="0.6" />
+    <rect x="17.3" y="7" width="2.2" height="10" rx="0.6" />
+    <line x1="6.7" y1="12" x2="17.3" y2="12" />
+  </>),
+  QrCode: mkIcon(<>
+    <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <line x1="14" y1="14" x2="14" y2="17" /><line x1="17" y1="14" x2="21" y2="14" />
+    <line x1="14" y1="21" x2="17" y2="21" /><line x1="21" y1="17" x2="21" y2="21" /><line x1="17" y1="17" x2="17" y2="17.01" />
+  </>),
+  Calendar: mkIcon(<><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>),
+  Users: mkIcon(<><circle cx="9" cy="7" r="4" /><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" /><path d="M17 11a4 4 0 0 0 0-8" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /></>),
+  User: mkIcon(<><circle cx="12" cy="8" r="4" /><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" /></>),
+  CreditCard: mkIcon(<><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></>),
+  Search: mkIcon(<><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></>),
+  Plus: mkIcon(<><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>),
+  X: mkIcon(<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>),
+  CheckCircle2: mkIcon(<><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></>),
+  XCircle: mkIcon(<><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></>),
+  Snowflake: mkIcon(<><line x1="12" y1="2" x2="12" y2="22" /><line x1="4.9" y1="6" x2="19.1" y2="18" /><line x1="19.1" y1="6" x2="4.9" y2="18" /><path d="M12 6l-2 2M12 6l2 2M12 18l-2-2M12 18l2-2" /></>),
+  Clock: mkIcon(<><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>),
+  MapPin: mkIcon(<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></>),
+  TrendingUp: mkIcon(<><polyline points="3 17 9 11 13 15 21 7" /><polyline points="14 7 21 7 21 14" /></>),
+  Activity: mkIcon(<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />),
+  Sun: mkIcon(<><circle cx="12" cy="12" r="4.5" /><line x1="12" y1="1.5" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22.5" /><line x1="4.2" y1="4.2" x2="6" y2="6" /><line x1="18" y1="18" x2="19.8" y2="19.8" /><line x1="1.5" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22.5" y2="12" /><line x1="4.2" y1="19.8" x2="6" y2="18" /><line x1="18" y1="6" x2="19.8" y2="4.2" /></>),
+  Moon: mkIcon(<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />),
+  ChevronRight: mkIcon(<polyline points="9 18 15 12 9 6" />),
+  ChevronDown: mkIcon(<polyline points="6 9 12 15 18 9" />),
+  Volume2: mkIcon(<><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></>),
+  VolumeX: mkIcon(<><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></>),
+  RefreshCw: mkIcon(<><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" /><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></>),
+  Pencil: mkIcon(<><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></>),
+  Trash2: mkIcon(<><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></>),
+  ShieldCheck: mkIcon(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></>),
+  ShieldAlert: mkIcon(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><line x1="12" y1="8" x2="12" y2="13" /><line x1="12" y1="16" x2="12.01" y2="16" /></>),
+  BarChart3: mkIcon(<><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></>),
+  Zap: mkIcon(<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />),
+  Flame: mkIcon(<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" />),
+  Bike: mkIcon(<><circle cx="5.5" cy="17.5" r="3.5" /><circle cx="18.5" cy="17.5" r="3.5" /><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 17.5V14l-3-3 4-3 2 3h2" /></>),
+  Sparkles: mkIcon(<path d="m12 3-1.9 5.8L4 11l6.1 2.2L12 19l1.9-5.8L20 11l-6.1-2.2L12 3z" />),
+  Menu: mkIcon(<><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" /></>),
+  LayoutDashboard: mkIcon(<><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></>),
+  ScanLine: mkIcon(<><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><line x1="4" y1="12" x2="20" y2="12" /></>),
+  Bell: mkIcon(<><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></>),
+  ArrowUpRight: mkIcon(<><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></>),
+  ArrowDownRight: mkIcon(<><line x1="7" y1="7" x2="17" y2="17" /><polyline points="17 7 17 17 7 17" /></>),
+  Lock: mkIcon(<><rect x="4.5" y="10.5" width="15" height="10" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" /></>),
+  Building2: mkIcon(<><path d="M4 22V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v18" /><path d="M19 22V10a1 1 0 0 0-1-1h-3" /><path d="M8 6h2M8 10h2M8 14h2M14 14h2" /></>),
+};
+
+/* =========================================================================
+   MOCK DATA
+   ========================================================================= */
+const LOCATIONS = ['Downtown Hub', 'Northside Box'];
+const CURRENT_MEMBER_ID = 'm-001';
+
+const initialMembers = [
+  { id: 'm-001', name: 'Jordan Reyes', email: 'jordan.reyes@example.com', location: 'Downtown Hub', plan: 'Unlimited Pro - Tier 1', status: 'active', daysRemaining: 30, memberSince: '2023-02-14', lastCheckIn: 'Today, 7:42 AM', cardNumber: '4471 8820 3391' },
+  { id: 'm-002', name: 'Casey Nguyen', email: 'casey.nguyen@example.com', location: 'Downtown Hub', plan: 'Unlimited Pro - Tier 1', status: 'active', daysRemaining: 12, memberSince: '2024-05-02', lastCheckIn: 'Today, 6:15 AM', cardNumber: '4471 2290 8871' },
+  { id: 'm-003', name: 'Priya Shah', email: 'priya.shah@example.com', location: 'Downtown Hub', plan: 'Basic Access', status: 'expired', daysRemaining: -5, memberSince: '2022-11-20', lastCheckIn: 'Aug 22, 5:30 PM', cardNumber: '4471 9013 4420' },
+  { id: 'm-004', name: 'Omar Haddad', email: 'omar.haddad@example.com', location: 'Downtown Hub', plan: 'Unlimited Pro - Tier 2', status: 'frozen', daysRemaining: 18, memberSince: '2021-08-09', lastCheckIn: 'Aug 10, 9:02 AM', cardNumber: '4471 5567 1198' },
+  { id: 'm-005', name: 'Bella Fox', email: 'bella.fox@example.com', location: 'Downtown Hub', plan: 'Student Plan', status: 'active', daysRemaining: 3, memberSince: '2025-01-11', lastCheckIn: 'Yesterday, 4:45 PM', cardNumber: '4471 3321 7765' },
+  { id: 'm-006', name: 'Trevor Lin', email: 'trevor.lin@example.com', location: 'Downtown Hub', plan: 'Basic Access', status: 'active', daysRemaining: 45, memberSince: '2020-03-30', lastCheckIn: 'Today, 5:58 AM', cardNumber: '4471 7743 0092' },
+  { id: 'm-007', name: 'Amara Johnson', email: 'amara.johnson@example.com', location: 'Downtown Hub', plan: 'Unlimited Pro - Tier 1', status: 'expired', daysRemaining: -12, memberSince: '2023-06-18', lastCheckIn: 'Aug 3, 6:10 PM', cardNumber: '4471 1180 3357' },
+  { id: 'm-008', name: 'Diego Martinez', email: 'diego.martinez@example.com', location: 'Northside Box', plan: 'Unlimited Pro - Tier 2', status: 'active', daysRemaining: 60, memberSince: '2022-01-05', lastCheckIn: 'Today, 6:40 AM', cardNumber: '4472 4410 9932' },
+  { id: 'm-009', name: 'Sofia Petrova', email: 'sofia.petrova@example.com', location: 'Northside Box', plan: 'Basic Access', status: 'active', daysRemaining: 20, memberSince: '2024-09-27', lastCheckIn: 'Today, 8:05 AM', cardNumber: '4472 8820 1145' },
+  { id: 'm-010', name: "Liam O'Brien", email: 'liam.obrien@example.com', location: 'Northside Box', plan: 'Unlimited Pro - Tier 1', status: 'frozen', daysRemaining: 9, memberSince: '2021-12-14', lastCheckIn: 'Jul 29, 7:12 AM', cardNumber: '4472 2201 6693' },
+  { id: 'm-011', name: 'Nia Williams', email: 'nia.williams@example.com', location: 'Northside Box', plan: 'Student Plan', status: 'active', daysRemaining: 7, memberSince: '2025-04-02', lastCheckIn: 'Today, 5:20 PM', cardNumber: '4472 6634 8820' },
+  { id: 'm-012', name: 'Hassan Ali', email: 'hassan.ali@example.com', location: 'Northside Box', plan: 'Basic Access', status: 'expired', daysRemaining: -2, memberSince: '2023-10-08', lastCheckIn: 'Aug 25, 6:50 PM', cardNumber: '4472 9987 3301' },
+  { id: 'm-013', name: 'Grace Kim', email: 'grace.kim@example.com', location: 'Northside Box', plan: 'Unlimited Pro - Tier 2', status: 'active', daysRemaining: 90, memberSince: '2019-07-19', lastCheckIn: 'Today, 6:02 AM', cardNumber: '4472 1129 4456' },
+  { id: 'm-014', name: 'Ryan Cooper', email: 'ryan.cooper@example.com', location: 'Northside Box', plan: 'Unlimited Pro - Tier 1', status: 'active', daysRemaining: 15, memberSince: '2024-02-23', lastCheckIn: 'Today, 7:15 PM', cardNumber: '4472 5543 8871' },
+];
+
+const billingHistory = [
+  { id: 'inv-1042', date: '2026-08-01', desc: 'Unlimited Pro - Tier 1 (Monthly)', amount: 89.0, status: 'Paid' },
+  { id: 'inv-1011', date: '2026-07-01', desc: 'Unlimited Pro - Tier 1 (Monthly)', amount: 89.0, status: 'Paid' },
+  { id: 'inv-0978', date: '2026-06-01', desc: 'Unlimited Pro - Tier 1 (Monthly)', amount: 89.0, status: 'Paid' },
+  { id: 'inv-0944', date: '2026-05-01', desc: 'Guest Pass - Northside Box', amount: 15.0, status: 'Paid' },
+];
+
+const allIds = initialMembers.map(m => m.id);
+function rosterFor(count, offset) {
+  const list = [];
+  for (let i = 0; i < Math.min(count, allIds.length); i++) list.push(allIds[(i + offset) % allIds.length]);
+  return list;
+}
+
+const initialClasses = [
+  { id: 'c-01', name: 'CrossFit Foundations', type: 'CrossFit', location: 'Downtown Hub', trainer: 'Marcus Webb', day: 'Mon', time: '6:00 AM', capacity: 15, booked: 12, roster: rosterFor(12, 0) },
+  { id: 'c-02', name: 'Spin Sunrise', type: 'Spinning', location: 'Downtown Hub', trainer: 'Priya Anand', day: 'Mon', time: '6:30 AM', capacity: 20, booked: 20, roster: rosterFor(14, 3) },
+  { id: 'c-03', name: 'Vinyasa Flow Yoga', type: 'Yoga', location: 'Downtown Hub', trainer: 'Elena Cruz', day: 'Mon', time: '8:00 AM', capacity: 18, booked: 9, roster: rosterFor(9, 5) },
+  { id: 'c-04', name: 'Boxing Fundamentals', type: 'Boxing', location: 'Northside Box', trainer: 'DeShawn Cole', day: 'Mon', time: '5:30 PM', capacity: 12, booked: 12, roster: rosterFor(12, 7) },
+  { id: 'c-05', name: 'CrossFit WOD', type: 'CrossFit', location: 'Northside Box', trainer: 'Marcus Webb', day: 'Tue', time: '6:00 AM', capacity: 15, booked: 8, roster: rosterFor(8, 2) },
+  { id: 'c-06', name: 'Power Spin', type: 'Spinning', location: 'Northside Box', trainer: 'Priya Anand', day: 'Tue', time: '6:00 PM', capacity: 20, booked: 14, roster: rosterFor(14, 9) },
+  { id: 'c-07', name: 'Restorative Yoga', type: 'Yoga', location: 'Northside Box', trainer: 'Elena Cruz', day: 'Wed', time: '7:00 AM', capacity: 16, booked: 5, roster: rosterFor(5, 1) },
+  { id: 'c-08', name: 'Boxing Conditioning', type: 'Boxing', location: 'Downtown Hub', trainer: 'DeShawn Cole', day: 'Wed', time: '7:00 PM', capacity: 14, booked: 11, roster: rosterFor(11, 0) },
+  { id: 'c-09', name: 'CrossFit Open Gym', type: 'CrossFit', location: 'Downtown Hub', trainer: 'Marcus Webb', day: 'Thu', time: '5:00 PM', capacity: 15, booked: 6, roster: rosterFor(6, 4) },
+  { id: 'c-10', name: 'Sunset Spin', type: 'Spinning', location: 'Northside Box', trainer: 'Priya Anand', day: 'Fri', time: '6:30 PM', capacity: 20, booked: 19, roster: rosterFor(13, 6) },
+];
+
+const seedCheckIns = [
+  { hour: 6, location: 'Downtown Hub' }, { hour: 6, location: 'Northside Box' }, { hour: 6, location: 'Downtown Hub' },
+  { hour: 7, location: 'Downtown Hub' }, { hour: 7, location: 'Downtown Hub' }, { hour: 7, location: 'Northside Box' },
+  { hour: 8, location: 'Downtown Hub' }, { hour: 8, location: 'Northside Box' }, { hour: 8, location: 'Northside Box' },
+  { hour: 9, location: 'Downtown Hub' },
+  { hour: 12, location: 'Northside Box' }, { hour: 12, location: 'Downtown Hub' },
+  { hour: 17, location: 'Downtown Hub' }, { hour: 17, location: 'Northside Box' }, { hour: 17, location: 'Downtown Hub' },
+  { hour: 18, location: 'Northside Box' }, { hour: 18, location: 'Downtown Hub' }, { hour: 18, location: 'Northside Box' }, { hour: 18, location: 'Downtown Hub' },
+  { hour: 19, location: 'Downtown Hub' },
+].map((c, i) => ({ id: 'ci-' + i, ...c }));
+
+const CLASS_TYPE_STYLE = {
+  CrossFit: { icon: Icons.Zap, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-500/15' },
+  Spinning: { icon: Icons.Bike, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-100 dark:bg-sky-500/15' },
+  Yoga: { icon: Icons.Sparkles, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-500/15' },
+  Boxing: { icon: Icons.Flame, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-100 dark:bg-rose-500/15' },
+};
+
+const PLAN_STYLE = {
+  'Unlimited Pro - Tier 1': 'bg-brand-100 text-brand-800 dark:bg-brand-500/15 dark:text-brand-300',
+  'Unlimited Pro - Tier 2': 'bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-300',
+  'Basic Access': 'bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300',
+  'Student Plan': 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
+};
+
+/* =========================================================================
+   CONTEXT — shared app state (members, classes, toasts, theme, sound)
+   ========================================================================= */
+const AppCtx = createContext(null);
+const useApp = () => useContext(AppCtx);
+
+function AppProvider({ children }) {
+  const [theme, setTheme] = useState('dark');
+  const [members, setMembers] = useState(initialMembers);
+  const [classes, setClasses] = useState(initialClasses);
+  const [checkIns, setCheckIns] = useState(seedCheckIns);
+  const [toasts, setToasts] = useState([]);
+  const [muted, setMuted] = useState(false);
+  const audioCtxRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  const pushToast = useCallback((message, type = 'success') => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts(t => [...t, { id, message, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+  }, []);
+
+  const beep = useCallback((kind) => {
+    if (muted) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+      const tone = (freq, start, dur) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = kind === 'granted' ? 'sine' : 'square';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur + 0.02);
+      };
+      if (kind === 'granted') { tone(880, 0, 0.16); tone(1320, 0.14, 0.22); }
+      else { tone(200, 0, 0.18); tone(160, 0.2, 0.24); }
+    } catch (e) { /* audio unavailable, fail silently */ }
+  }, [muted]);
+
+  const extendMembership = useCallback((id, days = 30) => {
+    setMembers(ms => ms.map(m => m.id === id ? { ...m, status: 'active', daysRemaining: (m.daysRemaining < 0 ? 0 : m.daysRemaining) + days } : m));
+    const m = members.find(m => m.id === id);
+    pushToast(`Extended ${m ? m.name : 'member'}'s membership by ${days} days`, 'success');
+  }, [members, pushToast]);
+
+  const toggleFreeze = useCallback((id) => {
+    setMembers(ms => ms.map(m => {
+      if (m.id !== id) return m;
+      const next = m.status === 'frozen' ? 'active' : 'frozen';
+      pushToast(next === 'frozen' ? `${m.name}'s account frozen` : `${m.name}'s account resumed`, next === 'frozen' ? 'info' : 'success');
+      return { ...m, status: next };
+    }));
+  }, [pushToast]);
+
+  const toggleBooking = useCallback((classId, memberId) => {
+    setClasses(cs => cs.map(c => {
+      if (c.id !== classId) return c;
+      const already = c.roster.includes(memberId);
+      if (already) {
+        pushToast(`Booking cancelled — ${c.name}`, 'info');
+        return { ...c, booked: Math.max(0, c.booked - 1), roster: c.roster.filter(id => id !== memberId) };
+      }
+      if (c.booked >= c.capacity) return c;
+      pushToast(`Spot booked — ${c.name}`, 'success');
+      return { ...c, booked: c.booked + 1, roster: [...c.roster, memberId] };
+    }));
+  }, [pushToast]);
+
+  const addClass = useCallback((cls) => {
+    setClasses(cs => [...cs, { ...cls, id: 'c-' + Math.random().toString(36).slice(2, 7), booked: 0, roster: [] }]);
+    pushToast(`Class "${cls.name}" created`, 'success');
+  }, [pushToast]);
+
+  const addCheckIn = useCallback((location) => {
+    const hour = new Date().getHours();
+    setCheckIns(ci => [...ci, { id: 'ci-live-' + Math.random().toString(36).slice(2, 7), hour, location }]);
+  }, []);
+
+  const value = {
+    theme, setTheme,
+    members, setMembers, extendMembership, toggleFreeze,
+    classes, setClasses, toggleBooking, addClass,
+    checkIns, addCheckIn,
+    toasts, pushToast,
+    muted, setMuted, beep,
+  };
+  return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
+}
+
+/* =========================================================================
+   SHARED UI PRIMITIVES
+   ========================================================================= */
+function StatusBadge({ status }) {
+  const map = {
+    active: { label: 'Active', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 ring-emerald-600/20' },
+    expired: { label: 'Expired', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 ring-rose-600/20' },
+    frozen: { label: 'Frozen', cls: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 ring-sky-600/20' },
+  };
+  const s = map[status] || map.active;
+  return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset ${s.cls}`}>
+    <span className="w-1.5 h-1.5 rounded-full bg-current" />{s.label}
+  </span>;
+}
+
+function Modal({ open, onClose, title, children, maxW = 'max-w-lg' }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative w-full ${maxW} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-white/10 flash-pop max-h-[90vh] overflow-y-auto`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 rounded-t-2xl">
+          <h3 className="font-bold text-lg">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+            <Icons.X size={18} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ToastStack() {
+  const { toasts } = useApp();
+  const style = {
+    success: { icon: Icons.CheckCircle2, cls: 'bg-emerald-600' },
+    info: { icon: Icons.ShieldAlert, cls: 'bg-sky-600' },
+    error: { icon: Icons.XCircle, cls: 'bg-rose-600' },
+  };
+  return (
+    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 items-end">
+      {toasts.map(t => {
+        const S = style[t.type] || style.success;
+        const Icon = S.icon;
+        return (
+          <div key={t.id} className={`toast-in ${S.cls} text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium max-w-xs`}>
+            <Icon size={16} /> {t.message}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SegButton({ active, onClick, children, className = '' }) {
+  return (
+    <button onClick={onClick}
+      className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${active
+        ? 'bg-brand-600 text-white shadow-sm'
+        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'} ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+/* =========================================================================
+   LIVE QR CODE — pretty-fake, deterministic finder patterns + a randomized
+   data field that reshuffles on an interval to sell a "refreshing for
+   security" effect, plus an animated scan-line sweep overlay.
+   ========================================================================= */
+function LiveQR({ size = 180 }) {
+  const GRID = 21;
+  const [cells, setCells] = useState(() => Array.from({ length: GRID * GRID }, () => Math.random() > 0.55));
+  const [refreshedAt, setRefreshedAt] = useState(new Date());
+  const [code, setCode] = useState(() => Math.random().toString(16).slice(2, 8).toUpperCase());
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCells(Array.from({ length: GRID * GRID }, () => Math.random() > 0.55));
+      setRefreshedAt(new Date());
+      setCode(Math.random().toString(16).slice(2, 8).toUpperCase());
+    }, 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  function isOn(r, c) {
+    const corners = [[0, 0], [0, GRID - 7], [GRID - 7, 0]];
+    for (const [r0, c0] of corners) {
+      if (r >= r0 && r < r0 + 7 && c >= c0 && c < c0 + 7) {
+        const rr = r - r0, cc = c - c0;
+        if (rr === 0 || rr === 6 || cc === 0 || cc === 6) return true;
+        if (rr >= 2 && rr <= 4 && cc >= 2 && cc <= 4) return true;
+        return false;
+      }
+    }
+    return cells[r * GRID + c];
+  }
+
+  return (
+    <div className="inline-flex flex-col items-center gap-2">
+      <div className="relative bg-white p-3 rounded-xl shadow-inner overflow-hidden" style={{ width: size, height: size }}>
+        <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${GRID}, 1fr)` }}>
+          {Array.from({ length: GRID * GRID }).map((_, i) => {
+            const r = Math.floor(i / GRID), c = i % GRID;
+            return <div key={i} className={isOn(r, c) ? 'bg-slate-900' : 'bg-transparent'} />;
+          })}
+        </div>
+        <div className="qr-sweep absolute left-0 right-0 h-8 bg-gradient-to-b from-transparent via-brand-400/70 to-transparent" />
+      </div>
+      <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+        <Icons.RefreshCw size={11} className="animate-spin" style={{ animationDuration: '3s' }} />
+        <span>SEC-{code}</span>
+        <span className="opacity-60">· refreshes every 3s</span>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   CLIENT PORTAL
+   ========================================================================= */
+function MembershipCardView() {
+  const { members } = useApp();
+  const me = members.find(m => m.id === CURRENT_MEMBER_ID);
+  return (
+    <div className="grid lg:grid-cols-[1.3fr,1fr] gap-6">
+      <div className="relative overflow-hidden rounded-3xl p-7 text-white shadow-glow bg-gradient-to-br from-brand-600 via-brand-700 to-slate-950">
+        <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-brand-400/20 blur-3xl" />
+        <div className="relative flex items-start justify-between">
+          <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
+            <Icons.Dumbbell size={22} /> GymCore
+          </div>
+          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-white/15 backdrop-blur">Digital Pass</span>
+        </div>
+
+        <div className="relative mt-10">
+          <p className="text-xs uppercase tracking-widest text-brand-100/80">Member</p>
+          <p className="text-2xl font-bold">{me.name}</p>
+          <p className="text-brand-100/80 text-sm mt-0.5">{me.email}</p>
+        </div>
+
+        <div className="relative mt-8 grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-brand-100/70">Home Branch</p>
+            <p className="font-semibold flex items-center gap-1.5 mt-0.5"><Icons.MapPin size={15} /> Downtown Hub</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-brand-100/70">Plan</p>
+            <p className="font-semibold mt-0.5">{me.plan}</p>
+          </div>
+        </div>
+
+        <div className="relative mt-8 flex items-center justify-between border-t border-white/15 pt-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-brand-100/70">Card No.</p>
+            <p className="font-mono tracking-widest text-sm mt-0.5">{me.cardNumber}</p>
+          </div>
+          <StatusBadge status={me.status} />
+        </div>
+      </div>
+
+      <div className="rounded-3xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-7 flex flex-col items-center justify-center gap-3 text-center">
+        <p className="font-bold text-lg">Scan at Front Desk</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">Hold this code up to the scanner. It refreshes automatically for your security.</p>
+        <div className="mt-2 relative">
+          <div className="ring-pulse text-brand-500 absolute inset-0 rounded-xl" />
+          <LiveQR size={190} />
+        </div>
+        <div className="mt-3 flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live & Secure
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClassScheduleView() {
+  const { classes, toggleBooking } = useApp();
+  const [locFilter, setLocFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [query, setQuery] = useState('');
+
+  const filtered = useMemo(() => classes.filter(c => {
+    if (locFilter !== 'All' && c.location !== locFilter) return false;
+    if (typeFilter !== 'All' && c.type !== typeFilter) return false;
+    if (query && !(`${c.name} ${c.trainer}`.toLowerCase().includes(query.toLowerCase()))) return false;
+    return true;
+  }), [classes, locFilter, typeFilter, query]);
+
+  return (
+    <div>
+      <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between mb-5">
+        <div className="flex flex-wrap gap-1.5 bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl">
+          {['All', ...LOCATIONS].map(l => <SegButton key={l} active={locFilter === l} onClick={() => setLocFilter(l)}>{l}</SegButton>)}
+        </div>
+        <div className="relative">
+          <Icons.Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search class or trainer…"
+            className="pl-9 pr-3 py-2 rounded-xl text-sm bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 focus:ring-2 focus:ring-brand-500 outline-none w-full md:w-64" />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-5">
+        {['All', 'CrossFit', 'Spinning', 'Yoga', 'Boxing'].map(t => (
+          <SegButton key={t} active={typeFilter === t} onClick={() => setTypeFilter(t)}>{t}</SegButton>
+        ))}
+      </div>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.map(c => {
+          const style = CLASS_TYPE_STYLE[c.type];
+          const Icon = style.icon;
+          const full = c.booked >= c.capacity;
+          const mine = c.roster.includes(CURRENT_MEMBER_ID);
+          const pct = Math.min(100, Math.round((c.booked / c.capacity) * 100));
+          const barColor = pct >= 100 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500';
+          return (
+            <div key={c.id} className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-5 flex flex-col gap-3 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className={`w-10 h-10 rounded-xl grid place-items-center ${style.bg} ${style.color}`}><Icon size={19} /></div>
+                {mine && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-500/15 dark:text-brand-300">BOOKED</span>}
+              </div>
+              <div>
+                <p className="font-bold leading-tight">{c.name}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{c.trainer}</p>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1"><Icons.Calendar size={13} /> {c.day} · {c.time}</span>
+                <span className="flex items-center gap-1"><Icons.MapPin size={13} /> {c.location}</span>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1 font-medium">
+                  <span>{c.booked}/{c.capacity} spots filled</span>
+                  <span className={full ? 'text-rose-500' : 'text-slate-400'}>{full ? 'Full' : `${c.capacity - c.booked} left`}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                  <div className={`h-full rounded-full ${barColor} transition-all duration-500`} style={{ width: pct + '%' }} />
+                </div>
+              </div>
+              <button
+                onClick={() => toggleBooking(c.id, CURRENT_MEMBER_ID)}
+                disabled={!mine && full}
+                className={`mt-1 w-full py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  mine ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20'
+                  : full ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed'
+                  : 'bg-brand-600 text-white hover:bg-brand-700'}`}>
+                {mine ? 'Cancel Booking' : full ? 'Class Full' : 'Book Spot'}
+              </button>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && <p className="col-span-full text-center py-12 text-slate-400">No classes match your filters.</p>}
+      </div>
+    </div>
+  );
+}
+
+function MembershipProfileView() {
+  const { members, setMembers, pushToast } = useApp();
+  const me = members.find(m => m.id === CURRENT_MEMBER_ID);
+  const [freezeOpen, setFreezeOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const cycleDays = 30;
+  const pct = Math.max(0, Math.min(100, Math.round((me.daysRemaining / cycleDays) * 100)));
+
+  function confirmFreeze() {
+    setMembers(ms => ms.map(m => m.id === CURRENT_MEMBER_ID ? { ...m, status: 'frozen' } : m));
+    pushToast('Membership frozen — billing paused', 'info');
+    setFreezeOpen(false);
+  }
+  function resume() {
+    setMembers(ms => ms.map(m => m.id === CURRENT_MEMBER_ID ? { ...m, status: 'active' } : m));
+    pushToast('Membership resumed', 'success');
+  }
+  function selectPlan(name) {
+    setMembers(ms => ms.map(m => m.id === CURRENT_MEMBER_ID ? { ...m, plan: name } : m));
+    pushToast(`Switched to ${name}`, 'success');
+    setUpgradeOpen(false);
+  }
+
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg">Membership Status</h3>
+            <StatusBadge status={me.status} />
+          </div>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-3xl font-extrabold">{Math.max(me.daysRemaining, 0)}</span>
+            <span className="text-slate-500 dark:text-slate-400 text-sm">days remaining until renewal</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden mb-5">
+            <div className={`h-full rounded-full transition-all duration-500 ${me.status === 'frozen' ? 'bg-sky-500' : pct < 15 ? 'bg-rose-500' : 'bg-brand-500'}`} style={{ width: pct + '%' }} />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4 text-sm mb-6">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+              <p className="text-slate-500 dark:text-slate-400 text-xs">Plan</p>
+              <p className="font-semibold">{me.plan}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+              <p className="text-slate-500 dark:text-slate-400 text-xs">Member Since</p>
+              <p className="font-semibold">{me.memberSince}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button onClick={() => setUpgradeOpen(true)} className="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Upgrade Plan</button>
+            {me.status === 'frozen'
+              ? <button onClick={resume} className="px-4 py-2 rounded-xl bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 text-sm font-semibold hover:brightness-95">Resume Membership</button>
+              : <button onClick={() => setFreezeOpen(true)} className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-semibold flex items-center gap-1.5 hover:bg-slate-200 dark:hover:bg-slate-700"><Icons.Snowflake size={15} /> Freeze Account</button>}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+          <h3 className="font-bold text-lg mb-4">Billing History</h3>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {billingHistory.map(b => (
+              <div key={b.id} className="py-3 flex items-center justify-between text-sm">
+                <div>
+                  <p className="font-medium">{b.desc}</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs">{b.date} · {b.id}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold">${b.amount.toFixed(2)}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">{b.status}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+          <h3 className="font-bold mb-3">Profile</h3>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-brand-600 text-white grid place-items-center font-bold">{me.name.split(' ').map(n => n[0]).join('')}</div>
+            <div>
+              <p className="font-semibold">{me.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{me.email}</p>
+            </div>
+          </div>
+          <div className="text-sm space-y-2">
+            <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Home Branch</span><span className="font-medium">{me.location}</span></div>
+            <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Card No.</span><span className="font-mono">{me.cardNumber}</span></div>
+            <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Last Check-in</span><span className="font-medium">{me.lastCheckIn}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <Modal open={freezeOpen} onClose={() => setFreezeOpen(false)} title="Freeze Membership">
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-5">You won't be billed while frozen, but you'll lose class-booking privileges until you resume. You can unfreeze anytime.</p>
+        <div className="flex justify-end gap-2">
+          <button onClick={() => setFreezeOpen(false)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800">Cancel</button>
+          <button onClick={confirmFreeze} className="px-4 py-2 rounded-xl text-sm font-semibold bg-sky-600 text-white hover:bg-sky-700">Confirm Freeze</button>
+        </div>
+      </Modal>
+
+      <Modal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} title="Choose a Plan" maxW="max-w-2xl">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { name: 'Basic Access', price: 39, perks: ['1 home branch', 'Gym floor access', 'Standard hours'] },
+            { name: 'Unlimited Pro - Tier 1', price: 89, perks: ['Both locations', 'Unlimited classes', 'Priority booking'] },
+            { name: 'Unlimited Pro - Tier 2', price: 129, perks: ['Everything in Tier 1', '2 guest passes/mo', '1:1 trainer session'] },
+          ].map(p => (
+            <div key={p.name} className={`rounded-2xl p-4 ring-1 flex flex-col gap-3 ${me.plan === p.name ? 'ring-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'ring-slate-200 dark:ring-white/10'}`}>
+              <p className="font-bold">{p.name}</p>
+              <p className="text-2xl font-extrabold">${p.price}<span className="text-sm font-medium text-slate-400">/mo</span></p>
+              <ul className="text-xs text-slate-500 dark:text-slate-400 space-y-1 flex-1">
+                {p.perks.map(x => <li key={x} className="flex items-center gap-1.5"><Icons.CheckCircle2 size={13} className="text-brand-500 shrink-0" /> {x}</li>)}
+              </ul>
+              <button onClick={() => selectPlan(p.name)} disabled={me.plan === p.name}
+                className={`text-sm font-semibold py-2 rounded-xl ${me.plan === p.name ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-default' : 'bg-brand-600 text-white hover:bg-brand-700'}`}>
+                {me.plan === p.name ? 'Current Plan' : 'Select Plan'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function ClientPortal() {
+  const [tab, setTab] = useState('card');
+  const tabs = [
+    { id: 'card', label: 'Membership Card', icon: Icons.QrCode },
+    { id: 'classes', label: 'Classes', icon: Icons.Calendar },
+    { id: 'profile', label: 'Membership & Profile', icon: Icons.User },
+  ];
+  return (
+    <div>
+      <div className="flex gap-1.5 bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl w-fit mb-6 overflow-x-auto no-scrollbar">
+        {tabs.map(t => (
+          <SegButton key={t.id} active={tab === t.id} onClick={() => setTab(t.id)} className="flex items-center gap-1.5">
+            <t.icon size={15} /> {t.label}
+          </SegButton>
+        ))}
+      </div>
+      {tab === 'card' && <MembershipCardView />}
+      {tab === 'classes' && <ClassScheduleView />}
+      {tab === 'profile' && <MembershipProfileView />}
+    </div>
+  );
+}
+
+/* =========================================================================
+   ADMIN — QR SCANNER SIMULATOR
+   ========================================================================= */
+function ScannerView() {
+  const { members, addCheckIn, beep, muted, setMuted } = useApp();
+  const [selected, setSelected] = useState(members[0].id);
+  const [scanState, setScanState] = useState('idle'); // idle | scanning | result
+  const [result, setResult] = useState(null);
+  const [log, setLog] = useState([]);
+
+  function runScan(memberId) {
+    const member = members.find(m => m.id === memberId);
+    if (!member) return;
+    setScanState('scanning');
+    setResult(null);
+    setTimeout(() => {
+      let decision, reason;
+      if (member.status === 'active') { decision = 'granted'; reason = 'Active Membership'; }
+      else if (member.status === 'frozen') { decision = 'denied'; reason = 'Account Frozen'; }
+      else { decision = 'denied'; reason = 'Membership Expired'; }
+      const res = { member, decision, reason, at: new Date() };
+      setResult(res);
+      setScanState('result');
+      beep(decision);
+      if (decision === 'granted') addCheckIn(member.location);
+      setLog(l => [res, ...l].slice(0, 6));
+    }, 850);
+  }
+
+  function randomScan() {
+    const m = members[Math.floor(Math.random() * members.length)];
+    setSelected(m.id);
+    runScan(m.id);
+  }
+
+  return (
+    <div className="grid xl:grid-cols-[1.2fr,1fr] gap-6">
+      <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6 flex flex-col">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-bold text-lg flex items-center gap-2"><Icons.ScanLine size={19} /> Front-Desk Scanner</h3>
+          <button onClick={() => setMuted(m => !m)} title="Toggle scan sounds" className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+            {muted ? <Icons.VolumeX size={16} /> : <Icons.Volume2 size={16} />}
+          </button>
+        </div>
+
+        <div className={`relative rounded-2xl grid place-items-center min-h-[280px] mb-5 overflow-hidden transition-colors duration-300 ${
+          scanState === 'result' && result
+            ? result.decision === 'granted' ? 'bg-emerald-600' : 'bg-rose-600'
+            : 'bg-slate-900 dark:bg-slate-950'}`}>
+          {scanState === 'idle' && (
+            <div className="text-center text-slate-400">
+              <Icons.QrCode size={48} className="mx-auto mb-3 opacity-50" />
+              <p className="text-sm">Awaiting scan…</p>
+            </div>
+          )}
+          {scanState === 'scanning' && (
+            <div className="text-center text-white">
+              <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin mx-auto mb-3" />
+              <p className="text-sm font-medium tracking-wide">Validating membership…</p>
+            </div>
+          )}
+          {scanState === 'result' && result && (
+            <div className="flash-pop text-center text-white px-6 py-8">
+              {result.decision === 'granted'
+                ? <Icons.CheckCircle2 size={64} className="mx-auto mb-3" />
+                : <Icons.XCircle size={64} className="mx-auto mb-3" />}
+              <p className="text-2xl font-extrabold tracking-tight">{result.decision === 'granted' ? 'ACCESS GRANTED' : 'ACCESS DENIED'}</p>
+              <p className="font-medium opacity-90 mt-1">{result.reason}</p>
+              <div className="mt-4 inline-flex items-center gap-2 bg-black/20 rounded-full px-4 py-1.5 text-sm">
+                <Icons.User size={14} /> {result.member.name} · {result.member.location}
+              </div>
+              <div className="mt-2 flex items-center justify-center gap-1.5 text-xs opacity-80">
+                {muted ? <Icons.VolumeX size={13} /> : <Icons.Volume2 size={13} className="animate-pulse" />}
+                {muted ? 'Sound muted' : (result.decision === 'granted' ? 'Chime played' : 'Buzzer played')}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid sm:grid-cols-[1fr,auto] gap-3">
+          <select value={selected} onChange={e => setSelected(e.target.value)}
+            className="px-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none focus:ring-2 focus:ring-brand-500">
+            {members.map(m => <option key={m.id} value={m.id}>{m.name} — {m.location} ({m.status})</option>)}
+          </select>
+          <button onClick={() => runScan(selected)} className="px-4 py-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 text-white text-sm font-semibold hover:bg-slate-900 dark:hover:bg-slate-600 whitespace-nowrap">
+            Scan Selected
+          </button>
+        </div>
+        <button onClick={randomScan} className="mt-3 w-full py-2.5 rounded-xl bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 flex items-center justify-center gap-2">
+          <Icons.ScanLine size={16} /> Simulate Member Scan
+        </button>
+      </div>
+
+      <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+        <h3 className="font-bold mb-4">Recent Scans</h3>
+        {log.length === 0 && <p className="text-sm text-slate-400">No scans yet — try the simulator.</p>}
+        <div className="flex flex-col gap-2">
+          {log.map((r, i) => (
+            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-sm">
+              <div className="flex items-center gap-2.5">
+                {r.decision === 'granted'
+                  ? <Icons.ShieldCheck size={17} className="text-emerald-500 shrink-0" />
+                  : <Icons.ShieldAlert size={17} className="text-rose-500 shrink-0" />}
+                <div>
+                  <p className="font-medium">{r.member.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{r.reason} · {r.member.location}</p>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">{r.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ADMIN — MEMBER MANAGEMENT
+   ========================================================================= */
+function MembersView() {
+  const { members, extendMembership, toggleFreeze } = useApp();
+  const [locFilter, setLocFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [query, setQuery] = useState('');
+
+  const filtered = useMemo(() => members.filter(m => {
+    if (locFilter !== 'All' && m.location !== locFilter) return false;
+    if (statusFilter !== 'All' && m.status !== statusFilter) return false;
+    if (query && !(`${m.name} ${m.email}`.toLowerCase().includes(query.toLowerCase()))) return false;
+    return true;
+  }), [members, locFilter, statusFilter, query]);
+
+  return (
+    <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between mb-5">
+        <h3 className="font-bold text-lg flex items-center gap-2"><Icons.Users size={19} /> Members ({filtered.length})</h3>
+        <div className="flex flex-wrap gap-3">
+          <div className="relative">
+            <Icons.Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name or email…"
+              className="pl-9 pr-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 focus:ring-2 focus:ring-brand-500 outline-none w-56" />
+          </div>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none">
+            <option value="All">All statuses</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+            <option value="frozen">Frozen</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl w-fit mb-5">
+        {['All', ...LOCATIONS].map(l => <SegButton key={l} active={locFilter === l} onClick={() => setLocFilter(l)}>{l}</SegButton>)}
+      </div>
+
+      <div className="overflow-x-auto -mx-2">
+        <table className="w-full text-sm min-w-[820px]">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
+              <th className="py-2 px-2">Member</th>
+              <th className="py-2 px-2">Location</th>
+              <th className="py-2 px-2">Plan</th>
+              <th className="py-2 px-2">Status</th>
+              <th className="py-2 px-2">Days Left</th>
+              <th className="py-2 px-2">Last Check-in</th>
+              <th className="py-2 px-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {filtered.map(m => (
+              <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <td className="py-3 px-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-brand-600/90 text-white grid place-items-center text-xs font-bold shrink-0">{m.name.split(' ').map(n => n[0]).join('')}</div>
+                    <div>
+                      <p className="font-semibold leading-tight">{m.name}</p>
+                      <p className="text-xs text-slate-400">{m.email}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3 px-2 text-slate-500 dark:text-slate-400">{m.location}</td>
+                <td className="py-3 px-2"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${PLAN_STYLE[m.plan]}`}>{m.plan}</span></td>
+                <td className="py-3 px-2"><StatusBadge status={m.status} /></td>
+                <td className="py-3 px-2 font-medium">{m.daysRemaining < 0 ? `${Math.abs(m.daysRemaining)}d ago` : m.daysRemaining}</td>
+                <td className="py-3 px-2 text-slate-500 dark:text-slate-400">{m.lastCheckIn}</td>
+                <td className="py-3 px-2">
+                  <div className="flex justify-end gap-1.5">
+                    <button onClick={() => extendMembership(m.id, 30)} title="Extend 30 days"
+                      className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400">
+                      <Icons.RefreshCw size={15} />
+                    </button>
+                    <button onClick={() => toggleFreeze(m.id)} title={m.status === 'frozen' ? 'Resume' : 'Freeze'}
+                      className={`p-1.5 rounded-lg ${m.status === 'frozen' ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400'}`}>
+                      <Icons.Snowflake size={15} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan="7" className="text-center py-10 text-slate-400">No members match your filters.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ADMIN — CLASS & CAPACITY MANAGER
+   ========================================================================= */
+function ClassManagerView() {
+  const { classes, addClass, members } = useApp();
+  const [addOpen, setAddOpen] = useState(false);
+  const [rosterClass, setRosterClass] = useState(null);
+  const [form, setForm] = useState({ name: '', type: 'CrossFit', location: LOCATIONS[0], trainer: '', day: 'Mon', time: '', capacity: 15 });
+
+  function submit(e) {
+    e.preventDefault();
+    if (!form.name || !form.trainer || !form.time) return;
+    addClass({ ...form, capacity: Number(form.capacity) || 10 });
+    setForm({ name: '', type: 'CrossFit', location: LOCATIONS[0], trainer: '', day: 'Mon', time: '', capacity: 15 });
+    setAddOpen(false);
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-bold text-lg flex items-center gap-2"><Icons.Calendar size={19} /> Classes ({classes.length})</h3>
+        <button onClick={() => setAddOpen(true)} className="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold flex items-center gap-1.5 hover:bg-brand-700">
+          <Icons.Plus size={16} /> Add New Class
+        </button>
+      </div>
+
+      <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[760px]">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                <th className="py-3 px-4">Class</th>
+                <th className="py-3 px-4">Location</th>
+                <th className="py-3 px-4">Trainer</th>
+                <th className="py-3 px-4">Schedule</th>
+                <th className="py-3 px-4">Capacity</th>
+                <th className="py-3 px-4 text-right">Roster</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {classes.map(c => {
+                const style = CLASS_TYPE_STYLE[c.type];
+                const Icon = style.icon;
+                const pct = Math.min(100, Math.round((c.booked / c.capacity) * 100));
+                return (
+                  <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-lg grid place-items-center ${style.bg} ${style.color}`}><Icon size={15} /></div>
+                        <div>
+                          <p className="font-semibold leading-tight">{c.name}</p>
+                          <p className="text-xs text-slate-400">{c.type}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{c.location}</td>
+                    <td className="py-3 px-4">{c.trainer}</td>
+                    <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{c.day} · {c.time}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2 w-32">
+                        <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                          <div className={`h-full rounded-full ${pct >= 100 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: pct + '%' }} />
+                        </div>
+                        <span className="text-xs font-medium whitespace-nowrap">{c.booked}/{c.capacity}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button onClick={() => setRosterClass(c)} className="text-brand-600 dark:text-brand-400 font-semibold text-xs hover:underline">View Roster</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add New Class">
+        <form onSubmit={submit} className="grid sm:grid-cols-2 gap-4">
+          <label className="text-sm font-medium col-span-2">Class Name
+            <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. HIIT Blast"
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none focus:ring-2 focus:ring-brand-500" />
+          </label>
+          <label className="text-sm font-medium">Type
+            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none">
+              {Object.keys(CLASS_TYPE_STYLE).map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-medium">Location
+            <select value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none">
+              {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-medium">Trainer
+            <input required value={form.trainer} onChange={e => setForm(f => ({ ...f, trainer: e.target.value }))} placeholder="Trainer name"
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none focus:ring-2 focus:ring-brand-500" />
+          </label>
+          <label className="text-sm font-medium">Day
+            <select value={form.day} onChange={e => setForm(f => ({ ...f, day: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-medium">Time
+            <input required value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} placeholder="e.g. 6:00 AM"
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none focus:ring-2 focus:ring-brand-500" />
+          </label>
+          <label className="text-sm font-medium">Max Capacity
+            <input required type="number" min="1" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-900/10 dark:ring-white/10 outline-none focus:ring-2 focus:ring-brand-500" />
+          </label>
+          <div className="col-span-2 flex justify-end gap-2 mt-1">
+            <button type="button" onClick={() => setAddOpen(false)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800">Cancel</button>
+            <button type="submit" className="px-4 py-2 rounded-xl text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700">Create Class</button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={!!rosterClass} onClose={() => setRosterClass(null)} title={rosterClass ? `Roster — ${rosterClass.name}` : ''}>
+        {rosterClass && (
+          <div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{rosterClass.booked}/{rosterClass.capacity} booked · {rosterClass.day} {rosterClass.time} · {rosterClass.location}</p>
+            <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+              {rosterClass.roster.map(id => {
+                const m = members.find(mm => mm.id === id);
+                if (!m) return null;
+                return (
+                  <div key={id} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-sm">
+                    <div className="w-7 h-7 rounded-full bg-brand-600 text-white grid place-items-center text-xs font-bold">{m.name.split(' ').map(n => n[0]).join('')}</div>
+                    <span className="font-medium">{m.name}</span>
+                    <StatusBadge status={m.status} />
+                  </div>
+                );
+              })}
+              {rosterClass.booked > rosterClass.roster.length && (
+                <p className="text-xs text-slate-400 text-center pt-1">+ {rosterClass.booked - rosterClass.roster.length} more booked</p>
+              )}
+              {rosterClass.roster.length === 0 && <p className="text-sm text-slate-400 text-center py-6">No one booked yet.</p>}
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ADMIN — ANALYTICS OVERVIEW
+   ========================================================================= */
+function MetricCard({ icon: Icon, label, value, sub, trend }) {
+  return (
+    <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-9 h-9 rounded-xl bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 grid place-items-center"><Icon size={17} /></div>
+        {trend != null && (
+          <span className={`text-xs font-semibold flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+            {trend >= 0 ? <Icons.ArrowUpRight size={13} /> : <Icons.ArrowDownRight size={13} />} {Math.abs(trend)}%
+          </span>
+        )}
+      </div>
+      <p className="text-2xl font-extrabold">{value}</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function OverviewView() {
+  const { members, checkIns, classes } = useApp();
+  const activeByLoc = LOCATIONS.map(l => ({ loc: l, count: members.filter(m => m.location === l && m.status === 'active').length }));
+  const totalActive = members.filter(m => m.status === 'active').length;
+  const todayCheckIns = checkIns.length;
+  const buckets = useMemo(() => {
+    const hours = [6, 7, 8, 9, 12, 17, 18, 19];
+    return hours.map(h => ({ h, count: checkIns.filter(c => c.hour === h).length }));
+  }, [checkIns]);
+  const maxBucket = Math.max(...buckets.map(b => b.count), 1);
+  const peak = buckets.reduce((a, b) => (b.count > a.count ? b : a), buckets[0]);
+  const fullClasses = classes.filter(c => c.booked >= c.capacity).length;
+
+  function fmtHour(h) {
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hr = h % 12 === 0 ? 12 : h % 12;
+    return `${hr}${period}`;
+  }
+
+  return (
+    <div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <MetricCard icon={Icons.ScanLine} label="Today's Check-ins" value={todayCheckIns} sub="Across both locations" trend={8} />
+        <MetricCard icon={Icons.Users} label="Active Memberships" value={totalActive} sub={`${activeByLoc[0].count} Downtown · ${activeByLoc[1].count} Northside`} trend={3} />
+        <MetricCard icon={Icons.Clock} label="Peak Hour" value={fmtHour(peak.h)} sub={`${peak.count} check-ins in this window`} />
+        <MetricCard icon={Icons.Calendar} label="Classes at Capacity" value={fullClasses} sub={`of ${classes.length} total classes`} trend={-2} />
+      </div>
+
+      <div className="grid lg:grid-cols-[1.4fr,1fr] gap-6">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-6">
+          <h3 className="font-bold mb-1 flex items-center gap-2"><Icons.BarChart3 size={17} /> Check-ins by Hour</h3>
+          <p className="text-xs text-slate-400 mb-5">Live — updates as scans are simulated at the front desk</p>
+          <div className="flex items-end gap-3 h-40">
+            {buckets.map(b => (
+              <div key={b.h} className="flex-1 flex flex-col items-center justify-end h-full gap-1.5">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{b.count}</span>
+                <div className={`w-full rounded-t-lg bar-grow ${b.h === peak.h && b.count > 0 ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                  style={{ height: `${Math.max(6, (b.count / maxBucket) * 100)}%` }} />
+                <span className="text-[11px] text-slate-400">{fmtHour(b.h)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {LOCATIONS.map(loc => {
+            const locMembers = members.filter(m => m.location === loc);
+            const active = locMembers.filter(m => m.status === 'active').length;
+            const checkins = checkIns.filter(c => c.location === loc).length;
+            return (
+              <div key={loc} className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-5">
+                <div className="flex items-center gap-2 mb-3 font-bold"><Icons.Building2 size={17} /> {loc}</div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-2xl font-extrabold">{active}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs">Active members</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-extrabold">{checkins}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs">Check-ins today</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ADMIN DASHBOARD SHELL
+   ========================================================================= */
+function AdminDashboard() {
+  const [nav, setNav] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navItems = [
+    { id: 'overview', label: 'Analytics Overview', icon: Icons.LayoutDashboard },
+    { id: 'scanner', label: 'QR Scanner', icon: Icons.ScanLine },
+    { id: 'members', label: 'Member Management', icon: Icons.Users },
+    { id: 'classes', label: 'Class & Capacity', icon: Icons.Calendar },
+  ];
+  const activeLabel = navItems.find(n => n.id === nav)?.label;
+
+  return (
+    <div className="grid lg:grid-cols-[240px,1fr] gap-6">
+      <aside className={`lg:sticky lg:top-6 lg:h-fit ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
+        <div className="rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-3 flex lg:flex-col gap-1 overflow-x-auto no-scrollbar">
+          {navItems.map(n => (
+            <button key={n.id} onClick={() => { setNav(n.id); setSidebarOpen(false); }}
+              className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap ${
+                nav === n.id ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              <n.icon size={16} /> {n.label}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <main>
+        <div className="flex items-center justify-between mb-5 lg:hidden">
+          <h2 className="font-bold text-lg">{activeLabel}</h2>
+          <button onClick={() => setSidebarOpen(s => !s)} className="p-2 rounded-lg bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10">
+            <Icons.Menu size={18} />
+          </button>
+        </div>
+        <h2 className="font-bold text-xl mb-5 hidden lg:block">{activeLabel}</h2>
+        {nav === 'overview' && <OverviewView />}
+        {nav === 'scanner' && <ScannerView />}
+        {nav === 'members' && <MembersView />}
+        {nav === 'classes' && <ClassManagerView />}
+      </main>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ROOT APP
+   ========================================================================= */
+function TopBar({ view, setView }) {
+  const { theme, setTheme } = useApp();
+  return (
+    <header className="sticky top-0 z-40 backdrop-blur bg-slate-100/80 dark:bg-slate-950/80 border-b border-slate-900/5 dark:border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
+          <div className="w-9 h-9 rounded-xl bg-brand-600 text-white grid place-items-center"><Icons.Dumbbell size={19} /></div>
+          GymCore
+        </div>
+
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 p-1 rounded-xl">
+          <button onClick={() => setView('client')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${view === 'client' ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            <Icons.User size={15} /> Client Portal
+          </button>
+          <button onClick={() => setView('admin')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${view === 'admin' ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            <Icons.LayoutDashboard size={15} /> Staff / Admin Dashboard
+          </button>
+        </div>
+
+        <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          className="p-2.5 rounded-xl bg-white dark:bg-slate-900 ring-1 ring-slate-900/10 dark:ring-white/10 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400">
+          {theme === 'dark' ? <Icons.Sun size={17} /> : <Icons.Moon size={17} />}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('client');
+  return (
+    <AppProvider>
+      <div className="min-h-screen">
+        <TopBar view={view} setView={setView} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          {view === 'client' ? <ClientPortal /> : <AdminDashboard />}
+        </div>
+        <ToastStack />
+      </div>
+    </AppProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
