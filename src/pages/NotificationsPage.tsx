@@ -21,11 +21,11 @@ import { getNotificationPrefs } from '@/lib/notificationPrefs'
 import type { AppNotification, NotificationType } from '@/types'
 
 const TYPE_META: Record<NotificationType, { icon: LucideIcon; tone: Tone }> = {
-  renewal: { icon: CalendarClock, tone: 'amber' },
-  class: { icon: CalendarClock, tone: 'brand' },
-  billing: { icon: Receipt, tone: 'violet' },
-  security: { icon: ShieldCheck, tone: 'rose' },
-  achievement: { icon: Trophy, tone: 'lime' },
+  renewal: { icon: CalendarClock, tone: 'warn' },
+  class: { icon: CalendarClock, tone: 'volt' },
+  billing: { icon: Receipt, tone: 's3' },
+  security: { icon: ShieldCheck, tone: 'bad' },
+  achievement: { icon: Trophy, tone: 'good' },
   general: { icon: Bell, tone: 'slate' },
 }
 
@@ -44,11 +44,11 @@ export function NotificationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Notifications</h2>
-          <p className="mt-1 text-sm text-slate-500">Renewals, class reminders, billing and security alerts.</p>
+          <h2 className="font-display text-[22px] font-extrabold text-ink">Notifications</h2>
+          <p className="mt-1 text-[13px] text-dim">Renewals, class reminders, billing and security alerts.</p>
         </div>
         {unreadNotificationCount > 0 && (
-          <Button size="sm" variant="outline" onClick={() => markAllNotificationsRead()} iconLeft={<CheckCheck className="h-4 w-4" />}>
+          <Button size="sm" variant="quiet" onClick={() => markAllNotificationsRead()} iconLeft={<CheckCheck className="h-3.5 w-3.5" />}>
             Mark all as read
           </Button>
         )}
@@ -65,7 +65,7 @@ export function NotificationsPage() {
       />
 
       {mutedCount > 0 && (
-        <p className="text-xs text-slate-400">
+        <p className="text-[11px] text-mute">
           {mutedCount} notification{mutedCount === 1 ? '' : 's'} hidden by your notification preferences.
         </p>
       )}
@@ -78,7 +78,7 @@ export function NotificationsPage() {
               title={tab === 'unread' ? "You're all caught up" : 'No notifications yet'}
             />
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-100">
+            <ul className="flex flex-col divide-y divide-linesoft">
               {visible.map((n) => (
                 <NotificationRow key={n.id} notification={n} onRead={() => markNotificationRead(n.id)} />
               ))}
@@ -100,18 +100,18 @@ function NotificationRow({ notification, onRead }: { notification: AppNotificati
       onClick={() => !notification.read && onRead()}
       className={`flex items-start gap-3 py-4 first:pt-0 last:pb-0 ${!notification.read ? 'cursor-pointer' : ''}`}
     >
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${classes.chip}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] ${classes.chip}`}>
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className={`text-sm ${notification.read ? 'font-medium text-ink-700' : 'font-bold text-ink-900'}`}>
+          <p className={`text-[13px] ${notification.read ? 'font-medium text-dim' : 'font-bold text-ink'}`}>
             {notification.title}
           </p>
-          {!notification.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />}
+          {!notification.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-volt" />}
         </div>
-        <p className="mt-0.5 text-sm text-slate-500">{notification.message}</p>
-        <p className="mt-1 text-xs text-slate-400">{relativeTime(notification.createdAt)}</p>
+        <p className="mt-0.5 text-[12.5px] text-dim">{notification.message}</p>
+        <p className="mt-1 text-[10.5px] text-mute">{relativeTime(notification.createdAt)}</p>
       </div>
     </li>
   )

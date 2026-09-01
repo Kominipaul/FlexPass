@@ -58,10 +58,8 @@ export function OtpInput({ length = 6, value, onChange, disabled, error }: OtpIn
           autoComplete="one-time-code"
           maxLength={1}
           aria-label={`Digit ${index + 1}`}
-          className={`h-14 w-full max-w-[3rem] rounded-xl border text-center text-xl font-bold text-ink-900 transition-shadow focus:outline-none focus:ring-4 disabled:bg-slate-50 disabled:text-slate-400 ${
-            error
-              ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100'
-              : 'border-slate-200 focus:border-brand-400 focus:ring-brand-100'
+          className={`font-mono h-14 w-full max-w-[3rem] rounded-[8px] border bg-sunk text-center text-xl font-bold text-ink transition-colors focus:outline-none disabled:opacity-50 ${
+            error ? 'border-bad focus:border-bad' : 'border-line focus:border-volt'
           }`}
         />
       ))}

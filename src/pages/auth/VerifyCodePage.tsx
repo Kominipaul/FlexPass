@@ -51,10 +51,10 @@ export function VerifyCodePage() {
       title="Enter your security code"
       subtitle={`For your security, enter the 6-digit code to finish signing in as ${pendingAuth.email}.`}
     >
-      <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-        <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+      <div className="mb-6 flex items-start gap-2.5 rounded-[9px] border border-dashed border-voltline bg-voltsoft px-4 py-3 text-[13px] text-ink">
+        <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
         <div>
-          <p className="font-semibold">Demo mode</p>
+          <p className="font-semibold text-volt">Demo mode</p>
           <p>
             No real SMS/email is sent here — your code is{' '}
             <span className="font-mono font-bold tracking-wider">{pendingAuth.code}</span>.
@@ -63,7 +63,7 @@ export function VerifyCodePage() {
       </div>
 
       {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
+        <div className="mb-4 flex items-start gap-2 rounded-[9px] border border-badsoft bg-badsoft px-3.5 py-3 text-[13px] text-bad">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -82,22 +82,18 @@ export function VerifyCodePage() {
         Verify &amp; sign in
       </Button>
 
-      <div className="mt-5 flex items-center justify-between text-sm">
+      <div className="mt-5 flex items-center justify-between text-[12.5px]">
         <button
           type="button"
           onClick={() => {
             cancelPendingAuth()
             navigate('/login', { replace: true })
           }}
-          className="font-semibold text-slate-500 hover:text-slate-700"
+          className="font-semibold text-mute hover:text-ink"
         >
           Use a different account
         </button>
-        <button
-          type="button"
-          onClick={handleResend}
-          className="font-semibold text-brand-600 hover:text-brand-700"
-        >
+        <button type="button" onClick={handleResend} className="font-semibold text-volt hover:brightness-125">
           {justResent ? 'New code sent ✓' : 'Resend code'}
         </button>
       </div>

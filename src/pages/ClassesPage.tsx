@@ -64,8 +64,8 @@ export function ClassesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Classes &amp; Groups</h2>
-        <p className="mt-1 text-sm text-slate-500">Book drop-in classes or join an ongoing group.</p>
+        <h2 className="font-display text-[22px] font-extrabold text-ink">Classes &amp; Groups</h2>
+        <p className="mt-1 text-[13px] text-dim">Book drop-in classes or join an ongoing group.</p>
       </div>
 
       <Tabs
@@ -84,7 +84,7 @@ export function ClassesPage() {
             <FilterPill active={kindFilter === 'all'} onClick={() => setKindFilter('all')} label="All" />
             <FilterPill active={kindFilter === 'class'} onClick={() => setKindFilter('class')} label="Drop-in classes" />
             <FilterPill active={kindFilter === 'group'} onClick={() => setKindFilter('group')} label="Ongoing groups" />
-            <span className="mx-1 h-5 w-px bg-slate-200" />
+            <span className="mx-1 h-5 w-px bg-line" />
             {categories.map((c) => (
               <FilterPill key={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} label={c === 'all' ? 'All categories' : c} subtle />
             ))}
@@ -107,7 +107,7 @@ export function ClassesPage() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardBody>
-              <h3 className="mb-3 text-base font-semibold text-ink-900">Upcoming</h3>
+              <h3 className="font-display mb-3 text-[12.5px] font-bold uppercase tracking-[.05em] text-ink">Upcoming</h3>
               {agenda.length === 0 ? (
                 <EmptyState
                   icon={<CalendarDays className="h-5 w-5" />}
@@ -120,7 +120,7 @@ export function ClassesPage() {
                   }
                 />
               ) : (
-                <ul className="flex flex-col divide-y divide-slate-100">
+                <ul className="flex flex-col divide-y divide-linesoft">
                   {agenda.map((item) => (
                     <AgendaRow
                       key={item.key}
@@ -138,23 +138,23 @@ export function ClassesPage() {
 
           <Card>
             <CardBody>
-              <h3 className="mb-3 text-base font-semibold text-ink-900">My groups</h3>
+              <h3 className="font-display mb-3 text-[12.5px] font-bold uppercase tracking-[.05em] text-ink">My groups</h3>
               {myGroups.length === 0 ? (
                 <EmptyState icon={<UsersIcon className="h-5 w-5" />} title="You haven't joined any groups yet" />
               ) : (
-                <ul className="flex flex-col divide-y divide-slate-100">
+                <ul className="flex flex-col divide-y divide-linesoft">
                   {myGroups.map((g) => {
                     const activity = activities.find((a) => a.id === g.activityId)
                     if (!activity) return null
                     return (
                       <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
                         <div>
-                          <p className="text-sm font-semibold text-ink-900">{activity.name}</p>
-                          <p className="text-xs text-slate-500">Member since {formatDate(g.joinedAt)}</p>
+                          <p className="text-[13px] font-semibold text-ink">{activity.name}</p>
+                          <p className="text-[11.5px] text-mute">Member since {formatDate(g.joinedAt)}</p>
                         </div>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="quiet"
                           iconLeft={<LogOut className="h-3.5 w-3.5" />}
                           onClick={async () => {
                             await leaveGroup(g.id)
@@ -174,16 +174,16 @@ export function ClassesPage() {
           {pastBookings.length > 0 && (
             <Card>
               <CardBody>
-                <h3 className="mb-3 text-base font-semibold text-ink-900">Past sessions</h3>
-                <ul className="flex flex-col divide-y divide-slate-100">
+                <h3 className="font-display mb-3 text-[12.5px] font-bold uppercase tracking-[.05em] text-ink">Past sessions</h3>
+                <ul className="flex flex-col divide-y divide-linesoft">
                   {pastBookings.map((b) => {
                     const activity = activities.find((a) => a.id === b.activityId)
                     if (!activity) return null
                     return (
-                      <li key={b.id} className="flex items-center justify-between gap-2 py-2.5 text-sm first:pt-0 last:pb-0">
-                        <span className="font-medium text-ink-700">{activity.name}</span>
-                        <span className="text-slate-400">{formatDate(b.date)}</span>
-                        <Badge tone={b.status === 'attended' ? 'lime' : 'slate'} size="sm">
+                      <li key={b.id} className="flex items-center justify-between gap-2 py-2.5 text-[13px] first:pt-0 last:pb-0">
+                        <span className="font-medium text-dim">{activity.name}</span>
+                        <span className="text-mute">{formatDate(b.date)}</span>
+                        <Badge tone={b.status === 'attended' ? 'good' : 'slate'} size="sm">
                           {b.status === 'attended' ? 'Attended' : 'No-show'}
                         </Badge>
                       </li>
@@ -235,12 +235,12 @@ function FilterPill({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+      className={`font-display shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.03em] transition-colors ${
         active
-          ? 'border-brand-600 bg-brand-600 text-white'
+          ? 'border-volt bg-volt text-voltink'
           : subtle
-            ? 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
-            : 'border-slate-200 bg-white text-ink-700 hover:border-slate-300'
+            ? 'border-line bg-surface text-mute hover:border-voltline hover:text-ink'
+            : 'border-line bg-surface text-dim hover:border-voltline hover:text-ink'
       }`}
     >
       {label}
@@ -255,27 +255,27 @@ function ActivityCard({ activity, joined, onOpen }: { activity: Activity; joined
     <button
       type="button"
       onClick={onOpen}
-      className="flex flex-col rounded-2xl border border-slate-100 bg-white p-5 text-left shadow-card transition-shadow hover:shadow-pop"
+      className="inner-top flex flex-col rounded-[12px] border border-line bg-surface p-5 text-left shadow-card transition-colors hover:border-voltline"
     >
       <div className="flex items-start justify-between gap-2">
-        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${classes.chip}`}>
+        <span className={`flex h-10 w-10 items-center justify-center rounded-[9px] ${classes.chip}`}>
           <Dumbbell className="h-5 w-5" />
         </span>
         <div className="flex flex-col items-end gap-1">
-          <Badge tone={activity.kind === 'group' ? 'violet' : 'brand'} size="sm">
+          <Badge tone={activity.kind === 'group' ? 's3' : 'volt'} size="sm">
             {activity.kind === 'group' ? 'Group' : 'Class'}
           </Badge>
           {joined && (
-            <Badge tone="lime" size="sm">
+            <Badge tone="good" size="sm">
               Joined
             </Badge>
           )}
         </div>
       </div>
-      <h3 className="mt-3 text-base font-bold text-ink-900">{activity.name}</h3>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{activity.category}</p>
-      <p className="mt-2 line-clamp-2 text-sm text-slate-500">{activity.description}</p>
-      <div className="mt-3 flex flex-col gap-1 text-xs text-slate-500">
+      <h3 className="font-display mt-3 text-[14px] font-bold text-ink">{activity.name}</h3>
+      <p className="text-[10.5px] font-semibold uppercase tracking-[.08em] text-mute">{activity.category}</p>
+      <p className="mt-2 line-clamp-2 text-[12.5px] text-dim">{activity.description}</p>
+      <div className="mt-3 flex flex-col gap-1 text-[11.5px] text-mute">
         <span className="flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5" />
           {activity.location} · {activity.instructor}
@@ -334,9 +334,16 @@ function ActivityDetailsModal({
   const occurrences = activity.kind === 'class' ? getUpcomingOccurrences(activity, 21) : []
 
   return (
-    <Modal open onClose={onClose} title={activity.name} description={`${activity.category} · with ${activity.instructor}`} size="lg">
+    <Modal
+      open
+      onClose={onClose}
+      icon={<Dumbbell className="h-4 w-4" />}
+      title={activity.name}
+      description={`${activity.category} · with ${activity.instructor}`}
+      size="lg"
+    >
       <div className="flex flex-col gap-5">
-        <p className="text-sm text-slate-600">{activity.description}</p>
+        <p className="text-[13px] text-dim">{activity.description}</p>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <MetaChip icon={<MapPin className="h-3.5 w-3.5" />} label={activity.location} />
@@ -349,18 +356,18 @@ function ActivityDetailsModal({
         </div>
 
         {activity.kind === 'group' ? (
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-[9px] border border-line p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-ink-800">
+                <p className="text-[13px] font-semibold text-ink">
                   {rosterSize === null ? <Spinner className="h-4 w-4" /> : `${rosterSize} / ${activity.capacity} members`}
                 </p>
-                <p className="text-xs text-slate-500">Meets weekly — join once, attend every session.</p>
+                <p className="text-[11.5px] text-mute">Meets weekly — join once, attend every session.</p>
               </div>
               {myMembership ? (
                 <Button
-                  variant="outline"
-                  className="text-rose-600"
+                  variant="quiet"
+                  className="text-bad"
                   loading={busyAction}
                   onClick={async () => {
                     setBusyAction(true)
@@ -387,7 +394,7 @@ function ActivityDetailsModal({
                       setBusyAction(false)
                     }
                   }}
-                  iconLeft={<Check className="h-4 w-4" />}
+                  iconLeft={<Check className="h-3.5 w-3.5" />}
                 >
                   Join this group
                 </Button>
@@ -396,7 +403,7 @@ function ActivityDetailsModal({
           </div>
         ) : (
           <div>
-            <p className="mb-2 text-sm font-semibold text-ink-800">Upcoming sessions</p>
+            <p className="mb-2 text-[13px] font-semibold text-ink">Upcoming sessions</p>
             <ul className="flex flex-col gap-2">
               {occurrences.map((date) => {
                 const already = classBookings.some(
@@ -408,11 +415,11 @@ function ActivityDetailsModal({
                 return (
                   <li
                     key={date}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3.5 py-2.5"
+                    className="flex items-center justify-between gap-2 rounded-[9px] border border-line px-3.5 py-2.5"
                   >
-                    <span className="text-sm font-medium text-ink-800">{formatAgendaDate(date)}</span>
+                    <span className="text-[13px] font-medium text-ink">{formatAgendaDate(date)}</span>
                     {already ? (
-                      <Badge tone="lime" size="sm">
+                      <Badge tone="good" size="sm">
                         Booked
                       </Badge>
                     ) : occupancy === null ? (
@@ -420,7 +427,7 @@ function ActivityDetailsModal({
                     ) : (
                       <Button
                         size="sm"
-                        variant={isFull ? 'outline' : 'primary'}
+                        variant={isFull ? 'quiet' : 'solid'}
                         loading={busyDate === date}
                         onClick={async () => {
                           setBusyDate(date)
@@ -447,7 +454,7 @@ function ActivityDetailsModal({
 
 function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-600">
+    <div className="flex items-center gap-1.5 rounded-[7px] border border-line bg-raised px-2.5 py-2 text-[11.5px] font-medium text-dim">
       {icon}
       <span className="truncate">{label}</span>
     </div>

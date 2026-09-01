@@ -13,28 +13,30 @@ export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
   if (!user) return null
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-6">
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onOpenMobile}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
+          className="rounded-[6px] p-2 text-dim hover:bg-raised hover:text-ink lg:hidden"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-bold text-ink-900">{pageTitleForPath(location.pathname)}</h1>
+        <h1 className="font-display text-[15px] font-bold uppercase tracking-[.03em] text-ink">
+          {pageTitleForPath(location.pathname)}
+        </h1>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
         <Link
           to="/notifications"
-          className="relative rounded-xl p-2 text-slate-500 hover:bg-slate-100"
+          className="relative rounded-[7px] p-2 text-dim hover:bg-raised hover:text-ink"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
           {unreadNotificationCount > 0 && (
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-bad ring-2 ring-surface" />
           )}
         </Link>
         <Link to="/profile" className="rounded-full" aria-label="Your profile">

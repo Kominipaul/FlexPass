@@ -76,12 +76,12 @@ export function SignupPage() {
     >
       <div className="mb-6 flex items-center gap-2">
         <StepDot label="1" current={step === 1} done={step > 1} />
-        <span className="h-px flex-1 bg-slate-200" />
+        <span className="h-px flex-1 bg-line" />
         <StepDot label="2" current={step === 2} done={false} />
       </div>
 
       {topError && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
+        <div className="mb-4 flex items-start gap-2 rounded-[9px] border border-badsoft bg-badsoft px-3.5 py-3 text-[13px] text-bad">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{topError}</span>
         </div>
@@ -164,7 +164,7 @@ export function SignupPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setStep(1)} iconLeft={<ArrowLeft className="h-4 w-4" />}>
+            <Button variant="quiet" onClick={() => setStep(1)} iconLeft={<ArrowLeft className="h-4 w-4" />}>
               Back
             </Button>
             <Button
@@ -181,9 +181,9 @@ export function SignupPage() {
       )}
 
       {step === 1 && (
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-[12.5px] text-dim">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+          <Link to="/login" className="font-semibold text-volt hover:brightness-125">
             Sign in
           </Link>
         </p>
@@ -195,8 +195,8 @@ export function SignupPage() {
 function StepDot({ label, current, done }: { label: string; current: boolean; done: boolean }) {
   return (
     <span
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-        current || done ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-400'
+      className={`font-display flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+        current || done ? 'bg-volt text-voltink' : 'bg-raised text-mute'
       }`}
     >
       {done ? '✓' : label}

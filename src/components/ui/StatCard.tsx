@@ -10,16 +10,16 @@ interface StatCardProps {
   className?: string
 }
 
-export function StatCard({ label, value, icon, tone = 'brand', hint, className = '' }: StatCardProps) {
+export function StatCard({ label, value, icon, tone = 'volt', hint, className = '' }: StatCardProps) {
   const classes = TONES[toneOf(tone)]
   return (
-    <div className={`rounded-2xl border border-slate-100 bg-white p-5 shadow-card ${className}`}>
+    <div className={`inner-top rounded-[12px] border border-line bg-surface p-4 shadow-card ${className}`}>
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${classes.chip}`}>{icon}</span>
+        <p className="text-[10.5px] font-semibold uppercase tracking-[.08em] text-mute">{label}</p>
+        <span className={`flex h-7 w-7 items-center justify-center rounded-[7px] ${classes.chip}`}>{icon}</span>
       </div>
-      <p className="mt-2 text-2xl font-bold text-ink-900">{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      <p className="font-display tnum mt-2 text-[22px] font-extrabold leading-none text-ink">{value}</p>
+      {hint && <p className="mt-1.5 text-[11px] text-mute">{hint}</p>}
     </div>
   )
 }

@@ -3,14 +3,45 @@ import type {
   AppNotification,
   CheckIn,
   ClassBooking,
+  DoorScan,
   GroupMembership,
   Invoice,
+  Location,
   Membership,
+  MembershipStatus,
   PaymentMethod,
   Plan,
+  StaffUser,
   User,
 } from '@/types'
 import { makeId } from './id'
+
+// ---------------------------------------------------------------------------
+// Locations — the physical clubs the door system and staff dashboard run at
+// ---------------------------------------------------------------------------
+
+export const LOCATIONS: Location[] = [
+  {
+    id: 'downtown',
+    name: 'FlexPass Downtown',
+    address: '482 Commerce St, Austin, TX',
+    hours: '5:00 AM – 11:00 PM',
+  },
+  {
+    id: 'northside',
+    name: 'FlexPass Northside',
+    address: '1290 Parmer Ln, Austin, TX',
+    hours: '6:00 AM – 10:00 PM',
+  },
+]
+
+export function getLocation(id: string): Location | undefined {
+  return LOCATIONS.find((l) => l.id === id)
+}
+
+export function locationIdFromName(name: string): string {
+  return LOCATIONS.find((l) => l.name === name)?.id ?? LOCATIONS[0].id
+}
 
 // ---------------------------------------------------------------------------
 // Plans
@@ -25,6 +56,7 @@ export const PLANS: Plan[] = [
     priceMonthly: 29,
     priceYearly: 290,
     color: 'slate',
+    allLocations: false,
     classCredits: 2,
     guestPasses: 0,
     perks: [
@@ -41,8 +73,9 @@ export const PLANS: Plan[] = [
     tagline: 'Our most popular all-round membership',
     priceMonthly: 59,
     priceYearly: 590,
-    color: 'brand',
+    color: 'volt',
     popular: true,
+    allLocations: true,
     classCredits: 8,
     guestPasses: 1,
     perks: [
@@ -60,7 +93,8 @@ export const PLANS: Plan[] = [
     tagline: 'Unlimited everything, priority booking',
     priceMonthly: 99,
     priceYearly: 990,
-    color: 'lime',
+    color: 'ember',
+    allLocations: true,
     classCredits: 'unlimited',
     guestPasses: 4,
     perks: [
@@ -79,7 +113,10 @@ export function getPlan(planId: string): Plan | undefined {
 }
 
 // ---------------------------------------------------------------------------
-// Activities — classes (drop-in, booked per occurrence) & groups (ongoing)
+// Activities — classes (drop-in, booked per occurrence) & groups (ongoing).
+// This array only seeds the initial `activities` collection in db.ts — once
+// seeded, staff can add/cancel classes and those changes persist there, not
+// here. Treat this as a template, not a live source of truth.
 // ---------------------------------------------------------------------------
 
 export const ACTIVITIES: Activity[] = [
@@ -90,10 +127,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Spin',
     instructor: 'Jordan Reyes',
     location: 'Studio B',
+    locationId: 'downtown',
     level: 'All levels',
     description: 'High-energy indoor cycling with interval sprints and a killer playlist.',
     capacity: 20,
-    color: 'rose',
+    color: 's1',
     schedule: [
       { dayOfWeek: 1, startTime: '06:30', durationMins: 45 },
       { dayOfWeek: 3, startTime: '06:30', durationMins: 45 },
@@ -107,10 +145,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'HIIT',
     instructor: 'Marcus Lee',
     location: 'Studio A',
+    locationId: 'downtown',
     level: 'Intermediate',
     description: 'Full-body high intensity interval training. Bring a towel — you will need it.',
     capacity: 16,
-    color: 'orange',
+    color: 'ember',
     schedule: [
       { dayOfWeek: 2, startTime: '17:30', durationMins: 40 },
       { dayOfWeek: 4, startTime: '17:30', durationMins: 40 },
@@ -123,10 +162,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Yoga',
     instructor: 'Anya Petrova',
     location: 'Studio C',
+    locationId: 'northside',
     level: 'All levels',
     description: 'A dynamic, breath-led vinyasa flow to build strength and flexibility.',
     capacity: 24,
-    color: 'violet',
+    color: 's3',
     schedule: [
       { dayOfWeek: 1, startTime: '19:00', durationMins: 60 },
       { dayOfWeek: 3, startTime: '19:00', durationMins: 60 },
@@ -139,10 +179,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Boxing',
     instructor: 'Deshawn Carter',
     location: 'Boxing Room',
+    locationId: 'downtown',
     level: 'Beginner',
     description: 'Learn proper form, footwork and combinations on the heavy bag.',
     capacity: 14,
-    color: 'amber',
+    color: 's2',
     schedule: [
       { dayOfWeek: 2, startTime: '08:00', durationMins: 50 },
       { dayOfWeek: 4, startTime: '08:00', durationMins: 50 },
@@ -156,10 +197,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Zumba',
     instructor: 'Lily Nguyen',
     location: 'Pool Deck',
+    locationId: 'northside',
     level: 'All levels',
     description: 'Low-impact, high-fun dance cardio in the shallow pool.',
     capacity: 18,
-    color: 'cyan',
+    color: 's5',
     schedule: [{ dayOfWeek: 6, startTime: '10:00', durationMins: 45 }],
   },
   {
@@ -169,10 +211,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Strength',
     instructor: 'Omar Haddad',
     location: 'Weight Room',
+    locationId: 'downtown',
     level: 'Intermediate',
     description: 'Coached barbell strength session — squat, bench, deadlift progressions.',
     capacity: 12,
-    color: 'stone',
+    color: 'slate',
     schedule: [
       { dayOfWeek: 1, startTime: '06:00', durationMins: 50 },
       { dayOfWeek: 4, startTime: '06:00', durationMins: 50 },
@@ -185,12 +228,16 @@ export const ACTIVITIES: Activity[] = [
     category: 'Pilates',
     instructor: 'Sofia Marin',
     location: 'Studio C',
+    locationId: 'northside',
     level: 'Beginner',
     description:
       'A friendly, ongoing mat Pilates group focused on core control and posture. Join once, attend every week.',
     capacity: 15,
-    color: 'brand',
-    schedule: [{ dayOfWeek: 2, startTime: '09:00', durationMins: 50 }, { dayOfWeek: 4, startTime: '09:00', durationMins: 50 }],
+    color: 'volt',
+    schedule: [
+      { dayOfWeek: 2, startTime: '09:00', durationMins: 50 },
+      { dayOfWeek: 4, startTime: '09:00', durationMins: 50 },
+    ],
   },
   {
     id: 'act_pilates_adv',
@@ -199,10 +246,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Pilates',
     instructor: 'Sofia Marin',
     location: 'Reformer Studio',
+    locationId: 'northside',
     level: 'Advanced',
     description: 'Reformer-based Pilates group for members who have completed the beginners track.',
     capacity: 10,
-    color: 'brand',
+    color: 'volt',
     schedule: [
       { dayOfWeek: 1, startTime: '17:00', durationMins: 55 },
       { dayOfWeek: 3, startTime: '17:00', durationMins: 55 },
@@ -216,10 +264,11 @@ export const ACTIVITIES: Activity[] = [
     category: 'Running',
     instructor: 'Priya Shah',
     location: 'Track & Trail',
+    locationId: 'northside',
     level: 'Intermediate',
     description: 'A season-long training group building up to race day, with weekly long runs.',
     capacity: 25,
-    color: 'lime',
+    color: 's4',
     schedule: [{ dayOfWeek: 6, startTime: '07:00', durationMins: 90 }],
   },
   {
@@ -229,17 +278,37 @@ export const ACTIVITIES: Activity[] = [
     category: 'Strength',
     instructor: 'Omar Haddad',
     location: 'Weight Room',
+    locationId: 'downtown',
     level: 'Beginner',
     description: 'Small ongoing group learning barbell fundamentals together, week over week.',
     capacity: 12,
-    color: 'stone',
+    color: 'slate',
     schedule: [{ dayOfWeek: 3, startTime: '18:30', durationMins: 60 }],
   },
 ]
 
-export function getActivity(id: string): Activity | undefined {
-  return ACTIVITIES.find((a) => a.id === id)
-}
+// ---------------------------------------------------------------------------
+// Staff — separate identity from members entirely, see StaffAuthContext.
+// ---------------------------------------------------------------------------
+
+export const STAFF_SEED: StaffUser[] = [
+  {
+    id: 'staff_1',
+    name: 'Jordan Casey',
+    email: 'staff@flexpass.app',
+    passwordHash: mockHash('flexpass123'),
+    role: 'manager',
+    avatarColor: 'volt',
+  },
+  {
+    id: 'staff_2',
+    name: 'Riley Thompson',
+    email: 'riley@flexpass.app',
+    passwordHash: mockHash('flexpass123'),
+    role: 'frontdesk',
+    avatarColor: 's1',
+  },
+]
 
 // ---------------------------------------------------------------------------
 // Demo user + everything tied to them
@@ -268,6 +337,9 @@ export interface SeedBundle {
   invoices: Invoice[]
   paymentMethods: PaymentMethod[]
   notifications: AppNotification[]
+  activities: Activity[]
+  staff: StaffUser[]
+  doorScans: DoorScan[]
 }
 
 export function buildSeed(): SeedBundle {
@@ -279,7 +351,7 @@ export function buildSeed(): SeedBundle {
     dob: '1994-06-12',
     address: '482 Maple Grove Ave, Austin, TX',
     memberSince: daysAgoIso(430),
-    avatarColor: 'brand',
+    avatarColor: 'volt',
     // Demo-only mock hash — never do this in a real app. See lib/db.ts.
     passwordHash: mockHash('flexpass123'),
     emergencyContact: {
@@ -294,7 +366,7 @@ export function buildSeed(): SeedBundle {
     },
   }
 
-  const membership: Membership = {
+  const demoMembership: Membership = {
     id: 'mem_demo',
     userId: DEMO_USER_ID,
     planId: 'plan_standard',
@@ -303,7 +375,7 @@ export function buildSeed(): SeedBundle {
     autoRenew: true,
     startDate: daysAgoIso(430),
     renewalDate: daysFromNowIso(9),
-    homeLocation: 'FlexPass Downtown',
+    homeLocation: LOCATIONS[0].name,
     freezeHistory: [
       {
         id: makeId('frz'),
@@ -369,7 +441,7 @@ export function buildSeed(): SeedBundle {
     },
   ]
 
-  const checkIns: CheckIn[] = buildCheckIns()
+  const demoCheckIns = buildDemoCheckIns()
   const invoices: Invoice[] = buildInvoices()
   const paymentMethods: PaymentMethod[] = [
     {
@@ -390,7 +462,7 @@ export function buildSeed(): SeedBundle {
       userId: DEMO_USER_ID,
       type: 'renewal',
       title: 'Membership renews soon',
-      message: `Your Standard plan renews on ${new Date(membership.renewalDate).toLocaleDateString(
+      message: `Your Standard plan renews on ${new Date(demoMembership.renewalDate).toLocaleDateString(
         'en-US',
         { month: 'short', day: 'numeric' },
       )}. Auto-renew is on, so no action is needed.`,
@@ -435,15 +507,24 @@ export function buildSeed(): SeedBundle {
     },
   ]
 
+  // ---- The rest of the roster — visible to staff only, gives the Admin
+  // side (member table, scanner, insights) real variety to work with.
+  const roster = buildMemberRoster()
+
+  const doorScans = buildDoorScans()
+
   return {
-    users: [demoUser],
-    memberships: [membership],
+    users: [demoUser, ...roster.users],
+    memberships: [demoMembership, ...roster.memberships],
     classBookings,
     groupMemberships,
-    checkIns,
+    checkIns: [...demoCheckIns, ...roster.checkIns],
     invoices,
     paymentMethods,
     notifications,
+    activities: ACTIVITIES,
+    staff: STAFF_SEED,
+    doorScans,
   }
 }
 
@@ -472,8 +553,8 @@ function nextWeekdayIso(dayOfWeek: number, hour: number, minute: number, extraDa
   return d.toISOString()
 }
 
-function buildCheckIns(): CheckIn[] {
-  const locations = ['FlexPass Downtown', 'FlexPass Northside']
+function buildDemoCheckIns(): CheckIn[] {
+  const locations = LOCATIONS.map((l) => l.name)
   const methods: CheckIn['method'][] = ['QR', 'PIN', 'QR', 'QR']
   const checkIns: CheckIn[] = []
   // Roughly 3-4 visits per week over the last 8 weeks, skipping some days for realism.
@@ -515,6 +596,116 @@ function buildInvoices(): Invoice[] {
     })
   }
   return invoices.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+interface RosterSpec {
+  id: string
+  name: string
+  email: string
+  planId: string
+  locationIdx: 0 | 1
+  status: MembershipStatus
+  daysLeft: number
+  memberSinceDays: number
+  visits: number
+  avatarColor: string
+}
+
+// A dozen supporting members — deliberately spans every state the staff
+// dashboard needs to demonstrate (expiring soon, frozen, lapsed, cancelled).
+const ROSTER_SPECS: RosterSpec[] = [
+  { id: 'u_1042', name: 'Jordan Ellis', email: 'jordan.ellis@example.com', planId: 'plan_standard', locationIdx: 0, status: 'active', daysLeft: 22, memberSinceDays: 380, visits: 6, avatarColor: 's1' },
+  { id: 'u_1108', name: 'Priya Nair', email: 'priya.nair@example.com', planId: 'plan_elite', locationIdx: 1, status: 'active', daysLeft: 15, memberSinceDays: 210, visits: 9, avatarColor: 'ember' },
+  { id: 'u_1233', name: 'Marcus Webb', email: 'marcus.webb@example.com', planId: 'plan_basic', locationIdx: 0, status: 'active', daysLeft: 3, memberSinceDays: 40, visits: 3, avatarColor: 's2' },
+  { id: 'u_1290', name: 'Devon Cruz', email: 'devon.cruz@example.com', planId: 'plan_standard', locationIdx: 1, status: 'frozen', daysLeft: 60, memberSinceDays: 300, visits: 2, avatarColor: 'froze' },
+  { id: 'u_1355', name: 'Harper Wu', email: 'harper.wu@example.com', planId: 'plan_elite', locationIdx: 0, status: 'active', daysLeft: 210, memberSinceDays: 640, visits: 12, avatarColor: 's3' },
+  { id: 'u_1401', name: 'Elena Vasquez', email: 'elena.vasquez@example.com', planId: 'plan_basic', locationIdx: 0, status: 'active', daysLeft: -6, memberSinceDays: 500, visits: 1, avatarColor: 'bad' },
+  { id: 'u_1477', name: 'Miles Okafor', email: 'miles.okafor@example.com', planId: 'plan_standard', locationIdx: 0, status: 'active', daysLeft: 45, memberSinceDays: 150, visits: 5, avatarColor: 's5' },
+  { id: 'u_1512', name: 'Ruby Chen', email: 'ruby.chen@example.com', planId: 'plan_elite', locationIdx: 1, status: 'active', daysLeft: 5, memberSinceDays: 90, visits: 8, avatarColor: 's4' },
+  { id: 'u_1566', name: 'Tobias Grant', email: 'tobias.grant@example.com', planId: 'plan_basic', locationIdx: 1, status: 'active', daysLeft: 60, memberSinceDays: 60, visits: 4, avatarColor: 'good' },
+  { id: 'u_1604', name: 'Naomi Torres', email: 'naomi.torres@example.com', planId: 'plan_standard', locationIdx: 0, status: 'pending_cancellation', daysLeft: 12, memberSinceDays: 260, visits: 3, avatarColor: 'warn' },
+  { id: 'u_1688', name: 'Sasha Kim', email: 'sasha.kim@example.com', planId: 'plan_elite', locationIdx: 0, status: 'cancelled', daysLeft: -20, memberSinceDays: 700, visits: 0, avatarColor: 'slate' },
+]
+
+function buildMemberRoster(): { users: User[]; memberships: Membership[]; checkIns: CheckIn[] } {
+  const users: User[] = []
+  const memberships: Membership[] = []
+  const checkIns: CheckIn[] = []
+
+  for (const spec of ROSTER_SPECS) {
+    users.push({
+      id: spec.id,
+      name: spec.name,
+      email: spec.email,
+      phone: '(555) 010-' + spec.id.slice(-4),
+      dob: '',
+      address: '',
+      memberSince: daysAgoIso(spec.memberSinceDays),
+      avatarColor: spec.avatarColor,
+      passwordHash: mockHash('member123'),
+      emergencyContact: { name: '', phone: '', relationship: '' },
+      security: {
+        twoFactorEnabled: false,
+        checkInPin: String(1000 + Math.floor(Math.random() * 9000)),
+        lastPasswordChange: daysAgoIso(spec.memberSinceDays),
+      },
+    })
+
+    memberships.push({
+      id: 'mem_' + spec.id,
+      userId: spec.id,
+      planId: spec.planId,
+      status: spec.status,
+      billingCycle: 'monthly',
+      autoRenew: spec.status === 'active',
+      startDate: daysAgoIso(spec.memberSinceDays),
+      renewalDate: daysFromNowIso(spec.daysLeft),
+      homeLocation: LOCATIONS[spec.locationIdx].name,
+      freezeHistory: [],
+    })
+
+    checkIns.push(...buildRecentCheckIns(spec.id, LOCATIONS[spec.locationIdx].name, spec.visits))
+  }
+
+  return { users, memberships, checkIns }
+}
+
+function buildRecentCheckIns(userId: string, location: string, count: number): CheckIn[] {
+  const methods: CheckIn['method'][] = ['QR', 'QR', 'PIN', 'QR', 'Manual']
+  const checkIns: CheckIn[] = []
+  for (let i = 0; i < count; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() - (i * 2 + (i % 3)))
+    d.setHours(6 + ((i * 5) % 15), (i * 23) % 60, 0, 0)
+    if (d.getTime() > Date.now()) continue
+    checkIns.push({
+      id: makeId('chk'),
+      userId,
+      timestamp: d.toISOString(),
+      location,
+      method: methods[i % methods.length],
+      durationMins: 35 + ((i * 11) % 55),
+    })
+  }
+  return checkIns.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+}
+
+function buildDoorScans(): DoorScan[] {
+  const todayAt = (hour: number, minute: number) => {
+    const d = new Date()
+    d.setHours(hour, minute, 0, 0)
+    return d.toISOString()
+  }
+  return [
+    { id: makeId('scn'), userId: 'u_1477', locationId: 'downtown', timestamp: todayAt(9, 40), result: 'granted', reasonCode: 'active', method: 'QR' },
+    { id: makeId('scn'), userId: 'u_1233', locationId: 'downtown', timestamp: todayAt(8, 55), result: 'granted', reasonCode: 'expiring_soon', method: 'QR' },
+    { id: makeId('scn'), userId: 'u_1401', locationId: 'downtown', timestamp: todayAt(8, 31), result: 'denied', reasonCode: 'expired', method: 'QR' },
+    { id: makeId('scn'), userId: 'u_1688', locationId: 'downtown', timestamp: todayAt(8, 2), result: 'denied', reasonCode: 'cancelled', method: 'PIN' },
+    { id: makeId('scn'), userId: 'u_1108', locationId: 'downtown', timestamp: todayAt(7, 12), result: 'granted', reasonCode: 'active', method: 'QR' },
+    { id: makeId('scn'), userId: 'u_1290', locationId: 'northside', timestamp: todayAt(6, 48), result: 'denied', reasonCode: 'frozen', method: 'QR' },
+    { id: makeId('scn'), userId: 'u_1512', locationId: 'northside', timestamp: todayAt(6, 20), result: 'granted', reasonCode: 'expiring_soon', method: 'PIN' },
+    { id: makeId('scn'), userId: 'u_1566', locationId: 'northside', timestamp: todayAt(5, 58), result: 'granted', reasonCode: 'active', method: 'QR' },
+  ]
 }
 
 export { DEMO_USER_ID }

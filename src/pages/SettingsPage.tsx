@@ -96,15 +96,15 @@ export function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Settings</h2>
-        <p className="mt-1 text-sm text-slate-500">Security, notification preferences and account controls.</p>
+        <h2 className="font-display text-[22px] font-extrabold text-ink">Settings</h2>
+        <p className="mt-1 text-[13px] text-dim">Security, notification preferences and account controls.</p>
       </div>
 
       <Card>
         <CardHeader icon={<Lock className="h-4 w-4" />} title="Password" description={`Last changed ${formatDate(user.security.lastPasswordChange)}`} />
         <CardBody>
           <div className="grid grid-cols-1 gap-4 sm:max-w-md">
-            {passwordError && <p className="text-sm font-medium text-rose-600">{passwordError}</p>}
+            {passwordError && <p className="text-[12.5px] font-medium text-bad">{passwordError}</p>}
             <Input
               label="Current password"
               type="password"
@@ -131,7 +131,7 @@ export function SettingsPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <Button className="self-start" loading={savingPassword} onClick={handleChangePassword} iconLeft={<KeyRound className="h-4 w-4" />}>
+            <Button className="self-start" loading={savingPassword} onClick={handleChangePassword} iconLeft={<KeyRound className="h-3.5 w-3.5" />}>
               Update password
             </Button>
           </div>
@@ -166,24 +166,24 @@ export function SettingsPage() {
         </CardBody>
       </Card>
 
-      <Card className="border-rose-100">
-        <CardHeader icon={<AlertTriangle className="h-4 w-4 text-rose-600" />} title="Danger zone" />
+      <Card className="border-badsoft">
+        <CardHeader icon={<AlertTriangle className="h-4 w-4 text-bad" />} title="Danger zone" />
         <CardBody className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-line p-4">
             <div>
-              <p className="text-sm font-semibold text-ink-800">Reset demo data</p>
-              <p className="text-xs text-slate-500">Wipes local demo data and restores the sample account.</p>
+              <p className="text-[13px] font-semibold text-ink">Reset demo data</p>
+              <p className="text-[11.5px] text-mute">Wipes local demo data and restores the sample account.</p>
             </div>
-            <Button variant="outline" onClick={() => setResetOpen(true)} iconLeft={<RotateCcw className="h-4 w-4" />}>
+            <Button variant="quiet" onClick={() => setResetOpen(true)} iconLeft={<RotateCcw className="h-3.5 w-3.5" />}>
               Reset
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-100 bg-rose-50/40 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-badsoft bg-badsoft/40 p-4">
             <div>
-              <p className="text-sm font-semibold text-rose-700">Delete account</p>
-              <p className="text-xs text-rose-500">Permanently deletes your profile, bookings and billing history.</p>
+              <p className="text-[13px] font-semibold text-bad">Delete account</p>
+              <p className="text-[11.5px] text-bad/80">Permanently deletes your profile, bookings and billing history.</p>
             </div>
-            <Button variant="danger" onClick={() => setDeleteOpen(true)} iconLeft={<Trash2 className="h-4 w-4" />}>
+            <Button variant="danger" onClick={() => setDeleteOpen(true)} iconLeft={<Trash2 className="h-3.5 w-3.5" />}>
               Delete account
             </Button>
           </div>
@@ -193,6 +193,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={resetOpen}
         onClose={() => setResetOpen(false)}
+        icon={<RotateCcw className="h-4 w-4" />}
         title="Reset all demo data?"
         description="This clears everything stored in this browser and restores the original sample account."
         confirmLabel="Reset"
@@ -206,6 +207,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
+        icon={<Trash2 className="h-4 w-4" />}
         title="Delete your account?"
         description="This permanently deletes your profile, membership, bookings and billing history. This cannot be undone."
         confirmLabel="Delete account"

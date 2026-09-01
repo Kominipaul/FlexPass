@@ -34,19 +34,19 @@ export function ForgotPasswordPage() {
     return (
       <AuthLayout title="Check your email" subtitle="Password reset instructions">
         <div className="flex flex-col items-start gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+          <span className="flex h-12 w-12 items-center justify-center rounded-[12px] border border-voltline bg-voltsoft text-volt">
             <MailCheck className="h-6 w-6" />
           </span>
-          <p className="text-sm text-slate-600">
-            If an account exists for <span className="font-semibold text-ink-800">{result.email}</span>, we've
+          <p className="text-[13px] text-dim">
+            If an account exists for <span className="font-semibold text-ink">{result.email}</span>, we've
             sent a 6-digit reset code to it.
           </p>
 
           {result.code && (
-            <div className="flex w-full items-start gap-2.5 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-              <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+            <div className="flex w-full items-start gap-2.5 rounded-[9px] border border-dashed border-voltline bg-voltsoft px-4 py-3 text-[13px] text-ink">
+              <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
               <div>
-                <p className="font-semibold">Demo mode</p>
+                <p className="font-semibold text-volt">Demo mode</p>
                 <p>
                   No real email is sent here — your reset code is{' '}
                   <span className="font-mono font-bold tracking-wider">{result.code}</span>.
@@ -65,7 +65,7 @@ export function ForgotPasswordPage() {
               Enter reset code
             </Button>
           ) : (
-            <Link to="/login" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+            <Link to="/login" className="text-[12.5px] font-semibold text-volt hover:brightness-125">
               Back to sign in
             </Link>
           )}
@@ -94,9 +94,9 @@ export function ForgotPasswordPage() {
           Send reset code
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-[12.5px] text-dim">
         Remembered it?{' '}
-        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link to="/login" className="font-semibold text-volt hover:brightness-125">
           Back to sign in
         </Link>
       </p>

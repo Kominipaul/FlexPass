@@ -96,18 +96,18 @@ export function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Profile</h2>
-        <p className="mt-1 text-sm text-slate-500">Manage your personal details and emergency contact.</p>
+        <h2 className="font-display text-[22px] font-extrabold text-ink">Profile</h2>
+        <p className="mt-1 text-[13px] text-dim">Manage your personal details and emergency contact.</p>
       </div>
 
       <Card>
         <CardBody className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
           <Avatar name={user.name} tone={user.avatarColor} size="xl" />
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-ink-900">{user.name}</h3>
-            <p className="text-sm text-slate-500">{user.email}</p>
+            <h3 className="font-display text-[18px] font-bold text-ink">{user.name}</h3>
+            <p className="text-[12.5px] text-dim">{user.email}</p>
             <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
-              {currentPlan && <Badge tone="brand">{currentPlan.name} member</Badge>}
+              {currentPlan && <Badge tone="volt">{currentPlan.name} member</Badge>}
               <Badge tone="slate">Member since {formatDate(user.memberSince)}</Badge>
               {membership && <Badge tone="slate">{membership.homeLocation}</Badge>}
             </div>
@@ -123,15 +123,15 @@ export function ProfilePage() {
           action={
             editing ? (
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={cancelEditing} iconLeft={<X className="h-4 w-4" />}>
+                <Button size="sm" variant="quiet" onClick={cancelEditing} iconLeft={<X className="h-3.5 w-3.5" />}>
                   Cancel
                 </Button>
-                <Button size="sm" loading={saving} onClick={handleSave} iconLeft={<Save className="h-4 w-4" />}>
+                <Button size="sm" loading={saving} onClick={handleSave} iconLeft={<Save className="h-3.5 w-3.5" />}>
                   Save
                 </Button>
               </div>
             ) : (
-              <Button size="sm" variant="outline" onClick={startEditing} iconLeft={<Pencil className="h-4 w-4" />}>
+              <Button size="sm" variant="quiet" onClick={startEditing} iconLeft={<Pencil className="h-3.5 w-3.5" />}>
                 Edit
               </Button>
             )
@@ -174,16 +174,16 @@ export function ProfilePage() {
             </div>
           ) : (
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <InfoRow icon={<User className="h-4 w-4" />} label="Full name" value={user.name} />
-              <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={user.email} />
-              <InfoRow icon={<Phone className="h-4 w-4" />} label="Phone" value={user.phone || 'Not set'} />
+              <InfoRow icon={<User className="h-3.5 w-3.5" />} label="Full name" value={user.name} />
+              <InfoRow icon={<Mail className="h-3.5 w-3.5" />} label="Email" value={user.email} />
+              <InfoRow icon={<Phone className="h-3.5 w-3.5" />} label="Phone" value={user.phone || 'Not set'} />
               <InfoRow
-                icon={<CalendarDays className="h-4 w-4" />}
+                icon={<CalendarDays className="h-3.5 w-3.5" />}
                 label="Date of birth"
                 value={user.dob ? formatDate(user.dob) : 'Not set'}
               />
               <div className="sm:col-span-2">
-                <InfoRow icon={<MapPin className="h-4 w-4" />} label="Address" value={user.address || 'Not set'} />
+                <InfoRow icon={<MapPin className="h-3.5 w-3.5" />} label="Address" value={user.address || 'Not set'} />
               </div>
             </dl>
           )}
@@ -234,11 +234,11 @@ export function ProfilePage() {
 function InfoRow({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
   return (
     <div>
-      <dt className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <dt className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[.08em] text-mute">
         {icon}
         {label}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-ink-800">{value}</dd>
+      <dd className="mt-1 text-[13px] font-medium text-ink">{value}</dd>
     </div>
   )
 }

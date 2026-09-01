@@ -16,7 +16,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={textareaId} className="text-sm font-medium text-ink-800">
+        <label htmlFor={textareaId} className="text-[11px] font-semibold uppercase tracking-[.08em] text-mute">
           {label}
         </label>
       )}
@@ -25,15 +25,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         id={textareaId}
         rows={rows}
         aria-invalid={!!error}
-        className={`w-full resize-none rounded-xl border bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-slate-400 transition-shadow focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-50 ${
-          error
-            ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100'
-            : 'border-slate-200 focus:border-brand-400 focus:ring-brand-100'
+        className={`w-full resize-none rounded-[6px] border bg-sunk px-3 py-2.5 text-[13px] text-ink placeholder:text-mute transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+          error ? 'border-bad focus:border-bad' : 'border-line focus:border-volt'
         } ${className}`}
         {...rest}
       />
-      {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
-      {!error && hint && <p className="text-xs text-slate-500">{hint}</p>}
+      {error && <p className="text-[11px] font-medium text-bad">{error}</p>}
+      {!error && hint && <p className="text-[11px] text-mute">{hint}</p>}
     </div>
   )
 })

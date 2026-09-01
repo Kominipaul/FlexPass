@@ -61,7 +61,7 @@ export function ResetPasswordPage() {
     return (
       <AuthLayout title="Password updated" subtitle="You can now sign in with your new password.">
         <div className="flex flex-col items-start gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-lime-100 text-lime-700">
+          <span className="flex h-12 w-12 items-center justify-center rounded-[12px] border border-goodsoft bg-goodsoft text-good">
             <CheckCircle2 className="h-6 w-6" />
           </span>
           <Button fullWidth size="lg" onClick={() => navigate('/login', { replace: true })}>
@@ -74,15 +74,15 @@ export function ResetPasswordPage() {
 
   return (
     <AuthLayout title="Reset your password" subtitle={`Enter the code we sent for ${state.email}.`}>
-      <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-        <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+      <div className="mb-6 flex items-start gap-2.5 rounded-[9px] border border-dashed border-voltline bg-voltsoft px-4 py-3 text-[13px] text-ink">
+        <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
         <p>
           Demo mode — your code is <span className="font-mono font-bold tracking-wider">{state.code}</span>.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
+        <div className="mb-4 flex items-start gap-2 rounded-[9px] border border-badsoft bg-badsoft px-3.5 py-3 text-[13px] text-bad">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -90,7 +90,7 @@ export function ResetPasswordPage() {
 
       <div className="flex flex-col gap-5">
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-800">Reset code</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.08em] text-mute">Reset code</p>
           <OtpInput value={code} onChange={setCode} error={!!error} disabled={loading} />
         </div>
 
@@ -121,8 +121,8 @@ export function ResetPasswordPage() {
         </Button>
       </div>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
-        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+      <p className="mt-6 text-center text-[12.5px] text-dim">
+        <Link to="/login" className="font-semibold text-volt hover:brightness-125">
           Back to sign in
         </Link>
       </p>

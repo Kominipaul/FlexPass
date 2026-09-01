@@ -11,10 +11,11 @@ interface BadgeProps {
 
 export function Badge({ children, tone = 'slate', size = 'md', dot = false, className = '' }: BadgeProps) {
   const classes = TONES[toneOf(tone)]
-  const sizeClasses = size === 'sm' ? 'text-[11px] px-2 py-0.5' : 'text-xs px-2.5 py-1'
+  const sizeClasses =
+    size === 'sm' ? 'h-5 px-1.5 text-[10px] gap-1' : 'h-6 px-2 text-[10.5px] gap-1.5'
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-semibold ${sizeClasses} ${classes.soft} ${className}`}
+      className={`font-display inline-flex items-center whitespace-nowrap rounded-full font-bold uppercase tracking-[.06em] ${sizeClasses} ${classes.soft} ${className}`}
     >
       {dot && <span className={`h-1.5 w-1.5 rounded-full ${classes.dot}`} />}
       {children}

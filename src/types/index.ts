@@ -11,11 +11,21 @@ export interface Plan {
   tagline: string
   priceMonthly: number
   priceYearly: number
-  color: string // tailwind gradient token used on plan cards
+  color: string // tone token, see src/lib/colors.ts
   popular?: boolean
   classCredits: number | 'unlimited'
   guestPasses: number
+  /** false = door access is restricted to the member's home location */
+  allLocations: boolean
   perks: string[]
+}
+
+/** A physical club the door system and staff dashboard operate at. */
+export interface Location {
+  id: string
+  name: string
+  address: string
+  hours: string
 }
 
 export type BillingCycle = 'monthly' | 'yearly'
@@ -37,7 +47,7 @@ export interface Membership {
   autoRenew: boolean
   startDate: string // ISO date
   renewalDate: string // ISO date
-  homeLocation: string
+  homeLocation: string // matches a Location.name in src/lib/seedData.ts
   freezeHistory: FreezeRecord[]
 }
 
@@ -81,7 +91,10 @@ export interface Activity {
   name: string
   category: string
   instructor: string
+  /** room/studio within the club, e.g. "Studio B" — display only */
   location: string
+  /** which club hosts it — matches a Location.id in src/lib/seedData.ts */
+  locationId: string
   level: 'All levels' | 'Beginner' | 'Intermediate' | 'Advanced'
   description: string
   capacity: number
@@ -116,7 +129,7 @@ export interface CheckIn {
   id: string
   userId: string
   timestamp: string // ISO datetime
-  location: string
+  location: string // matches a Location.name in src/lib/seedData.ts
   method: CheckInMethod
   durationMins?: number
 }
@@ -169,4 +182,40 @@ export interface PendingAuth {
   code: string
   expiresAt: string
   remember: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Staff / front-desk — a fully separate identity from members. Staff sign in
+// at /admin/login with their own account and never see the member app.
+// ---------------------------------------------------------------------------
+
+export type StaffRole = 'frontdesk' | 'manager'
+
+export interface StaffUser {
+  id: string
+  name: string
+  email: string
+  passwordHash: string
+  role: StaffRole
+  avatarColor: string
+}
+
+export type DoorScanResult = 'granted' | 'denied'
+
+export type DoorReasonCode =
+  | 'expired'
+  | 'frozen'
+  | 'cancelled'
+  | 'wrong_location'
+  | 'expiring_soon'
+  | 'active'
+
+export interface DoorScan {
+  id: string
+  userId: string
+  locationId: string
+  timestamp: string
+  result: DoorScanResult
+  reasonCode: DoorReasonCode
+  method: CheckInMethod
 }

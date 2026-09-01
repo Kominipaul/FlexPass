@@ -1,7 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 import { Loader2 } from 'lucide-react'
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+type Variant = 'solid' | 'ember' | 'quiet' | 'ghost' | 'danger' | 'good'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,23 +14,23 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-300 shadow-sm',
-  secondary: 'bg-ink-900 text-white hover:bg-ink-800 focus-visible:ring-ink-300 shadow-sm',
-  outline:
-    'bg-white text-ink-800 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-200',
-  ghost: 'bg-transparent text-ink-700 hover:bg-slate-100 focus-visible:ring-slate-200',
-  danger: 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-300 shadow-sm',
+  solid: 'bg-volt text-voltink border border-volt hover:shadow-glow active:brightness-95',
+  ember: 'bg-ember text-white border border-ember hover:brightness-110',
+  quiet: 'bg-raised text-ink border border-line hover:border-voltline hover:text-volt',
+  ghost: 'bg-transparent text-dim border border-transparent hover:bg-raised hover:text-ink',
+  danger: 'bg-badsoft text-bad border border-badsoft hover:brightness-125',
+  good: 'bg-goodsoft text-good border border-goodsoft hover:brightness-125',
 }
 
 const SIZE_CLASSES: Record<Size, string> = {
-  sm: 'h-8 px-3 text-sm gap-1.5 rounded-lg',
-  md: 'h-10 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-base gap-2 rounded-xl',
+  sm: 'h-8 px-3 text-[11px] gap-1.5 rounded-[6px]',
+  md: 'h-9 px-3.5 text-[11.5px] gap-2 rounded-[6px]',
+  lg: 'h-11 px-5 text-[13px] gap-2 rounded-[8px]',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
-    variant = 'primary',
+    variant = 'solid',
     size = 'md',
     loading = false,
     disabled,
@@ -47,11 +47,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
+      className={`font-display inline-flex items-center justify-center font-bold uppercase tracking-[.06em] transition-all duration-150 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...rest}
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
       ) : (
         iconLeft && <span className="-ml-0.5 inline-flex">{iconLeft}</span>
       )}

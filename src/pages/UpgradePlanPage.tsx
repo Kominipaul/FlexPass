@@ -44,13 +44,13 @@ export function UpgradePlanPage() {
         <button
           type="button"
           onClick={() => navigate('/membership')}
-          className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-ink-800"
+          className="mb-3 flex items-center gap-1.5 text-[12.5px] font-semibold text-dim hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to membership
         </button>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Choose your plan</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="font-display text-[22px] font-extrabold text-ink">Choose your plan</h2>
+        <p className="mt-1 text-[13px] text-dim">
           Switch anytime — changes apply immediately and are billed pro-rated.
         </p>
       </div>
@@ -70,11 +70,11 @@ export function UpgradePlanPage() {
         ))}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur lg:pl-64">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur lg:pl-60">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
-            <p className="text-sm text-slate-500">
-              Selected: <span className="font-semibold text-ink-800">{selectedPlan.name}</span> ·{' '}
+            <p className="text-[12.5px] text-dim">
+              Selected: <span className="font-semibold text-ink">{selectedPlan.name}</span> ·{' '}
               {formatCurrency(price)}/{billingCycle === 'yearly' ? 'yr' : 'mo'}
             </p>
           </div>

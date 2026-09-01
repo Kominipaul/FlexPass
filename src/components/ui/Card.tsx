@@ -7,7 +7,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ children, className = '', ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-slate-100 bg-white shadow-card ${className}`}
+      className={`inner-top rounded-[12px] border border-line bg-surface shadow-card ${className}`}
       {...rest}
     >
       {children}
@@ -25,16 +25,16 @@ interface CardHeaderProps {
 
 export function CardHeader({ title, description, action, icon, className = '' }: CardHeaderProps) {
   return (
-    <div className={`flex items-start justify-between gap-4 p-5 pb-0 ${className}`}>
+    <div className={`flex items-start justify-between gap-4 p-4 pb-0 sm:p-5 sm:pb-0 ${className}`}>
       <div className="flex items-start gap-3">
         {icon && (
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-voltline bg-voltsoft text-volt">
             {icon}
           </span>
         )}
         <div>
-          <h3 className="text-base font-semibold text-ink-900">{title}</h3>
-          {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
+          <h3 className="font-display text-[13px] font-bold uppercase tracking-[.05em] text-ink">{title}</h3>
+          {description && <p className="mt-1 text-[12px] normal-case text-dim">{description}</p>}
         </div>
       </div>
       {action}
@@ -43,5 +43,5 @@ export function CardHeader({ title, description, action, icon, className = '' }:
 }
 
 export function CardBody({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`p-5 ${className}`}>{children}</div>
+  return <div className={`p-4 sm:p-5 ${className}`}>{children}</div>
 }

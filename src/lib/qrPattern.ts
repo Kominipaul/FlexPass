@@ -1,7 +1,8 @@
 /**
- * Deterministic, seeded pseudo-QR mosaic — purely decorative (this is a
- * demo, there's no real scanner backend), but stable per-user so the same
- * member always sees the same "code".
+ * Deterministic, seeded pseudo-QR generator — purely decorative (this is a
+ * demo, there's no real scanner backend), but stable per-token so the same
+ * code always renders the same pattern, and canvas-drawn so it reads as a
+ * real, scannable-looking code rather than a flat mosaic.
  */
 function seedFromString(str: string): number {
   let h = 0
@@ -11,8 +12,8 @@ function seedFromString(str: string): number {
   return h >>> 0
 }
 
-function mulberry32(seed: number) {
-  let state = seed
+export function mulberry32(seed: number) {
+  let state = seed || 1
   return () => {
     state = (state + 0x6d2b79f5) | 0
     let t = Math.imul(state ^ (state >>> 15), 1 | state)
@@ -21,21 +22,14 @@ function mulberry32(seed: number) {
   }
 }
 
-function stampFinder(grid: boolean[][], row: number, col: number) {
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      grid[row + i][col + j] = !(i === 1 && j === 1)
-    }
-  }
+export function rngFromSeed(seed: string) {
+  return mulberry32(seedFromString(seed))
 }
 
-export function generateQrPattern(seed: string, size = 12): boolean[][] {
-  const rand = mulberry32(seedFromString(seed))
-  const grid: boolean[][] = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => rand() > 0.58),
-  )
-  stampFinder(grid, 0, 0)
-  stampFinder(grid, 0, size - 3)
-  stampFinder(grid, size - 3, 0)
-  return grid
+/** Generates a fresh random access-token, e.g. "FP-3K9Q-XR2M". */
+export function makeAccessToken(): string {
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const block = () =>
+    Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('')
+  return ['FP', block(), block()].join('-')
 }

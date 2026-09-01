@@ -8,19 +8,19 @@ export function BillingCycleToggle({
   onChange: (cycle: BillingCycle) => void
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+    <div className="inline-flex items-center gap-1 rounded-[9px] border border-line bg-raised p-1">
       {(['monthly', 'yearly'] as const).map((cycle) => (
         <button
           key={cycle}
           type="button"
           onClick={() => onChange(cycle)}
-          className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold capitalize transition-colors ${
-            value === cycle ? 'bg-white text-ink-900 shadow-sm' : 'text-slate-500 hover:text-ink-700'
+          className={`font-display flex items-center gap-1.5 rounded-[6px] px-4 py-2 text-[11.5px] font-bold uppercase tracking-[.05em] transition-colors ${
+            value === cycle ? 'bg-volt text-voltink' : 'text-dim hover:text-ink'
           }`}
         >
           {cycle}
           {cycle === 'yearly' && (
-            <span className="rounded-full bg-lime-100 px-1.5 py-0.5 text-[10px] font-bold text-lime-700">
+            <span className="rounded-full bg-goodsoft px-1.5 py-0.5 text-[9.5px] font-bold text-good">
               2 months free
             </span>
           )}

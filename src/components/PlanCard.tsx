@@ -21,51 +21,45 @@ export function PlanCard({ plan, billingCycle, selected, current, onSelect }: Pl
       type="button"
       onClick={onSelect}
       disabled={current}
-      className={`relative flex w-full flex-col rounded-2xl border-2 p-5 text-left transition-all ${
-        selected
-          ? 'border-brand-500 bg-brand-50/50 shadow-pop'
-          : 'border-slate-100 bg-white hover:border-slate-200'
+      className={`relative flex w-full flex-col rounded-[12px] border-2 p-5 text-left transition-all ${
+        selected ? 'border-volt bg-voltsoft/40 shadow-glow' : 'border-line bg-surface hover:border-voltline'
       } ${current ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {plan.popular && !current && (
-        <span className="absolute -top-3 left-5 flex items-center gap-1 rounded-full bg-ink-950 px-2.5 py-1 text-[11px] font-bold text-white">
-          <Sparkles className="h-3 w-3 text-lime-300" />
+        <span className="font-display absolute -top-3 left-5 flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[.04em] text-bg">
+          <Sparkles className="h-3 w-3 text-volt" />
           Most popular
         </span>
       )}
       {current && (
-        <span className="absolute -top-3 left-5 rounded-full bg-lime-500 px-2.5 py-1 text-[11px] font-bold text-ink-950">
+        <span className="font-display absolute -top-3 left-5 rounded-full bg-volt px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[.04em] text-voltink">
           Current plan
         </span>
       )}
 
       <div className="flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${classes.dot}`} />
-        <h3 className="text-base font-bold text-ink-900">{plan.name}</h3>
+        <h3 className="font-display text-[14px] font-bold uppercase tracking-[.03em] text-ink">{plan.name}</h3>
       </div>
-      <p className="mt-1 text-sm text-slate-500">{plan.tagline}</p>
+      <p className="mt-1 text-[12.5px] text-dim">{plan.tagline}</p>
 
       <div className="mt-4 flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold text-ink-900">{formatCurrency(price)}</span>
-        <span className="text-sm font-medium text-slate-400">{period}</span>
+        <span className="font-display tnum text-[28px] font-extrabold text-ink">{formatCurrency(price)}</span>
+        <span className="text-[12.5px] font-medium text-mute">{period}</span>
       </div>
 
       <ul className="mt-4 space-y-2.5">
         {plan.perks.map((perk) => (
-          <li key={perk} className="flex items-start gap-2 text-sm text-ink-700">
-            <Check className={`mt-0.5 h-4 w-4 shrink-0 ${classes.text}`} />
+          <li key={perk} className="flex items-start gap-2 text-[12.5px] text-dim">
+            <Check className={`mt-0.5 h-4 w-4 shrink-0 ${classes.text}`} strokeWidth={2.5} />
             {perk}
           </li>
         ))}
       </ul>
 
       <div
-        className={`mt-5 flex h-10 items-center justify-center rounded-xl text-sm font-semibold ${
-          current
-            ? 'bg-lime-100 text-lime-700'
-            : selected
-              ? 'bg-brand-600 text-white'
-              : 'bg-slate-100 text-ink-700'
+        className={`font-display mt-5 flex h-10 items-center justify-center rounded-[7px] text-[11.5px] font-bold uppercase tracking-[.05em] ${
+          current ? 'bg-goodsoft text-good' : selected ? 'bg-volt text-voltink' : 'bg-raised text-dim'
         }`}
       >
         {current ? 'Your plan' : selected ? 'Selected' : 'Select plan'}

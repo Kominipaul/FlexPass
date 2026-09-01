@@ -56,18 +56,18 @@ export function LoginPage() {
       <button
         type="button"
         onClick={fillDemoCredentials}
-        className="mb-6 flex w-full items-center gap-2.5 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-left text-sm text-brand-800 transition-colors hover:bg-brand-100"
+        className="mb-6 flex w-full items-center gap-2.5 rounded-[9px] border border-dashed border-voltline bg-voltsoft px-4 py-3 text-left text-[13px] text-ink transition-colors hover:brightness-110"
       >
-        <Sparkles className="h-4 w-4 shrink-0 text-brand-600" />
+        <Sparkles className="h-4 w-4 shrink-0 text-volt" />
         <span>
-          <span className="font-semibold">Demo account:</span> tap to fill {DEMO_EMAIL}. This account has
-          secure sign-in codes enabled.
+          <span className="font-semibold text-volt">Demo account:</span> tap to fill {DEMO_EMAIL}. This account
+          has secure sign-in codes enabled.
         </span>
       </button>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
+          <div className="flex items-start gap-2 rounded-[9px] border border-badsoft bg-badsoft px-3.5 py-3 text-[13px] text-bad">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -93,16 +93,16 @@ export function LoginPage() {
         />
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-[12.5px] text-dim">
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+              className="h-4 w-4 rounded border-line bg-sunk text-volt focus:ring-0 focus:ring-offset-0"
             />
             Remember me
           </label>
-          <Link to="/forgot-password" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+          <Link to="/forgot-password" className="text-[12.5px] font-semibold text-volt hover:brightness-125">
             Forgot password?
           </Link>
         </div>
@@ -112,9 +112,9 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-[12.5px] text-dim">
         New to FlexPass?{' '}
-        <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link to="/signup" className="font-semibold text-volt hover:brightness-125">
           Create an account
         </Link>
       </p>

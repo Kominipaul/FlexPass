@@ -2,15 +2,21 @@
  * Central tone → Tailwind class map. Classes are written out as full
  * literal strings (never templated) so Tailwind's content scanner can find
  * them — see tailwind.config.js `content`.
+ *
+ * `volt` and `ember` are the two brand accents (volt = primary/CTA, ember =
+ * premium/urgent). `good`/`warn`/`bad`/`froze` are reserved for status
+ * meaning (membership, booking, door-scan state) — never used decoratively.
+ * `s1`-`s5` are decorative-only, used for activity categories and chart
+ * series so status colors keep a single, unambiguous meaning.
  */
-export type Tone = 'brand' | 'lime' | 'rose' | 'amber' | 'cyan' | 'violet' | 'orange' | 'stone' | 'slate'
+export type Tone = 'volt' | 'ember' | 'good' | 'warn' | 'bad' | 'froze' | 's1' | 's2' | 's3' | 's4' | 's5' | 'slate'
 
 interface ToneClasses {
-  /** soft background + text, for badges/chips */
+  /** soft tinted background + text, for badges/chips */
   soft: string
-  /** icon chip background + text */
+  /** icon chip background + text + border */
   chip: string
-  /** solid background + white text, for progress bars / strong accents */
+  /** solid background + high-contrast text, for meters/strong accents */
   solid: string
   /** border only */
   border: string
@@ -21,77 +27,101 @@ interface ToneClasses {
 }
 
 export const TONES: Record<Tone, ToneClasses> = {
-  brand: {
-    soft: 'bg-brand-50 text-brand-700',
-    chip: 'bg-brand-100 text-brand-700',
-    solid: 'bg-brand-600 text-white',
-    border: 'border-brand-200',
-    text: 'text-brand-600',
-    dot: 'bg-brand-500',
+  volt: {
+    soft: 'bg-voltsoft text-volt',
+    chip: 'bg-voltsoft text-volt border border-voltline',
+    solid: 'bg-volt text-voltink',
+    border: 'border-voltline',
+    text: 'text-volt',
+    dot: 'bg-volt',
   },
-  lime: {
-    soft: 'bg-lime-100 text-lime-700',
-    chip: 'bg-lime-100 text-lime-700',
-    solid: 'bg-lime-500 text-ink-950',
-    border: 'border-lime-300',
-    text: 'text-lime-700',
-    dot: 'bg-lime-500',
+  ember: {
+    soft: 'bg-embersoft text-ember',
+    chip: 'bg-embersoft text-ember border border-emberline',
+    solid: 'bg-ember text-white',
+    border: 'border-emberline',
+    text: 'text-ember',
+    dot: 'bg-ember',
   },
-  rose: {
-    soft: 'bg-rose-50 text-rose-700',
-    chip: 'bg-rose-100 text-rose-700',
-    solid: 'bg-rose-500 text-white',
-    border: 'border-rose-200',
-    text: 'text-rose-600',
-    dot: 'bg-rose-500',
+  good: {
+    soft: 'bg-goodsoft text-good',
+    chip: 'bg-goodsoft text-good border border-goodsoft',
+    solid: 'bg-good text-voltink',
+    border: 'border-goodsoft',
+    text: 'text-good',
+    dot: 'bg-good',
   },
-  amber: {
-    soft: 'bg-amber-50 text-amber-700',
-    chip: 'bg-amber-100 text-amber-700',
-    solid: 'bg-amber-500 text-white',
-    border: 'border-amber-200',
-    text: 'text-amber-600',
-    dot: 'bg-amber-500',
+  warn: {
+    soft: 'bg-warnsoft text-warn',
+    chip: 'bg-warnsoft text-warn border border-warnsoft',
+    solid: 'bg-warn text-voltink',
+    border: 'border-warnsoft',
+    text: 'text-warn',
+    dot: 'bg-warn',
   },
-  cyan: {
-    soft: 'bg-cyan-50 text-cyan-700',
-    chip: 'bg-cyan-100 text-cyan-700',
-    solid: 'bg-cyan-500 text-white',
-    border: 'border-cyan-200',
-    text: 'text-cyan-600',
-    dot: 'bg-cyan-500',
+  bad: {
+    soft: 'bg-badsoft text-bad',
+    chip: 'bg-badsoft text-bad border border-badsoft',
+    solid: 'bg-bad text-white',
+    border: 'border-badsoft',
+    text: 'text-bad',
+    dot: 'bg-bad',
   },
-  violet: {
-    soft: 'bg-violet-50 text-violet-700',
-    chip: 'bg-violet-100 text-violet-700',
-    solid: 'bg-violet-500 text-white',
-    border: 'border-violet-200',
-    text: 'text-violet-600',
-    dot: 'bg-violet-500',
+  froze: {
+    soft: 'bg-frozesoft text-froze',
+    chip: 'bg-frozesoft text-froze border border-frozesoft',
+    solid: 'bg-froze text-voltink',
+    border: 'border-frozesoft',
+    text: 'text-froze',
+    dot: 'bg-froze',
   },
-  orange: {
-    soft: 'bg-orange-50 text-orange-700',
-    chip: 'bg-orange-100 text-orange-700',
-    solid: 'bg-orange-500 text-white',
-    border: 'border-orange-200',
-    text: 'text-orange-600',
-    dot: 'bg-orange-500',
+  s1: {
+    soft: 'bg-s1soft text-s1',
+    chip: 'bg-s1soft text-s1 border border-s1line',
+    solid: 'bg-s1 text-white',
+    border: 'border-s1line',
+    text: 'text-s1',
+    dot: 'bg-s1',
   },
-  stone: {
-    soft: 'bg-stone-100 text-stone-700',
-    chip: 'bg-stone-200 text-stone-700',
-    solid: 'bg-stone-600 text-white',
-    border: 'border-stone-300',
-    text: 'text-stone-600',
-    dot: 'bg-stone-500',
+  s2: {
+    soft: 'bg-s2soft text-s2',
+    chip: 'bg-s2soft text-s2 border border-s2line',
+    solid: 'bg-s2 text-white',
+    border: 'border-s2line',
+    text: 'text-s2',
+    dot: 'bg-s2',
+  },
+  s3: {
+    soft: 'bg-s3soft text-s3',
+    chip: 'bg-s3soft text-s3 border border-s3line',
+    solid: 'bg-s3 text-white',
+    border: 'border-s3line',
+    text: 'text-s3',
+    dot: 'bg-s3',
+  },
+  s4: {
+    soft: 'bg-s4soft text-s4',
+    chip: 'bg-s4soft text-s4 border border-s4line',
+    solid: 'bg-s4 text-white',
+    border: 'border-s4line',
+    text: 'text-s4',
+    dot: 'bg-s4',
+  },
+  s5: {
+    soft: 'bg-s5soft text-s5',
+    chip: 'bg-s5soft text-s5 border border-s5line',
+    solid: 'bg-s5 text-voltink',
+    border: 'border-s5line',
+    text: 'text-s5',
+    dot: 'bg-s5',
   },
   slate: {
-    soft: 'bg-slate-100 text-slate-700',
-    chip: 'bg-slate-200 text-slate-700',
-    solid: 'bg-slate-600 text-white',
-    border: 'border-slate-300',
-    text: 'text-slate-600',
-    dot: 'bg-slate-500',
+    soft: 'bg-raised text-dim',
+    chip: 'bg-raised text-dim border border-line',
+    solid: 'bg-line text-ink',
+    border: 'border-line',
+    text: 'text-dim',
+    dot: 'bg-mute',
   },
 }
 

@@ -10,6 +10,7 @@ interface ModalProps {
   children: ReactNode
   footer?: ReactNode
   size?: 'sm' | 'md' | 'lg'
+  icon?: ReactNode
 }
 
 const SIZE_CLASSES = {
@@ -18,7 +19,7 @@ const SIZE_CLASSES = {
   lg: 'max-w-2xl',
 }
 
-export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, footer, size = 'md', icon }: ModalProps) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -36,9 +37,9 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   if (!open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-6">
       <div
-        className="absolute inset-0 bg-ink-950/50 backdrop-blur-[2px] animate-fade-in"
+        className="a-fade absolute inset-0 bg-black/70 backdrop-blur-[3px]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -46,27 +47,32 @@ export function Modal({ open, onClose, title, description, children, footer, siz
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative z-10 w-full ${SIZE_CLASSES[size]} animate-fade-in rounded-t-2xl bg-white shadow-pop sm:rounded-2xl`}
+        className={`a-rise relative flex max-h-[92vh] w-full ${SIZE_CLASSES[size]} flex-col rounded-t-[16px] border border-line bg-surface shadow-lift sm:rounded-[14px]`}
       >
-        <div className="flex items-start justify-between gap-4 p-5 pb-3">
-          <div>
-            <h2 id="modal-title" className="text-lg font-bold text-ink-900">
+        <div className="flex items-start gap-3 border-b border-linesoft p-4">
+          {icon && (
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-voltline bg-voltsoft text-volt">
+              {icon}
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <h2 id="modal-title" className="font-display text-[14px] font-bold uppercase tracking-[.05em] text-ink">
               {title}
             </h2>
-            {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+            {description && <p className="mt-1 text-[12px] text-dim">{description}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-mute transition-colors hover:bg-raised hover:text-ink"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto px-5 pb-5">{children}</div>
+        <div className="scroll-thin overflow-y-auto p-4">{children}</div>
         {footer && (
-          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 p-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-2 rounded-b-[14px] border-t border-linesoft bg-raised p-4 sm:flex-row sm:justify-end">
             {footer}
           </div>
         )}

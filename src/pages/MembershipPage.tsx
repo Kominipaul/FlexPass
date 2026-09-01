@@ -56,10 +56,10 @@ export function MembershipPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Membership</h2>
-          <p className="mt-1 text-sm text-slate-500">Manage your plan, billing cycle and membership status.</p>
+          <h2 className="font-display text-[22px] font-extrabold text-ink">Membership</h2>
+          <p className="mt-1 text-[13px] text-dim">Manage your plan, billing cycle and membership status.</p>
         </div>
-        <Button onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-4 w-4" />}>
+        <Button onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-3.5 w-3.5" />}>
           Change plan
         </Button>
       </div>
@@ -67,22 +67,25 @@ export function MembershipPage() {
       <StatusBanner status={membership.status} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="overflow-hidden lg:col-span-2">
+          <div className="hazard h-1 opacity-90" />
           <CardBody className="flex flex-col gap-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className={`h-3 w-3 rounded-full ${TONES[toneOf(currentPlan.color)].dot}`} />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-ink-900">{currentPlan.name} plan</h3>
+                    <h3 className="font-display text-[17px] font-bold uppercase tracking-[.03em] text-ink">
+                      {currentPlan.name} plan
+                    </h3>
                     <Badge tone={toneOf(currentPlan.color)}>{membership.billingCycle}</Badge>
                   </div>
-                  <p className="text-sm text-slate-500">{currentPlan.tagline}</p>
+                  <p className="text-[12.5px] text-dim">{currentPlan.tagline}</p>
                 </div>
               </div>
-              <p className="text-2xl font-extrabold text-ink-900">
+              <p className="font-display tnum text-[24px] font-extrabold text-ink">
                 {formatCurrency(membership.billingCycle === 'yearly' ? currentPlan.priceYearly : currentPlan.priceMonthly)}
-                <span className="text-sm font-medium text-slate-400">
+                <span className="text-[12.5px] font-medium text-mute">
                   /{membership.billingCycle === 'yearly' ? 'yr' : 'mo'}
                 </span>
               </p>
@@ -90,23 +93,23 @@ export function MembershipPage() {
 
             <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {currentPlan.perks.map((perk) => (
-                <li key={perk} className="flex items-start gap-2 text-sm text-ink-700">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-lime-600" />
+                <li key={perk} className="flex items-start gap-2 text-[12.5px] text-dim">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-good" strokeWidth={2.5} />
                   {perk}
                 </li>
               ))}
             </ul>
 
-            <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-4">
-              <MetaStat icon={<Calendar className="h-4 w-4" />} label="Member since" value={formatDate(membership.startDate)} />
+            <div className="grid grid-cols-2 gap-4 border-t border-linesoft pt-5 sm:grid-cols-4">
+              <MetaStat icon={<Calendar className="h-3.5 w-3.5" />} label="Member since" value={formatDate(membership.startDate)} />
               <MetaStat
-                icon={<Calendar className="h-4 w-4" />}
+                icon={<Calendar className="h-3.5 w-3.5" />}
                 label={daysLeft >= 0 ? 'Renews' : 'Renewal was'}
                 value={formatDate(membership.renewalDate)}
               />
-              <MetaStat icon={<Building2 className="h-4 w-4" />} label="Home location" value={membership.homeLocation} />
+              <MetaStat icon={<Building2 className="h-3.5 w-3.5" />} label="Home location" value={membership.homeLocation} />
               <MetaStat
-                icon={<History className="h-4 w-4" />}
+                icon={<History className="h-3.5 w-3.5" />}
                 label="Days left"
                 value={`${Math.max(daysLeft, 0)} days`}
               />
@@ -123,33 +126,33 @@ export function MembershipPage() {
               label="Auto-renew"
               description={membership.autoRenew ? 'Your plan renews automatically.' : 'Your plan will not renew automatically.'}
             />
-            <div className="h-px bg-slate-100" />
+            <div className="h-px bg-linesoft" />
             <div className="flex flex-col gap-2.5">
               {membership.status === 'frozen' ? (
-                <Button variant="outline" onClick={() => setUnfreezeOpen(true)} iconLeft={<RefreshCcw className="h-4 w-4" />}>
+                <Button variant="quiet" onClick={() => setUnfreezeOpen(true)} iconLeft={<RefreshCcw className="h-3.5 w-3.5" />}>
                   Unfreeze membership
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="quiet"
                   disabled={membership.status !== 'active'}
                   onClick={() => setFreezeOpen(true)}
-                  iconLeft={<Snowflake className="h-4 w-4" />}
+                  iconLeft={<Snowflake className="h-3.5 w-3.5" />}
                 >
                   Freeze membership
                 </Button>
               )}
 
               {membership.status === 'cancelled' || membership.status === 'pending_cancellation' ? (
-                <Button onClick={() => setReactivateOpen(true)} iconLeft={<RefreshCcw className="h-4 w-4" />}>
+                <Button onClick={() => setReactivateOpen(true)} iconLeft={<RefreshCcw className="h-3.5 w-3.5" />}>
                   Reactivate membership
                 </Button>
               ) : (
                 <Button
                   variant="ghost"
-                  className="text-rose-600 hover:bg-rose-50"
+                  className="text-bad hover:bg-badsoft"
                   onClick={() => setCancelOpen(true)}
-                  iconLeft={<XCircle className="h-4 w-4" />}
+                  iconLeft={<XCircle className="h-3.5 w-3.5" />}
                 >
                   Cancel membership
                 </Button>
@@ -163,13 +166,13 @@ export function MembershipPage() {
         <Card>
           <CardHeader icon={<History className="h-4 w-4" />} title="Freeze history" />
           <CardBody>
-            <ul className="flex flex-col divide-y divide-slate-100">
+            <ul className="flex flex-col divide-y divide-linesoft">
               {membership.freezeHistory.map((f) => (
-                <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm first:pt-0 last:pb-0">
-                  <span className="font-medium text-ink-800">
+                <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-[12.5px] first:pt-0 last:pb-0">
+                  <span className="font-medium text-ink">
                     {formatDate(f.startDate)} – {formatDate(f.endDate)}
                   </span>
-                  <Badge tone="cyan">{f.reason}</Badge>
+                  <Badge tone="froze">{f.reason}</Badge>
                 </li>
               ))}
             </ul>
@@ -248,11 +251,11 @@ export function MembershipPage() {
 function MetaStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <p className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[.08em] text-mute">
         {icon}
         {label}
       </p>
-      <p className="mt-1 text-sm font-bold text-ink-900">{value}</p>
+      <p className="mt-1 text-[13px] font-bold text-ink">{value}</p>
     </div>
   )
 }
@@ -260,17 +263,17 @@ function MetaStat({ icon, label, value }: { icon: React.ReactNode; label: string
 function StatusBanner({ status }: { status: string }) {
   if (status === 'active') return null
   const copy: Record<string, { text: string; tone: string }> = {
-    frozen: { text: 'This membership is frozen. Billing is paused until you unfreeze it.', tone: 'border-cyan-200 bg-cyan-50 text-cyan-800' },
+    frozen: { text: 'This membership is frozen. Billing is paused until you unfreeze it.', tone: 'border-frozesoft bg-frozesoft text-froze' },
     pending_cancellation: {
       text: 'This membership is set to cancel and will not renew.',
-      tone: 'border-amber-200 bg-amber-50 text-amber-800',
+      tone: 'border-warnsoft bg-warnsoft text-warn',
     },
-    cancelled: { text: 'This membership is cancelled.', tone: 'border-rose-200 bg-rose-50 text-rose-800' },
+    cancelled: { text: 'This membership is cancelled.', tone: 'border-badsoft bg-badsoft text-bad' },
   }
   const entry = copy[status]
   if (!entry) return null
   return (
-    <div className={`flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm ${entry.tone}`}>
+    <div className={`flex items-center gap-2.5 rounded-[12px] border px-4 py-3 text-[13px] ${entry.tone}`}>
       <AlertTriangle className="h-4 w-4 shrink-0" />
       {entry.text}
     </div>
@@ -312,11 +315,12 @@ function FreezeModal({
     <Modal
       open={open}
       onClose={onClose}
+      icon={<Snowflake className="h-4 w-4" />}
       title="Freeze your membership"
       description="Pause billing and access for a set period."
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="quiet" onClick={onClose}>
             Cancel
           </Button>
           <Button loading={submitting} onClick={handleSubmit}>
@@ -326,7 +330,7 @@ function FreezeModal({
       }
     >
       <div className="flex flex-col gap-4">
-        {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+        {error && <p className="text-[12.5px] font-medium text-bad">{error}</p>}
         <div className="grid grid-cols-2 gap-4">
           <Input label="Start date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} min={today} />
           <Input label="End date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate} />
@@ -371,11 +375,12 @@ function CancelMembershipModal({
     <Modal
       open={open}
       onClose={onClose}
+      icon={<XCircle className="h-4 w-4" />}
       title="Cancel membership"
       description="We're sorry to see you go. Choose how you'd like to cancel."
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="quiet" onClick={onClose}>
             Never mind
           </Button>
           <Button variant="danger" loading={submitting} onClick={handleSubmit}>
@@ -418,20 +423,20 @@ function CancelOption({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex items-start gap-3 rounded-xl border-2 p-3.5 text-left transition-colors ${
-        selected ? 'border-brand-500 bg-brand-50/60' : 'border-slate-100 hover:border-slate-200'
+      className={`flex items-start gap-3 rounded-[9px] border-2 p-3.5 text-left transition-colors ${
+        selected ? 'border-volt bg-voltsoft/40' : 'border-line hover:border-voltline'
       }`}
     >
       <span
         className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-          selected ? 'border-brand-600 bg-brand-600' : 'border-slate-300'
+          selected ? 'border-volt bg-volt' : 'border-line'
         }`}
       >
-        {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+        {selected && <span className="h-1.5 w-1.5 rounded-full bg-voltink" />}
       </span>
       <span>
-        <span className="block text-sm font-semibold text-ink-800">{title}</span>
-        <span className="block text-xs text-slate-500">{description}</span>
+        <span className="block text-[12.5px] font-semibold text-ink">{title}</span>
+        <span className="block text-[11.5px] text-mute">{description}</span>
       </span>
     </button>
   )

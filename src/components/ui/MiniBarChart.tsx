@@ -16,13 +16,15 @@ export function MiniBarChart({ data, height = 96 }: { data: BarDatum[]; height?:
             <div className="flex w-full flex-1 items-end justify-center">
               <div
                 title={`${d.label}: ${d.value}`}
-                className={`w-full max-w-[22px] rounded-t-md transition-all duration-500 ${
-                  d.isToday ? 'bg-brand-600' : d.value > 0 ? 'bg-brand-200' : 'bg-slate-100'
+                className={`w-full max-w-[22px] rounded-t-[3px] transition-all duration-500 ${
+                  d.isToday ? 'bg-volt' : d.value > 0 ? 'bg-voltline' : 'bg-line'
                 }`}
                 style={{ height: `${pct}%` }}
               />
             </div>
-            <span className={`text-[10px] font-semibold ${d.isToday ? 'text-brand-600' : 'text-slate-400'}`}>
+            <span
+              className={`text-[9.5px] font-semibold uppercase tracking-[.04em] ${d.isToday ? 'text-volt' : 'text-mute'}`}
+            >
               {d.label}
             </span>
           </div>

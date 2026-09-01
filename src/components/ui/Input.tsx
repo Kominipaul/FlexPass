@@ -21,13 +21,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-ink-800">
+        <label htmlFor={inputId} className="text-[11px] font-semibold uppercase tracking-[.08em] text-mute">
           {label}
         </label>
       )}
       <div className="relative">
         {iconLeft && (
-          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-mute">
             {iconLeft}
           </span>
         )}
@@ -37,12 +37,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={resolvedType}
           aria-invalid={!!error}
           aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
-          className={`h-11 w-full rounded-xl border bg-white text-sm text-ink-900 placeholder:text-slate-400 transition-shadow focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
-            iconLeft ? 'pl-10' : 'pl-3.5'
-          } ${isPassword ? 'pr-10' : 'pr-3.5'} ${
-            error
-              ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100'
-              : 'border-slate-200 focus:border-brand-400 focus:ring-brand-100'
+          className={`h-10 w-full rounded-[6px] border bg-sunk text-[13px] text-ink placeholder:text-mute transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+            iconLeft ? 'pl-9' : 'pl-3'
+          } ${isPassword ? 'pr-10' : 'pr-3'} ${
+            error ? 'border-bad focus:border-bad' : 'border-line focus:border-volt'
           } ${className}`}
           {...rest}
         />
@@ -51,7 +49,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             type="button"
             tabIndex={-1}
             onClick={() => setRevealed((v) => !v)}
-            className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+            className="absolute inset-y-0 right-3 flex items-center text-mute hover:text-ink"
             aria-label={revealed ? 'Hide password' : 'Show password'}
           >
             {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -59,12 +57,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         )}
       </div>
       {error && (
-        <p id={`${inputId}-error`} className="text-xs font-medium text-rose-600">
+        <p id={`${inputId}-error`} className="text-[11px] font-medium text-bad">
           {error}
         </p>
       )}
       {!error && hint && (
-        <p id={`${inputId}-hint`} className="text-xs text-slate-500">
+        <p id={`${inputId}-hint`} className="text-[11px] text-mute">
           {hint}
         </p>
       )}

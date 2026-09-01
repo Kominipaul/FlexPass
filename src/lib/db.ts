@@ -15,18 +15,22 @@ import type {
   CheckIn,
   CheckInMethod,
   ClassBooking,
+  DoorScan,
   EmergencyContact,
   FreezeRecord,
   GroupMembership,
   Invoice,
+  Location,
   Membership,
   PaymentMethod,
   Plan,
+  StaffUser,
   User,
 } from '@/types'
 import { storage } from './storage'
 import { makeId } from './id'
-import { ACTIVITIES, PLANS, buildSeed, getPlan, mockHash } from './seedData'
+import { LOCATIONS, PLANS, buildSeed, getLocation, getPlan, mockHash } from './seedData'
+import { evaluateAccess } from './access'
 
 const KEYS = {
   seeded: 'seeded_v1',
@@ -38,6 +42,9 @@ const KEYS = {
   invoices: 'invoices',
   paymentMethods: 'paymentMethods',
   notifications: 'notifications',
+  activities: 'activities',
+  staff: 'staff',
+  doorScans: 'doorScans',
 } as const
 
 function read<T>(key: string): T[] {
@@ -64,6 +71,9 @@ export function ensureSeeded(): void {
   write(KEYS.invoices, seed.invoices)
   write(KEYS.paymentMethods, seed.paymentMethods)
   write(KEYS.notifications, seed.notifications)
+  write(KEYS.activities, seed.activities)
+  write(KEYS.staff, seed.staff)
+  write(KEYS.doorScans, seed.doorScans)
   storage.set(KEYS.seeded, true)
 }
 
@@ -75,7 +85,8 @@ export function resetDemoData(): void {
 class ApiError extends Error {}
 
 // ---------------------------------------------------------------------------
-// Plans & Activities (static reference data)
+// Plans & Locations (static reference data) & Activities (live collection —
+// seeded from a template, but staff can add/cancel classes at runtime)
 // ---------------------------------------------------------------------------
 
 export async function listPlans(): Promise<Plan[]> {
@@ -83,9 +94,81 @@ export async function listPlans(): Promise<Plan[]> {
   return PLANS
 }
 
+export async function listLocations(): Promise<Location[]> {
+  await delay(100)
+  return LOCATIONS
+}
+
 export async function listActivities(): Promise<Activity[]> {
   await delay(250)
-  return ACTIVITIES
+  return read<Activity>(KEYS.activities)
+}
+
+export interface NewActivityInput {
+  kind: Activity['kind']
+  name: string
+  category: string
+  instructor: string
+  location: string
+  locationId: string
+  level: Activity['level']
+  description: string
+  capacity: number
+  color: string
+  schedule: Activity['schedule']
+}
+
+export async function adminCreateActivity(input: NewActivityInput): Promise<Activity> {
+  await delay(450)
+  const activity: Activity = { id: makeId('act'), ...input }
+  const activities = read<Activity>(KEYS.activities)
+  activities.push(activity)
+  write(KEYS.activities, activities)
+  return activity
+}
+
+/** Cancels a class/group entirely — cancels its bookings, ends its group memberships, and notifies everyone affected. */
+export async function adminDeleteActivity(activityId: string): Promise<{ notified: number }> {
+  await delay(450)
+  const activities = read<Activity>(KEYS.activities)
+  const activity = activities.find((a) => a.id === activityId)
+  if (!activity) throw new ApiError('Class not found.')
+  write(
+    KEYS.activities,
+    activities.filter((a) => a.id !== activityId),
+  )
+
+  const affected = new Set<string>()
+
+  const bookings = read<ClassBooking>(KEYS.classBookings)
+  write(
+    KEYS.classBookings,
+    bookings.map((b) => {
+      if (b.activityId !== activityId || (b.status !== 'booked' && b.status !== 'waitlisted')) return b
+      affected.add(b.userId)
+      return { ...b, status: 'cancelled' as const }
+    }),
+  )
+
+  const groups = read<GroupMembership>(KEYS.groupMemberships)
+  write(
+    KEYS.groupMemberships,
+    groups.map((g) => {
+      if (g.activityId !== activityId || g.status !== 'active') return g
+      affected.add(g.userId)
+      return { ...g, status: 'left' as const }
+    }),
+  )
+
+  for (const userId of affected) {
+    await pushNotification(userId, {
+      type: 'class',
+      title: `${activity.name} was cancelled`,
+      message: `${activity.name} with ${activity.instructor} has been removed from the schedule. Any bookings or group membership were cleared automatically.`,
+    })
+  }
+
+  return { notified: affected.size }
 }
 
 // ---------------------------------------------------------------------------
@@ -153,7 +236,7 @@ export async function signup(input: SignupInput): Promise<User> {
     autoRenew: true,
     startDate: now.toISOString(),
     renewalDate: renewal.toISOString(),
-    homeLocation: 'FlexPass Downtown',
+    homeLocation: LOCATIONS[0].name,
     freezeHistory: [],
   }
   const memberships = read<Membership>(KEYS.memberships)
@@ -310,7 +393,7 @@ export async function deleteAccount(userId: string): Promise<void> {
 }
 
 function pickAvatarColor(seedIndex: number): string {
-  const palette = ['brand', 'lime', 'rose', 'amber', 'cyan', 'violet']
+  const palette = ['volt', 'ember', 's1', 's2', 's3', 's4', 's5']
   return palette[seedIndex % palette.length]
 }
 
@@ -468,7 +551,7 @@ export async function bookClass(
   date: string,
 ): Promise<ClassBooking> {
   await delay(500)
-  const activity = ACTIVITIES.find((a) => a.id === activityId)
+  const activity = read<Activity>(KEYS.activities).find((a) => a.id === activityId)
   if (!activity) throw new ApiError('Class not found.')
 
   const bookings = read<ClassBooking>(KEYS.classBookings)
@@ -553,7 +636,7 @@ export async function listGroupMemberships(userId: string): Promise<GroupMembers
 
 export async function joinGroup(userId: string, activityId: string): Promise<GroupMembership> {
   await delay(450)
-  const activity = ACTIVITIES.find((a) => a.id === activityId)
+  const activity = read<Activity>(KEYS.activities).find((a) => a.id === activityId)
   if (!activity) throw new ApiError('Group not found.')
 
   const groups = read<GroupMembership>(KEYS.groupMemberships)
@@ -758,4 +841,162 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
     n.userId === userId ? { ...n, read: true } : n,
   )
   write(KEYS.notifications, notifications)
+}
+
+// ---------------------------------------------------------------------------
+// Staff — a fully separate identity from members (see StaffAuthContext).
+// ---------------------------------------------------------------------------
+
+export async function findStaffByEmail(email: string): Promise<StaffUser | undefined> {
+  await delay(50)
+  return read<StaffUser>(KEYS.staff).find((s) => s.email.toLowerCase() === email.trim().toLowerCase())
+}
+
+export async function getStaffUser(id: string): Promise<StaffUser | undefined> {
+  await delay(50)
+  return read<StaffUser>(KEYS.staff).find((s) => s.id === id)
+}
+
+export async function verifyStaffPassword(staff: StaffUser, password: string): Promise<boolean> {
+  await delay(400)
+  return staff.passwordHash === mockHash(password)
+}
+
+// ---------------------------------------------------------------------------
+// Admin — front desk, member management, class management, insights.
+// These read/write the same collections as the member app but are never
+// scoped to a single userId — only staff screens call these.
+// ---------------------------------------------------------------------------
+
+export interface AdminMemberRow {
+  user: User
+  membership: Membership
+  plan: Plan
+}
+
+export async function adminListMembers(): Promise<AdminMemberRow[]> {
+  await delay(300)
+  const users = read<User>(KEYS.users)
+  const memberships = read<Membership>(KEYS.memberships)
+  const rows: AdminMemberRow[] = []
+  for (const membership of memberships) {
+    const user = users.find((u) => u.id === membership.userId)
+    const plan = getPlan(membership.planId)
+    if (user && plan) rows.push({ user, membership, plan })
+  }
+  return rows.sort((a, b) => a.user.name.localeCompare(b.user.name))
+}
+
+export async function adminGetMember(userId: string): Promise<AdminMemberRow | undefined> {
+  const rows = await adminListMembers()
+  return rows.find((r) => r.user.id === userId)
+}
+
+export async function adminExtendMembership(userId: string, days: number): Promise<Membership> {
+  await delay(450)
+  const memberships = read<Membership>(KEYS.memberships)
+  const idx = memberships.findIndex((m) => m.userId === userId)
+  if (idx === -1) throw new ApiError('Membership not found.')
+  const renewal = new Date(memberships[idx].renewalDate)
+  renewal.setDate(renewal.getDate() + days)
+  memberships[idx] = {
+    ...memberships[idx],
+    renewalDate: renewal.toISOString(),
+    status: 'active',
+    autoRenew: true,
+  }
+  write(KEYS.memberships, memberships)
+  await pushNotification(userId, {
+    type: 'general',
+    title: 'Membership extended',
+    message: `The front desk added ${days} day${days === 1 ? '' : 's'} to your membership. New renewal date: ${renewal.toLocaleDateString(
+      'en-US',
+      { month: 'short', day: 'numeric', year: 'numeric' },
+    )}.`,
+  })
+  return memberships[idx]
+}
+
+/** Staff quick-toggle — instant, no date range or reason. Distinct from the member's own freezeMembership flow. */
+export async function adminSetFrozen(userId: string, frozen: boolean): Promise<Membership> {
+  await delay(400)
+  const memberships = read<Membership>(KEYS.memberships)
+  const idx = memberships.findIndex((m) => m.userId === userId)
+  if (idx === -1) throw new ApiError('Membership not found.')
+  memberships[idx] = { ...memberships[idx], status: frozen ? 'frozen' : 'active' }
+  write(KEYS.memberships, memberships)
+  await pushNotification(userId, {
+    type: 'general',
+    title: frozen ? 'Membership frozen by staff' : 'Membership reactivated by staff',
+    message: frozen
+      ? 'The front desk froze your membership. Contact the club if this is unexpected.'
+      : 'Your membership is active again — door access is restored.',
+  })
+  return memberships[idx]
+}
+
+export async function adminListAllCheckIns(): Promise<CheckIn[]> {
+  await delay(250)
+  return read<CheckIn>(KEYS.checkIns).sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  )
+}
+
+export async function adminListAllClassBookings(): Promise<ClassBooking[]> {
+  await delay(200)
+  return read<ClassBooking>(KEYS.classBookings)
+}
+
+export async function adminListAllGroupMemberships(): Promise<GroupMembership[]> {
+  await delay(200)
+  return read<GroupMembership>(KEYS.groupMemberships)
+}
+
+export async function adminListDoorScans(): Promise<DoorScan[]> {
+  await delay(200)
+  return read<DoorScan>(KEYS.doorScans).sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  )
+}
+
+/** The core front-desk action: evaluate a member's access at a location, log the scan, and (if granted) record a real check-in. */
+export async function adminRecordScan(
+  userId: string,
+  locationId: string,
+  method: CheckInMethod,
+): Promise<{ scan: DoorScan; user: User; membership: Membership }> {
+  await delay(650)
+  const user = read<User>(KEYS.users).find((u) => u.id === userId)
+  const membership = read<Membership>(KEYS.memberships).find((m) => m.userId === userId)
+  if (!user || !membership) throw new ApiError('Member not found.')
+  const plan = getPlan(membership.planId)
+  if (!plan) throw new ApiError('Plan not found.')
+
+  const result = evaluateAccess(membership, plan, locationId)
+  const scan: DoorScan = {
+    id: makeId('scn'),
+    userId,
+    locationId,
+    timestamp: new Date().toISOString(),
+    result: result.ok ? 'granted' : 'denied',
+    reasonCode: result.reasonCode,
+    method,
+  }
+  const scans = read<DoorScan>(KEYS.doorScans)
+  scans.unshift(scan)
+  write(KEYS.doorScans, scans.slice(0, 200))
+
+  if (result.ok) {
+    const checkIns = read<CheckIn>(KEYS.checkIns)
+    checkIns.unshift({
+      id: makeId('chk'),
+      userId,
+      timestamp: scan.timestamp,
+      location: getLocation(locationId)?.name ?? locationId,
+      method,
+    })
+    write(KEYS.checkIns, checkIns)
+  }
+
+  return { scan, user, membership }
 }

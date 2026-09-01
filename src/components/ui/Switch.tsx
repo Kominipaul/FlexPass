@@ -14,13 +14,13 @@ export function Switch({ checked, onChange, disabled, label, description }: Swit
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:cursor-not-allowed disabled:opacity-50 ${
-        checked ? 'bg-brand-600' : 'bg-slate-200'
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+        checked ? 'bg-volt' : 'bg-grid'
       }`}
     >
       <span
-        className={`inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow transition-transform ${
-          checked ? 'translate-x-[22px]' : 'translate-x-1'
+        className={`block h-[18px] w-[18px] transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0'
         }`}
       />
     </button>
@@ -31,8 +31,10 @@ export function Switch({ checked, onChange, disabled, label, description }: Swit
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4">
       <span>
-        <span className="block text-sm font-semibold text-ink-800">{label}</span>
-        {description && <span className="block text-xs text-slate-500">{description}</span>}
+        <span className="font-display block text-[12.5px] font-bold uppercase tracking-[.03em] text-ink">
+          {label}
+        </span>
+        {description && <span className="mt-0.5 block text-[12px] normal-case text-dim">{description}</span>}
       </span>
       {toggle}
     </label>

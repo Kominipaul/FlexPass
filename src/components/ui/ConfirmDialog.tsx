@@ -10,7 +10,8 @@ interface ConfirmDialogProps {
   description?: string
   confirmLabel?: string
   cancelLabel?: string
-  tone?: 'danger' | 'primary'
+  tone?: 'danger' | 'solid'
+  icon?: React.ReactNode
   children?: React.ReactNode
 }
 
@@ -22,7 +23,8 @@ export function ConfirmDialog({
   description,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
-  tone = 'primary',
+  tone = 'solid',
+  icon,
   children,
 }: ConfirmDialogProps) {
   const [loading, setLoading] = useState(false)
@@ -43,12 +45,13 @@ export function ConfirmDialog({
       title={title}
       description={description}
       size="sm"
+      icon={icon}
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button variant="quiet" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </Button>
-          <Button variant={tone === 'danger' ? 'danger' : 'primary'} onClick={handleConfirm} loading={loading}>
+          <Button variant={tone === 'danger' ? 'danger' : 'solid'} onClick={handleConfirm} loading={loading}>
             {confirmLabel}
           </Button>
         </>

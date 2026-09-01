@@ -14,8 +14,8 @@ export function ProgressRing({
   value,
   size = 120,
   strokeWidth = 10,
-  trackClassName = 'text-slate-100',
-  progressClassName = 'text-brand-600',
+  trackClassName = 'text-grid',
+  progressClassName = 'text-volt',
   children,
 }: ProgressRingProps) {
   const clamped = Math.max(0, Math.min(100, value))

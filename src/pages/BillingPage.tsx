@@ -23,11 +23,12 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { AddPaymentMethodInput } from '@/lib/db'
 import type { Invoice, InvoiceStatus, PaymentMethod } from '@/types'
+import type { Tone } from '@/lib/colors'
 
-const INVOICE_STATUS_TONE: Record<InvoiceStatus, 'lime' | 'amber' | 'rose' | 'slate'> = {
-  paid: 'lime',
-  due: 'amber',
-  failed: 'rose',
+const INVOICE_STATUS_TONE: Record<InvoiceStatus, Tone> = {
+  paid: 'good',
+  due: 'warn',
+  failed: 'bad',
   refunded: 'slate',
 }
 
@@ -59,12 +60,12 @@ export function BillingPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink-900">Billing</h2>
-        <p className="mt-1 text-sm text-slate-500">Manage payment methods and view your invoice history.</p>
+        <h2 className="font-display text-[22px] font-extrabold text-ink">Billing</h2>
+        <p className="mt-1 text-[13px] text-dim">Manage payment methods and view your invoice history.</p>
       </div>
 
       {hasDueInvoice && paymentMethods.length === 0 && (
-        <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm text-amber-800">
+        <div className="flex items-center gap-3 rounded-[12px] border border-warnsoft bg-warnsoft px-4 py-3.5 text-[13px] text-warn">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p>You have an outstanding invoice. Add a payment method below to pay it.</p>
         </div>
@@ -76,7 +77,7 @@ export function BillingPage() {
           title="Payment methods"
           description="Used for membership renewals and class fees."
           action={
-            <Button size="sm" onClick={() => setAddOpen(true)} iconLeft={<Plus className="h-4 w-4" />}>
+            <Button size="sm" onClick={() => setAddOpen(true)} iconLeft={<Plus className="h-3.5 w-3.5" />}>
               Add card
             </Button>
           }
@@ -93,22 +94,22 @@ export function BillingPage() {
               {paymentMethods.map((pm) => (
                 <li
                   key={pm.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-line px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-14 items-center justify-center rounded-lg bg-ink-950 text-xs font-extrabold tracking-wide text-white">
+                    <span className="font-display flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[6px] bg-ink px-2.5 text-[10.5px] font-extrabold uppercase tracking-[.04em] text-bg">
                       {pm.brand}
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-ink-800">
-                        •••• {pm.last4}{' '}
+                      <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+                        •••• {pm.last4}
                         {pm.isDefault && (
-                          <Badge tone="brand" size="sm" className="ml-1">
+                          <Badge tone="volt" size="sm">
                             Default
                           </Badge>
                         )}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-[11.5px] text-dim">
                         {pm.nameOnCard} · Expires {String(pm.expMonth).padStart(2, '0')}/{pm.expYear}
                       </p>
                     </div>
@@ -117,7 +118,7 @@ export function BillingPage() {
                     {!pm.isDefault && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="quiet"
                         iconLeft={<Star className="h-3.5 w-3.5" />}
                         onClick={async () => {
                           await setDefaultPaymentMethod(pm.id)
@@ -130,7 +131,7 @@ export function BillingPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-rose-600 hover:bg-rose-50"
+                      className="text-bad hover:bg-badsoft"
                       onClick={() => setRemoveTarget(pm)}
                       iconLeft={<Trash2 className="h-3.5 w-3.5" />}
                     >
@@ -141,7 +142,7 @@ export function BillingPage() {
               ))}
             </ul>
           )}
-          <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
+          <p className="mt-4 flex items-center gap-1.5 text-[11px] text-mute">
             <ShieldCheck className="h-3.5 w-3.5" />
             Demo only — no real card numbers are stored or processed.
           </p>
@@ -154,10 +155,10 @@ export function BillingPage() {
           {invoices.length === 0 ? (
             <EmptyState icon={<Receipt className="h-5 w-5" />} title="No invoices yet" />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left text-sm">
+            <div className="scroll-thin overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-[13px]">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="text-[10.5px] uppercase tracking-[.06em] text-mute">
                     <th className="pb-2 font-semibold">Date</th>
                     <th className="pb-2 font-semibold">Description</th>
                     <th className="pb-2 font-semibold">Method</th>
@@ -166,13 +167,13 @@ export function BillingPage() {
                     <th className="pb-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-linesoft">
                   {invoices.map((inv) => (
                     <tr key={inv.id}>
-                      <td className="py-3 pr-3 font-medium text-ink-800">{formatDate(inv.date)}</td>
-                      <td className="py-3 pr-3 text-slate-600">{inv.description}</td>
-                      <td className="py-3 pr-3 text-slate-500">{inv.method}</td>
-                      <td className="py-3 pr-3 font-semibold text-ink-900">{formatCurrency(inv.amount)}</td>
+                      <td className="py-3 pr-3 font-medium text-ink">{formatDate(inv.date)}</td>
+                      <td className="py-3 pr-3 text-dim">{inv.description}</td>
+                      <td className="py-3 pr-3 text-mute">{inv.method}</td>
+                      <td className="font-mono tnum py-3 pr-3 font-semibold text-ink">{formatCurrency(inv.amount)}</td>
                       <td className="py-3 pr-3">
                         <Badge tone={INVOICE_STATUS_TONE[inv.status]} size="sm" className="capitalize">
                           {inv.status}
@@ -295,21 +296,22 @@ function AddPaymentMethodModal({
         reset()
         onClose()
       }}
+      icon={<CreditCard className="h-4 w-4" />}
       title="Add payment method"
       description="Demo only — enter any digits, no real payment is processed."
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="quiet" onClick={onClose}>
             Cancel
           </Button>
-          <Button loading={submitting} onClick={handleSubmit} iconLeft={<CreditCard className="h-4 w-4" />}>
+          <Button loading={submitting} onClick={handleSubmit} iconLeft={<CreditCard className="h-3.5 w-3.5" />}>
             Save card
           </Button>
         </>
       }
     >
       <div className="flex flex-col gap-4">
-        {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+        {error && <p className="text-[12.5px] font-medium text-bad">{error}</p>}
         <Input label="Name on card" value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Morgan" />
         <Input
           label="Card number"
