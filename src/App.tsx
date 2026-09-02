@@ -15,6 +15,7 @@ import { VerifyCodePage } from '@/pages/auth/VerifyCodePage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 
+import { CheckInPage } from '@/pages/CheckInPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { MembershipPage } from '@/pages/MembershipPage'
@@ -22,7 +23,6 @@ import { UpgradePlanPage } from '@/pages/UpgradePlanPage'
 import { BillingPage } from '@/pages/BillingPage'
 import { ClassesPage } from '@/pages/ClassesPage'
 import { CheckInsPage } from '@/pages/CheckInsPage'
-import { MembershipCardPage } from '@/pages/MembershipCardPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -77,16 +77,19 @@ export default function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
-                <Route path="/" element={<DashboardPage />} />
+                {/* Checking in is the one thing almost every visit starts with — it's the landing page, not a nav item. */}
+                <Route path="/" element={<CheckInPage />} />
+                <Route path="/home" element={<DashboardPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/membership" element={<MembershipPage />} />
                 <Route path="/membership/upgrade" element={<UpgradePlanPage />} />
                 <Route path="/billing" element={<BillingPage />} />
                 <Route path="/classes" element={<ClassesPage />} />
                 <Route path="/check-ins" element={<CheckInsPage />} />
-                <Route path="/card" element={<MembershipCardPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                {/* Legacy path from before the redesign — kept working for old links/bookmarks. */}
+                <Route path="/card" element={<Navigate to="/" replace />} />
               </Route>
             </Route>
           </Route>

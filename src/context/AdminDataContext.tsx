@@ -10,7 +10,6 @@ import {
 import type {
   Activity,
   CheckIn,
-  CheckInMethod,
   ClassBooking,
   DoorScan,
   GroupMembership,
@@ -51,7 +50,10 @@ interface AdminDataContextValue extends AdminDataState {
   refresh: () => Promise<void>
   extendMembership: (userId: string, days: number) => Promise<void>
   setFrozen: (userId: string, frozen: boolean) => Promise<void>
-  recordScan: (userId: string, locationId: string, method: CheckInMethod) => ReturnType<typeof db.adminRecordScan>
+  /** Real path: verifies the scanned QR token's signature before evaluating access. */
+  recordScanByToken: (token: string, locationId: string) => ReturnType<typeof db.adminRecordScanByToken>
+  /** Fallback path: looks the member up by their 4-digit check-in PIN. */
+  recordScanByPin: (pin: string, locationId: string) => ReturnType<typeof db.adminRecordScanByPin>
   createActivity: (input: NewActivityInput) => Promise<void>
   deleteActivity: (activityId: string) => Promise<number>
 }
@@ -114,9 +116,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [refresh],
   )
 
-  const recordScan = useCallback(
-    async (userId: string, locationId: string, method: CheckInMethod) => {
-      const result = await db.adminRecordScan(userId, locationId, method)
+  const recordScanByToken = useCallback(
+    async (token: string, locationId: string) => {
+      const result = await db.adminRecordScanByToken(token, locationId)
+      await refresh()
+      return result
+    },
+    [refresh],
+  )
+
+  const recordScanByPin = useCallback(
+    async (pin: string, locationId: string) => {
+      const result = await db.adminRecordScanByPin(pin, locationId)
       await refresh()
       return result
     },
@@ -148,11 +159,22 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       extendMembership,
       setFrozen,
-      recordScan,
+      recordScanByToken,
+      recordScanByPin,
       createActivity,
       deleteActivity,
     }),
-    [state, atLocationId, refresh, extendMembership, setFrozen, recordScan, createActivity, deleteActivity],
+    [
+      state,
+      atLocationId,
+      refresh,
+      extendMembership,
+      setFrozen,
+      recordScanByToken,
+      recordScanByPin,
+      createActivity,
+      deleteActivity,
+    ],
   )
 
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>

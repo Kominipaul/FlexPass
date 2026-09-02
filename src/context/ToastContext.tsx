@@ -55,7 +55,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[100] flex flex-col items-center gap-2 px-4 sm:items-end sm:right-4 sm:left-auto">
+      {/* bottom-20 clears the client app's fixed mobile tab bar (see AppLayout/MobileTabBar, same lg: breakpoint); lg: and up sits in the corner as before. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[100] flex flex-col items-center gap-2 px-4 sm:items-end sm:right-4 sm:left-auto lg:bottom-4">
         {toasts.map((toast) => {
           const Icon = ICONS[toast.kind]
           return (

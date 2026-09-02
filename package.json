@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "FlexPass member portal — client-side demo of the gym member experience (sign up, sign in, membership, classes, billing, check-ins).",
+  "description": "FlexPass — client-side demo of a mobile-first gym member portal (real, camera-scannable QR check-in) and a separate staff front-desk dashboard.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -11,7 +11,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.462.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
@@ -19,6 +21,7 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@types/node": "^22.9.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.15.0",

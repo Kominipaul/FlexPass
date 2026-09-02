@@ -1,11 +1,14 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, Menu } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { pageTitleForPath } from '@/lib/nav'
 import { useGymData } from '@/context/DataContext'
 import { useAuth } from '@/context/AuthContext'
 import { Avatar } from '@/components/ui/Avatar'
 
-export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
+// No mobile menu button here — on <lg the bottom MobileTabBar's "More" tab
+// owns opening the nav drawer, so there's exactly one way to reach it
+// instead of two identical buttons in different corners of the screen.
+export function Topbar() {
   const location = useLocation()
   const { unreadNotificationCount } = useGymData()
   const { user } = useAuth()
@@ -14,19 +17,9 @@ export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-6">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onOpenMobile}
-          className="rounded-[6px] p-2 text-dim hover:bg-raised hover:text-ink lg:hidden"
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        <h1 className="font-display text-[15px] font-bold uppercase tracking-[.03em] text-ink">
-          {pageTitleForPath(location.pathname)}
-        </h1>
-      </div>
+      <h1 className="font-display text-[15px] font-bold uppercase tracking-[.03em] text-ink">
+        {pageTitleForPath(location.pathname)}
+      </h1>
 
       <div className="flex items-center gap-2 sm:gap-3">
         <Link

@@ -60,6 +60,20 @@ export interface EmergencyContact {
 export interface UserSecurity {
   twoFactorEnabled: boolean
   checkInPin: string // 4-digit PIN used at the gym kiosk / turnstile
+  /**
+   * Per-member signing key for their rotating check-in QR (see
+   * src/lib/accessToken.ts). The member's app uses it to sign a fresh
+   * token every rotation window; the front-desk scanner looks it up by the
+   * token's claimed member id and re-derives the same signature to verify
+   * the code wasn't forged or replayed from an old screenshot.
+   *
+   * Honest caveat: with no real backend yet, this key lives in the same
+   * client-side store the "member" reads it from — good enough to make the
+   * QR/scanner pipeline fully real (actual HMAC-SHA256, actual expiry,
+   * actual signature check), but not a substitute for a server that never
+   * hands the signing key to the client. See README.
+   */
+  checkInSecret: string
   lastPasswordChange: string
 }
 
@@ -209,6 +223,10 @@ export type DoorReasonCode =
   | 'wrong_location'
   | 'expiring_soon'
   | 'active'
+  /** Signature didn't verify — malformed, forged, or not a FlexPass code at all. */
+  | 'code_invalid'
+  /** Signature verified, but the token's rotation window has passed (stale/replayed). */
+  | 'code_expired'
 
 export interface DoorScan {
   id: string

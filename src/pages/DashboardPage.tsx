@@ -52,13 +52,17 @@ export function DashboardPage() {
   const previewNotifications = notifications.slice(0, 3)
   const firstName = user.name.split(' ')[0]
 
+  // A lightweight self-logged visit — useful during unstaffed hours when
+  // there's no front desk to scan the real Check In code against. Distinct
+  // from the door-verified flow on the Check In page: this just records a
+  // visit, it doesn't run through any access check.
   async function handleQuickCheckIn() {
     setCheckingIn(true)
     try {
-      await checkIn('QR', membership!.homeLocation)
-      showToast('Checked in — enjoy your workout! 💪')
+      await checkIn('Manual', membership!.homeLocation)
+      showToast('Visit logged — enjoy your workout! 💪')
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not check in.', 'error')
+      showToast(err instanceof Error ? err.message : 'Could not log your visit.', 'error')
     } finally {
       setCheckingIn(false)
     }
@@ -200,14 +204,16 @@ export function DashboardPage() {
               </h3>
               <Button
                 fullWidth
+                variant="quiet"
                 loading={checkingIn}
                 onClick={handleQuickCheckIn}
                 iconLeft={<Zap className="h-3.5 w-3.5" />}
               >
-                Check in now
+                Log a visit
               </Button>
+              <p className="-mt-1.5 text-center text-[10.5px] text-mute">No front desk right now? Log it yourself.</p>
               <div className="grid grid-cols-2 gap-2.5">
-                <QuickLink to="/card" icon={<QrCode className="h-4 w-4" />} label="Member card" />
+                <QuickLink to="/" icon={<QrCode className="h-4 w-4" />} label="Check in" />
                 <QuickLink to="/classes" icon={<UsersIcon className="h-4 w-4" />} label="Classes" />
                 <QuickLink to="/billing" icon={<Sparkles className="h-4 w-4" />} label="Billing" />
                 <QuickLink to="/settings" icon={<Settings2 className="h-4 w-4" />} label="Settings" />

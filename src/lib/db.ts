@@ -30,7 +30,8 @@ import type {
 import { storage } from './storage'
 import { makeId } from './id'
 import { LOCATIONS, PLANS, buildSeed, getLocation, getPlan, mockHash } from './seedData'
-import { evaluateAccess } from './access'
+import { evaluateAccess, type AccessResult } from './access'
+import { decodeTokenUnsafe, makeCheckInSecret, verifyCheckInToken } from './accessToken'
 
 const KEYS = {
   seeded: 'seeded_v1',
@@ -219,6 +220,7 @@ export async function signup(input: SignupInput): Promise<User> {
     security: {
       twoFactorEnabled: false,
       checkInPin: String(1000 + Math.floor(Math.random() * 9000)),
+      checkInSecret: makeCheckInSecret(),
       lastPasswordChange: now.toISOString(),
     },
   }
@@ -959,23 +961,26 @@ export async function adminListDoorScans(): Promise<DoorScan[]> {
   )
 }
 
-/** The core front-desk action: evaluate a member's access at a location, log the scan, and (if granted) record a real check-in. */
-export async function adminRecordScan(
-  userId: string,
-  locationId: string,
-  method: CheckInMethod,
-): Promise<{ scan: DoorScan; user: User; membership: Membership }> {
-  await delay(650)
-  const user = read<User>(KEYS.users).find((u) => u.id === userId)
+/** Membership + plan lookup shared by every scan path — throws if either is missing (should never happen for a real seeded user). */
+function getMembershipAndPlanOrThrow(userId: string): { membership: Membership; plan: Plan } {
   const membership = read<Membership>(KEYS.memberships).find((m) => m.userId === userId)
-  if (!user || !membership) throw new ApiError('Member not found.')
+  if (!membership) throw new ApiError('Member not found.')
   const plan = getPlan(membership.planId)
   if (!plan) throw new ApiError('Plan not found.')
+  return { membership, plan }
+}
 
-  const result = evaluateAccess(membership, plan, locationId)
+/** Shared by every scan path once a member and an access decision are known: log the scan, and (if granted) record a real check-in. */
+function finalizeScan(
+  user: User,
+  membership: Membership,
+  locationId: string,
+  method: CheckInMethod,
+  result: AccessResult,
+): { scan: DoorScan; user: User; membership: Membership } {
   const scan: DoorScan = {
     id: makeId('scn'),
-    userId,
+    userId: user.id,
     locationId,
     timestamp: new Date().toISOString(),
     result: result.ok ? 'granted' : 'denied',
@@ -990,7 +995,7 @@ export async function adminRecordScan(
     const checkIns = read<CheckIn>(KEYS.checkIns)
     checkIns.unshift({
       id: makeId('chk'),
-      userId,
+      userId: user.id,
       timestamp: scan.timestamp,
       location: getLocation(locationId)?.name ?? locationId,
       method,
@@ -999,4 +1004,48 @@ export async function adminRecordScan(
   }
 
   return { scan, user, membership }
+}
+
+/**
+ * The front-desk camera-scan path: verifies the QR's HMAC signature
+ * against the *claimed* member's stored secret (see lib/accessToken.ts)
+ * before any membership check runs at all. A forged code, a screenshot of
+ * someone else's screen, or last week's expired rotation all fail right
+ * here — same as a real reader rejecting a bad badge read — and it's
+ * still logged as a real denied scan against whoever it claimed to be.
+ * Only a code that genuinely verifies goes on to the membership decision.
+ */
+export async function adminRecordScanByToken(
+  rawToken: string,
+  locationId: string,
+): Promise<{ scan: DoorScan; user: User; membership: Membership }> {
+  await delay(500)
+  const claim = decodeTokenUnsafe(rawToken)
+  if (!claim) throw new ApiError("That's not a FlexPass code.")
+
+  const user = read<User>(KEYS.users).find((u) => u.id === claim.uid)
+  if (!user) throw new ApiError('This code does not match any member.')
+  const { membership, plan } = getMembershipAndPlanOrThrow(user.id)
+
+  const verified = await verifyCheckInToken(rawToken, user.security.checkInSecret)
+  const result: AccessResult = verified.ok
+    ? evaluateAccess(membership, plan, locationId)
+    : { ok: false, reasonCode: verified.reason === 'expired' ? 'code_expired' : 'code_invalid' }
+
+  return finalizeScan(user, membership, locationId, 'QR', result)
+}
+
+/** The front-desk fallback for a member with no phone on them: their 4-digit PIN, looked up and evaluated exactly like a verified QR scan. */
+export async function adminRecordScanByPin(
+  pin: string,
+  locationId: string,
+): Promise<{ scan: DoorScan; user: User; membership: Membership }> {
+  await delay(500)
+  const cleanPin = pin.trim()
+  const user = read<User>(KEYS.users).find((u) => u.security.checkInPin === cleanPin && cleanPin.length > 0)
+  if (!user) throw new ApiError('No member matches that PIN.')
+  const { membership, plan } = getMembershipAndPlanOrThrow(user.id)
+
+  const result = evaluateAccess(membership, plan, locationId)
+  return finalizeScan(user, membership, locationId, 'PIN', result)
 }

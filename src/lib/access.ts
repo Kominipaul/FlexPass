@@ -46,6 +46,8 @@ const REASON_TEXT: Record<DoorReasonCode, string> = {
   wrong_location: "This plan is home-location only — doesn't cover this club",
   expiring_soon: 'Active — renews soon',
   active: 'Active membership',
+  code_invalid: 'Not a valid FlexPass code',
+  code_expired: 'Code expired — reopen the app and rescan',
 }
 
 export function reasonText(result: { reasonCode: DoorReasonCode; daysLeft?: number }): string {

@@ -15,6 +15,7 @@ import type {
   User,
 } from '@/types'
 import { makeId } from './id'
+import { makeCheckInSecret } from './accessToken'
 
 // ---------------------------------------------------------------------------
 // Locations — the physical clubs the door system and staff dashboard run at
@@ -362,6 +363,7 @@ export function buildSeed(): SeedBundle {
     security: {
       twoFactorEnabled: true,
       checkInPin: '4821',
+      checkInSecret: makeCheckInSecret(),
       lastPasswordChange: daysAgoIso(96),
     },
   }
@@ -647,6 +649,7 @@ function buildMemberRoster(): { users: User[]; memberships: Membership[]; checkI
       security: {
         twoFactorEnabled: false,
         checkInPin: String(1000 + Math.floor(Math.random() * 9000)),
+        checkInSecret: makeCheckInSecret(),
         lastPasswordChange: daysAgoIso(spec.memberSinceDays),
       },
     })
