@@ -50,7 +50,7 @@ export function useCameraQrScanner({
     }
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       setStatus('error')
-      setError('This browser cannot access a camera. Use PIN entry below.')
+      setError('This browser cannot access a camera. Check members in with Staff · backup entry.')
       return
     }
 
@@ -61,7 +61,7 @@ export function useCameraQrScanner({
     const video = videoRef.current
     if (!video) {
       setStatus('error')
-      setError('Could not start the camera. Use PIN entry below.')
+      setError('Could not start the camera. Check members in with Staff · backup entry.')
       return
     }
 
@@ -140,14 +140,14 @@ export function useCameraQrScanner({
 function describeCameraError(err: unknown): string {
   if (err instanceof DOMException) {
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      return 'Camera access was denied. Allow camera access in your browser, or use PIN entry below.'
+      return 'Camera access was denied. Allow it in your browser, or use Staff · backup entry.'
     }
     if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      return 'No camera was found on this device. Use PIN entry below.'
+      return 'No camera was found on this device. Use Staff · backup entry.'
     }
     if (err.name === 'NotReadableError') {
-      return 'The camera is already in use by another app. Use PIN entry below.'
+      return 'The camera is already in use by another app. Use Staff · backup entry.'
     }
   }
-  return 'Could not start the camera. Use PIN entry below.'
+  return 'Could not start the camera. Check members in with Staff · backup entry.'
 }

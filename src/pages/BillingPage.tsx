@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoader } from '@/components/ui/Spinner'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -58,11 +59,8 @@ export function BillingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-display text-[22px] font-extrabold text-ink">Billing</h2>
-        <p className="mt-1 text-[13px] text-dim">Manage payment methods and view your invoice history.</p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader title="Billing" subtitle="Manage payment methods and view your invoice history." />
 
       {hasDueInvoice && paymentMethods.length === 0 && (
         <div className="flex items-center gap-3 rounded-[12px] border border-warnsoft bg-warnsoft px-4 py-3.5 text-[13px] text-warn">

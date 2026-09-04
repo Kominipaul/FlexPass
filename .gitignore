@@ -28,3 +28,8 @@ pnpm-debug.log*
 # Env
 .env
 .env.local
+
+# Server secrets — never commit
+server/.env
+server/node_modules
+server/.pgdata

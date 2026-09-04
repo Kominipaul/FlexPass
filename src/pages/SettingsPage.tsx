@@ -2,14 +2,17 @@ import { useState } from 'react'
 import {
   AlertTriangle,
   Bell,
+  Flame,
   KeyRound,
   Lock,
-  RotateCcw,
   ShieldCheck,
   Trash2,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -19,7 +22,6 @@ import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
 import { formatDate } from '@/lib/format'
 import { isValidPassword } from '@/lib/validators'
 import { getNotificationPrefs, setNotificationPref, type NotificationPrefs } from '@/lib/notificationPrefs'
-import { resetDemoData } from '@/lib/db'
 import type { NotificationType } from '@/types'
 
 const PREF_LABELS: { key: NotificationType; label: string; description: string }[] = [
@@ -33,6 +35,7 @@ const PREF_LABELS: { key: NotificationType; label: string; description: string }
 
 export function SettingsPage() {
   const { user, changePassword, setTwoFactorEnabled, deleteAccount } = useAuth()
+  const { trainingGoal, setTrainingGoal, pinAllowance } = useGymData()
   const { showToast } = useToast()
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -42,9 +45,9 @@ export function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false)
 
   const [twoFactorBusy, setTwoFactorBusy] = useState(false)
+  const [progressionBusy, setProgressionBusy] = useState(false)
   const [prefs, setPrefs] = useState<NotificationPrefs>(() => getNotificationPrefs())
 
-  const [resetOpen, setResetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   if (!user) return null
@@ -93,12 +96,21 @@ export function SettingsPage() {
     setPrefs(setNotificationPref(key, value))
   }
 
+  async function handleToggleProgression(next: boolean) {
+    setProgressionBusy(true)
+    try {
+      await setTrainingGoal({ enabled: next })
+      showToast(next ? 'Progression turned on.' : 'Progression turned off.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not update progression.', 'error')
+    } finally {
+      setProgressionBusy(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-display text-[22px] font-extrabold text-ink">Settings</h2>
-        <p className="mt-1 text-[13px] text-dim">Security, notification preferences and account controls.</p>
-      </div>
+      <PageHeader title="Settings" subtitle="Security, progression, notifications and account controls." />
 
       <Card>
         <CardHeader icon={<Lock className="h-4 w-4" />} title="Password" description={`Last changed ${formatDate(user.security.lastPasswordChange)}`} />
@@ -152,6 +164,62 @@ export function SettingsPage() {
       </Card>
 
       <Card>
+        <CardHeader
+          icon={<Flame className="h-4 w-4" />}
+          title="Progression"
+          description="Streaks, badges and your weekly training goal."
+        />
+        <CardBody className="flex flex-col gap-4">
+          <Switch
+            checked={trainingGoal?.enabled ?? true}
+            onChange={handleToggleProgression}
+            disabled={progressionBusy || !trainingGoal}
+            label="Track a weekly goal"
+            description="Off means no streak and no badges — Progress becomes a plain list of your visits."
+          />
+          {trainingGoal?.enabled && (
+            <p className="text-[12px] text-mute">
+              Currently aiming for{' '}
+              <span className="font-semibold text-ink">{trainingGoal.daysPerWeek} days a week</span>. Change it on
+              the{' '}
+              <Link to="/progress" className="font-semibold text-volt hover:brightness-125">
+                Progress page
+              </Link>
+              .
+            </p>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          icon={<KeyRound className="h-4 w-4" />}
+          title="Backup PIN"
+          description="For the day you turn up without your phone."
+        />
+        <CardBody className="flex flex-col gap-3">
+          <p className="text-[12.5px] leading-relaxed text-dim">
+            Your PIN can't be typed at the reader on its own — there's no keypad until a staff member looks you up
+            and opens one for you. That's why four digits is enough, and why giving your PIN to someone else
+            doesn't get them in.
+          </p>
+          <div className="flex items-center justify-between rounded-[9px] border border-line bg-raised px-4 py-3">
+            <span className="text-[12.5px] text-dim">Backup check-ins used</span>
+            <span className={`font-mono tnum text-[13px] font-semibold ${pinAllowance.overLimit ? 'text-warn' : 'text-ink'}`}>
+              {pinAllowance.used} / {pinAllowance.limit}
+            </span>
+          </div>
+          <p className="text-[11.5px] text-mute">
+            Resets on a rolling {pinAllowance.windowDays} days. View or regenerate your PIN on the{' '}
+            <Link to="/" className="font-semibold text-volt hover:brightness-125">
+              Check In page
+            </Link>
+            .
+          </p>
+        </CardBody>
+      </Card>
+
+      <Card>
         <CardHeader icon={<Bell className="h-4 w-4" />} title="Notification preferences" description="Controls what appears in your notification center." />
         <CardBody className="flex flex-col gap-4">
           {PREF_LABELS.map((p) => (
@@ -169,15 +237,6 @@ export function SettingsPage() {
       <Card className="border-badsoft">
         <CardHeader icon={<AlertTriangle className="h-4 w-4 text-bad" />} title="Danger zone" />
         <CardBody className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-line p-4">
-            <div>
-              <p className="text-[13px] font-semibold text-ink">Reset demo data</p>
-              <p className="text-[11.5px] text-mute">Wipes local demo data and restores the sample account.</p>
-            </div>
-            <Button variant="quiet" onClick={() => setResetOpen(true)} iconLeft={<RotateCcw className="h-3.5 w-3.5" />}>
-              Reset
-            </Button>
-          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-badsoft bg-badsoft/40 p-4">
             <div>
               <p className="text-[13px] font-semibold text-bad">Delete account</p>
@@ -189,20 +248,6 @@ export function SettingsPage() {
           </div>
         </CardBody>
       </Card>
-
-      <ConfirmDialog
-        open={resetOpen}
-        onClose={() => setResetOpen(false)}
-        icon={<RotateCcw className="h-4 w-4" />}
-        title="Reset all demo data?"
-        description="This clears everything stored in this browser and restores the original sample account."
-        confirmLabel="Reset"
-        tone="danger"
-        onConfirm={() => {
-          resetDemoData()
-          window.location.href = '/login'
-        }}
-      />
 
       <ConfirmDialog
         open={deleteOpen}

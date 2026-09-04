@@ -33,8 +33,8 @@ export function ResetPasswordPage() {
   if (!state?.email || !state?.code) return null
 
   async function handleSubmit() {
-    if (code !== state!.code) {
-      setError('That code is incorrect.')
+    if (code.trim().length < 6) {
+      setError('Enter the 6-digit code.')
       return
     }
     if (!isValidPassword(password)) {
@@ -48,7 +48,7 @@ export function ResetPasswordPage() {
     setError(null)
     setLoading(true)
     try {
-      await resetPassword(state!.email, password)
+      await resetPassword(state!.email, code.trim(), password)
       setDone(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reset your password.')

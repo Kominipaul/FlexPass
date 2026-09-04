@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -94,11 +95,8 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-display text-[22px] font-extrabold text-ink">Profile</h2>
-        <p className="mt-1 text-[13px] text-dim">Manage your personal details and emergency contact.</p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader title="Profile" subtitle="Manage your personal details and emergency contact." />
 
       <Card>
         <CardBody className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">

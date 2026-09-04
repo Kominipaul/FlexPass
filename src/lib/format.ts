@@ -94,8 +94,19 @@ export function formatMemberId(userId: string): string {
   return `FP-${clean.slice(0, 4)}-${clean.slice(4)}`
 }
 
+/**
+ * A date as YYYY-MM-DD in the *viewer's* timezone.
+ *
+ * Not `toISOString().slice(0, 10)`: that converts to UTC first, so anywhere
+ * east of Greenwich a local midnight lands on the previous UTC day. Every
+ * caller here is bucketing by calendar day — "did they train on Tuesday",
+ * "is this scan from today" — and a member in Athens would have seen their
+ * Tuesday visit counted against Monday.
+ */
 export function isoDateOnly(d: Date): string {
-  return d.toISOString().slice(0, 10)
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${month}-${day}`
 }
 
 export function addDays(iso: string, days: number): string {

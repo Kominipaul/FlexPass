@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoader } from '@/components/ui/Spinner'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -53,16 +54,16 @@ export function MembershipPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-display text-[22px] font-extrabold text-ink">Membership</h2>
-          <p className="mt-1 text-[13px] text-dim">Manage your plan, billing cycle and membership status.</p>
-        </div>
-        <Button onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-3.5 w-3.5" />}>
-          Change plan
-        </Button>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title="Membership"
+        subtitle="Manage your plan, billing cycle and membership status."
+        action={
+          <Button onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-3.5 w-3.5" />}>
+            Change plan
+          </Button>
+        }
+      />
 
       <StatusBanner status={membership.status} />
 

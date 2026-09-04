@@ -7,22 +7,30 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { PendingAuth, User } from '@/types'
+import type { User } from '@/types'
 import * as db from '@/lib/db'
-import { clearSession, loadSession, saveSession } from '@/lib/session'
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
+/**
+ * Session state for the member app.
+ *
+ * The session itself is an HttpOnly cookie the API sets — this context never
+ * sees a token and cannot forge one. On boot it simply asks the server who
+ * it is talking to, which is also what makes a session survive a reload on
+ * one device without leaking anything to another.
+ *
+ * Sign-in is email + password only: no SMS, no authenticator codes, no
+ * verification step. `setTwoFactorEnabled` still stores the member's
+ * preference so the Settings toggle keeps its meaning for later, but login
+ * never branches on it.
+ */
 interface AuthContextValue {
   status: AuthStatus
   user: User | null
-  pendingAuth: PendingAuth | null
-  login: (email: string, password: string, remember: boolean) => Promise<{ requiresCode: boolean }>
-  verifyCode: (code: string) => Promise<void>
-  resendCode: () => void
-  cancelPendingAuth: () => void
+  login: (email: string, password: string, remember: boolean) => Promise<void>
   signup: (input: db.SignupInput) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   refreshUser: () => Promise<void>
   updateProfile: (patch: db.ProfileUpdate) => Promise<void>
   changePassword: (current: string, next: string) => Promise<void>
@@ -33,184 +41,81 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-const CODE_TTL_MS = 5 * 60 * 1000
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading')
   const [user, setUser] = useState<User | null>(null)
-  const [pendingAuth, setPendingAuth] = useState<PendingAuth | null>(null)
 
   useEffect(() => {
-    const existingId = loadSession()
-    if (!existingId) {
-      setStatus('unauthenticated')
-      return
-    }
-    db.getUser(existingId).then((found) => {
-      if (found) {
-        setUser(found)
-        setStatus('authenticated')
-      } else {
-        clearSession()
-        setStatus('unauthenticated')
-      }
+    let cancelled = false
+    db.getCurrentUser().then((found) => {
+      if (cancelled) return
+      setUser(found)
+      setStatus(found ? 'authenticated' : 'unauthenticated')
     })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const completeLogin = useCallback((loggedInUser: User, remember: boolean) => {
-    saveSession(loggedInUser.id, remember)
-    setUser(loggedInUser)
-    setPendingAuth(null)
+  const login = useCallback(async (email: string, password: string, remember: boolean) => {
+    const found = await db.login(email, password, remember)
+    setUser(found)
     setStatus('authenticated')
   }, [])
 
-  const login = useCallback(
-    async (email: string, password: string, remember: boolean) => {
-      const found = await db.findUserByEmail(email)
-      if (!found) throw new Error('No account matches that email address.')
-      const ok = await db.verifyPassword(found, password)
-      if (!ok) throw new Error('Incorrect password. Please try again.')
-
-      if (found.security.twoFactorEnabled) {
-        const code = db.generateLoginCode()
-        setPendingAuth({
-          userId: found.id,
-          email: found.email,
-          code,
-          expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
-          remember,
-        })
-        return { requiresCode: true }
-      }
-
-      completeLogin(found, remember)
-      return { requiresCode: false }
-    },
-    [completeLogin],
-  )
-
-  const verifyCode = useCallback(
-    async (code: string) => {
-      if (!pendingAuth) throw new Error('Your sign-in session expired. Please log in again.')
-      if (new Date(pendingAuth.expiresAt).getTime() < Date.now()) {
-        setPendingAuth(null)
-        throw new Error('That code expired. Please request a new one.')
-      }
-      if (code.trim() !== pendingAuth.code) {
-        throw new Error('That code is incorrect. Double-check and try again.')
-      }
-      const found = await db.getUser(pendingAuth.userId)
-      if (!found) throw new Error('Account not found.')
-      completeLogin(found, pendingAuth.remember)
-    },
-    [pendingAuth, completeLogin],
-  )
-
-  const resendCode = useCallback(() => {
-    setPendingAuth((prev) =>
-      prev
-        ? { ...prev, code: db.generateLoginCode(), expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString() }
-        : prev,
-    )
+  const signup = useCallback(async (input: db.SignupInput) => {
+    const created = await db.signup(input)
+    setUser(created)
+    setStatus('authenticated')
   }, [])
 
-  const cancelPendingAuth = useCallback(() => setPendingAuth(null), [])
-
-  const signup = useCallback(
-    async (input: db.SignupInput) => {
-      const created = await db.signup(input)
-      completeLogin(created, true)
-    },
-    [completeLogin],
-  )
-
-  const logout = useCallback(() => {
-    clearSession()
+  const logout = useCallback(async () => {
+    await db.logout().catch(() => {})
     setUser(null)
-    setPendingAuth(null)
     setStatus('unauthenticated')
   }, [])
 
   const refreshUser = useCallback(async () => {
-    if (!user) return
-    const fresh = await db.getUser(user.id)
+    const fresh = await db.getCurrentUser()
     if (fresh) setUser(fresh)
-  }, [user])
+  }, [])
 
-  const updateProfile = useCallback(
-    async (patch: db.ProfileUpdate) => {
-      if (!user) throw new Error('Not signed in.')
-      const updated = await db.updateProfile(user.id, patch)
-      setUser(updated)
-    },
-    [user],
-  )
+  const updateProfile = useCallback(async (patch: db.ProfileUpdate) => {
+    setUser(await db.updateProfile(patch))
+  }, [])
 
   const changePassword = useCallback(
     async (current: string, next: string) => {
-      if (!user) throw new Error('Not signed in.')
-      await db.changePassword(user.id, current, next)
+      await db.changePassword(current, next)
       await refreshUser()
     },
-    [user, refreshUser],
+    [refreshUser],
   )
 
-  const setTwoFactorEnabled = useCallback(
-    async (enabled: boolean) => {
-      if (!user) throw new Error('Not signed in.')
-      const updated = await db.setTwoFactorEnabled(user.id, enabled)
-      setUser(updated)
-    },
-    [user],
-  )
+  const setTwoFactorEnabled = useCallback(async (enabled: boolean) => {
+    setUser(await db.setTwoFactorEnabled(enabled))
+  }, [])
 
   const regenerateCheckInPin = useCallback(async () => {
-    if (!user) throw new Error('Not signed in.')
-    const pin = await db.regenerateCheckInPin(user.id)
+    const pin = await db.regenerateCheckInPin()
     await refreshUser()
     return pin
-  }, [user, refreshUser])
+  }, [refreshUser])
 
   const deleteAccount = useCallback(async () => {
-    if (!user) throw new Error('Not signed in.')
-    await db.deleteAccount(user.id)
-    logout()
-  }, [user, logout])
+    await db.deleteAccount()
+    setUser(null)
+    setStatus('unauthenticated')
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      status,
-      user,
-      pendingAuth,
-      login,
-      verifyCode,
-      resendCode,
-      cancelPendingAuth,
-      signup,
-      logout,
-      refreshUser,
-      updateProfile,
-      changePassword,
-      setTwoFactorEnabled,
-      regenerateCheckInPin,
-      deleteAccount,
+      status, user, login, signup, logout, refreshUser, updateProfile,
+      changePassword, setTwoFactorEnabled, regenerateCheckInPin, deleteAccount,
     }),
     [
-      status,
-      user,
-      pendingAuth,
-      login,
-      verifyCode,
-      resendCode,
-      cancelPendingAuth,
-      signup,
-      logout,
-      refreshUser,
-      updateProfile,
-      changePassword,
-      setTwoFactorEnabled,
-      regenerateCheckInPin,
-      deleteAccount,
+      status, user, login, signup, logout, refreshUser, updateProfile,
+      changePassword, setTwoFactorEnabled, regenerateCheckInPin, deleteAccount,
     ],
   )
 

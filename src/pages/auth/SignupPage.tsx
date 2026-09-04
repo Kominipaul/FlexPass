@@ -8,7 +8,7 @@ import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
 import { PlanCard } from '@/components/PlanCard'
 import { BillingCycleToggle } from '@/components/BillingCycleToggle'
 import { useAuth } from '@/context/AuthContext'
-import { PLANS } from '@/lib/seedData'
+import { PLANS } from '@/lib/reference'
 import { isValidEmail, isValidPassword, isValidPhone, type FieldErrors } from '@/lib/validators'
 import type { BillingCycle } from '@/types'
 

@@ -36,8 +36,8 @@ export function LoginPage() {
     }
     setLoading(true)
     try {
-      const result = await login(email, password, remember)
-      navigate(result.requiresCode ? '/verify-code' : from, { replace: true })
+      await login(email, password, remember)
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {

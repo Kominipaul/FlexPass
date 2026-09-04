@@ -1,42 +1,46 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   BellRing,
   CalendarClock,
   Flame,
-  QrCode,
-  Settings2,
   Snowflake,
   Sparkles,
+  Target,
   TrendingUp,
-  Users as UsersIcon,
-  Zap,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useGymData } from '@/context/DataContext'
-import { useToast } from '@/context/ToastContext'
 import { PageLoader } from '@/components/ui/Spinner'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { StatCard } from '@/components/ui/StatCard'
 import { ProgressRing } from '@/components/ui/ProgressRing'
-import { MiniBarChart } from '@/components/ui/MiniBarChart'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { AgendaRow } from '@/components/AgendaRow'
+import { WeekStrip } from '@/components/progress/WeekStrip'
 import { daysUntil, formatCurrency, formatDate, relativeTime } from '@/lib/format'
-import { currentStreak, groupCheckInsByDay, monthlyVisitCount } from '@/lib/stats'
+import { buildWeeks, monthlyVisitCount, summarizeStreak } from '@/lib/progress'
 import { getUpcomingAgenda } from '@/lib/upcoming'
 import { toneOf } from '@/lib/colors'
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { loading, membership, currentPlan, activities, classBookings, groupMemberships, checkIns, notifications, checkIn } =
-    useGymData()
-  const { showToast } = useToast()
+  const {
+    loading,
+    membership,
+    currentPlan,
+    activities,
+    classBookings,
+    groupMemberships,
+    checkIns,
+    notifications,
+    homeLocation,
+    trainingGoal,
+  } = useGymData()
   const navigate = useNavigate()
-  const [checkingIn, setCheckingIn] = useState(false)
 
   if (loading || !user || !membership || !currentPlan) {
     return <PageLoader label="Loading your dashboard…" />
@@ -46,66 +50,52 @@ export function DashboardPage() {
   const cycleLength = membership.billingCycle === 'yearly' ? 365 : 30
   const ringValue = Math.max(2, Math.min(100, (daysLeft / cycleLength) * 100))
   const agenda = getUpcomingAgenda(activities, classBookings, groupMemberships).slice(0, 3)
-  const weekData = groupCheckInsByDay(checkIns, 7)
   const visitsThisMonth = monthlyVisitCount(checkIns)
-  const streak = currentStreak(checkIns)
   const previewNotifications = notifications.slice(0, 3)
   const firstName = user.name.split(' ')[0]
 
-  // A lightweight self-logged visit — useful during unstaffed hours when
-  // there's no front desk to scan the real Check In code against. Distinct
-  // from the door-verified flow on the Check In page: this just records a
-  // visit, it doesn't run through any access check.
-  async function handleQuickCheckIn() {
-    setCheckingIn(true)
-    try {
-      await checkIn('Manual', membership!.homeLocation)
-      showToast('Visit logged — enjoy your workout! 💪')
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not log your visit.', 'error')
-    } finally {
-      setCheckingIn(false)
-    }
-  }
+  const goal = trainingGoal
+  const weeks = goal ? buildWeeks(checkIns, goal, homeLocation) : []
+  const streak = weeks.length > 0 ? summarizeStreak(weeks) : null
+  const showProgress = !!goal?.enabled && !!streak
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-display text-[22px] font-extrabold leading-tight text-ink">
-          Welcome back, {firstName} <span aria-hidden="true">👋</span>
-        </h2>
-        <p className="mt-1 text-[13px] text-dim">
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} ·{' '}
-          {membership.homeLocation}
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={`Welcome back, ${firstName} 👋`}
+        subtitle={`${new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+        })} · ${membership.homeLocation}`}
+      />
 
       {membership.status !== 'active' && (
         <MembershipStatusBanner status={membership.status} renewalDate={membership.renewalDate} />
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Membership snapshot */}
           <Card className="overflow-hidden">
             <div className="hazard h-1 opacity-90" />
-            <CardBody className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <CardBody className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:text-left">
               <ProgressRing
                 value={ringValue}
-                size={128}
+                size={120}
                 strokeWidth={10}
                 progressClassName={daysLeft <= 5 ? 'text-bad' : 'text-volt'}
               >
                 <div className="text-center">
-                  <p className="font-display tnum text-[30px] font-extrabold leading-none text-ink">
+                  <p className="font-display tnum text-[28px] font-extrabold leading-none text-ink">
                     {Math.max(daysLeft, 0)}
                   </p>
                   <p className="mt-1 text-[10px] font-semibold uppercase tracking-[.1em] text-mute">days left</p>
                 </div>
               </ProgressRing>
 
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <h3 className="font-display text-[16px] font-bold uppercase tracking-[.03em] text-ink">
                     {currentPlan.name} plan
                   </h3>
@@ -117,8 +107,12 @@ export function DashboardPage() {
                   )}{' '}
                   · renews {formatDate(membership.renewalDate)}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2.5">
-                  <Button size="sm" onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-3.5 w-3.5" />}>
+                <div className="mt-4 flex flex-wrap justify-center gap-2.5 sm:justify-start">
+                  <Button
+                    size="sm"
+                    onClick={() => navigate('/membership/upgrade')}
+                    iconLeft={<Sparkles className="h-3.5 w-3.5" />}
+                  >
                     Upgrade plan
                   </Button>
                   <Button size="sm" variant="quiet" onClick={() => navigate('/membership')}>
@@ -130,20 +124,24 @@ export function DashboardPage() {
           </Card>
 
           {/* Stat row */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <StatCard label="Visits this month" value={visitsThisMonth} icon={<TrendingUp className="h-4 w-4" />} tone="volt" />
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             <StatCard
-              label="Current streak"
-              value={`${streak} day${streak === 1 ? '' : 's'}`}
-              icon={<Flame className="h-4 w-4" />}
+              label="This month"
+              value={visitsThisMonth}
+              icon={<TrendingUp className="h-4 w-4" />}
+              tone="volt"
+            />
+            <StatCard
+              label={showProgress ? 'Week streak' : 'Total visits'}
+              value={showProgress ? `${streak!.current}w` : checkIns.length}
+              icon={showProgress ? <Flame className="h-4 w-4" /> : <Target className="h-4 w-4" />}
               tone="ember"
             />
             <StatCard
-              label="Upcoming sessions"
+              label="Up next"
               value={agenda.length}
               icon={<CalendarClock className="h-4 w-4" />}
               tone="s3"
-              className="col-span-2 sm:col-span-1"
             />
           </div>
 
@@ -178,48 +176,62 @@ export function DashboardPage() {
               )}
             </CardBody>
           </Card>
-
-          {/* Weekly activity */}
-          <Card>
-            <CardHeader
-              title="This week's activity"
-              action={
-                <Link to="/check-ins" className="text-[11.5px] font-semibold text-volt hover:brightness-125">
-                  Full history
-                </Link>
-              }
-            />
-            <CardBody>
-              <MiniBarChart data={weekData} />
-            </CardBody>
-          </Card>
         </div>
 
         {/* Sidebar column */}
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardBody className="flex flex-col gap-3">
-              <h3 className="font-display text-[12.5px] font-bold uppercase tracking-[.05em] text-ink">
-                Quick actions
-              </h3>
-              <Button
-                fullWidth
-                variant="quiet"
-                loading={checkingIn}
-                onClick={handleQuickCheckIn}
-                iconLeft={<Zap className="h-3.5 w-3.5" />}
-              >
-                Log a visit
-              </Button>
-              <p className="-mt-1.5 text-center text-[10.5px] text-mute">No front desk right now? Log it yourself.</p>
-              <div className="grid grid-cols-2 gap-2.5">
-                <QuickLink to="/" icon={<QrCode className="h-4 w-4" />} label="Check in" />
-                <QuickLink to="/classes" icon={<UsersIcon className="h-4 w-4" />} label="Classes" />
-                <QuickLink to="/billing" icon={<Sparkles className="h-4 w-4" />} label="Billing" />
-                <QuickLink to="/settings" icon={<Settings2 className="h-4 w-4" />} label="Settings" />
-              </div>
-            </CardBody>
-          </Card>
+        <div className="flex flex-col gap-5">
+          {showProgress ? (
+            <Card>
+              <CardHeader
+                title="This week"
+                action={
+                  <Link to="/progress" className="text-[11.5px] font-semibold text-volt hover:brightness-125">
+                    Progress
+                  </Link>
+                }
+              />
+              <CardBody className="flex flex-col gap-4">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="font-display tnum text-[32px] font-extrabold leading-none text-ink">
+                      {weeks[weeks.length - 1].trained}
+                      <span className="text-[20px] text-mute">/{weeks[weeks.length - 1].target}</span>
+                    </p>
+                    <p className="mt-1.5 text-[11.5px] text-mute">sessions this week</p>
+                  </div>
+                  <span className="flex items-center gap-1.5 rounded-full border border-emberline bg-embersoft px-2.5 py-1 text-[11px] font-bold text-ember">
+                    <Flame className="h-3.5 w-3.5" />
+                    {streak!.current}w
+                  </span>
+                </div>
+                <WeekStrip week={weeks[weeks.length - 1]} />
+                <p className="text-[11.5px] leading-snug text-dim">
+                  {streak!.remaining === 0
+                    ? 'Goal hit. Anything else this week is a bonus.'
+                    : `${streak!.remaining} more to hit your goal of ${weeks[weeks.length - 1].target}.`}
+                </p>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader title="Progress" />
+              <CardBody className="flex flex-col gap-3">
+                <p className="text-[12px] leading-relaxed text-dim">
+                  Set a weekly training goal and this turns into a streak you can actually keep — rest days and
+                  club closures included.
+                </p>
+                <Button
+                  size="sm"
+                  variant="quiet"
+                  fullWidth
+                  onClick={() => navigate('/progress')}
+                  iconLeft={<Target className="h-3.5 w-3.5" />}
+                >
+                  Set a goal
+                </Button>
+              </CardBody>
+            </Card>
+          )}
 
           <Card>
             <CardHeader
@@ -255,28 +267,16 @@ export function DashboardPage() {
   )
 }
 
-function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
-  return (
-    <Link
-      to={to}
-      className="flex flex-col items-center gap-1.5 rounded-[9px] border border-line bg-raised px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-[.02em] text-dim transition-colors hover:border-voltline hover:text-volt"
-    >
-      {icon}
-      {label}
-    </Link>
-  )
-}
-
 function MembershipStatusBanner({ status, renewalDate }: { status: string; renewalDate: string }) {
   if (status === 'frozen') {
     return (
-      <div className="flex items-center gap-3 rounded-[12px] border border-frozesoft bg-frozesoft px-4 py-3.5 text-[13px] text-froze">
-        <Snowflake className="h-5 w-5 shrink-0" />
-        <p>
-          Your membership is currently <span className="font-semibold">frozen</span>. Billing is paused —
-          visit Membership to resume anytime.
+      <div className="flex items-start gap-3 rounded-[12px] border border-frozesoft bg-frozesoft px-4 py-3.5 text-[13px] leading-snug text-froze">
+        <Snowflake className="mt-px h-5 w-5 shrink-0" />
+        <p className="flex-1">
+          Your membership is currently <span className="font-semibold">frozen</span>. Billing is paused — visit
+          Membership to resume anytime.
         </p>
-        <Link to="/membership" className="ml-auto shrink-0 font-semibold underline underline-offset-2">
+        <Link to="/membership" className="mt-px shrink-0 font-semibold underline underline-offset-2">
           Manage
         </Link>
       </div>
@@ -284,13 +284,13 @@ function MembershipStatusBanner({ status, renewalDate }: { status: string; renew
   }
   if (status === 'pending_cancellation') {
     return (
-      <div className="flex items-center gap-3 rounded-[12px] border border-warnsoft bg-warnsoft px-4 py-3.5 text-[13px] text-warn">
-        <ArrowRight className="h-5 w-5 shrink-0" />
-        <p>
+      <div className="flex items-start gap-3 rounded-[12px] border border-warnsoft bg-warnsoft px-4 py-3.5 text-[13px] leading-snug text-warn">
+        <ArrowRight className="mt-px h-5 w-5 shrink-0" />
+        <p className="flex-1">
           Your membership won't renew — access continues until{' '}
           <span className="font-semibold">{formatDate(renewalDate)}</span>.
         </p>
-        <Link to="/membership" className="ml-auto shrink-0 font-semibold underline underline-offset-2">
+        <Link to="/membership" className="mt-px shrink-0 font-semibold underline underline-offset-2">
           Manage
         </Link>
       </div>
@@ -298,10 +298,10 @@ function MembershipStatusBanner({ status, renewalDate }: { status: string; renew
   }
   if (status === 'cancelled') {
     return (
-      <div className="flex items-center gap-3 rounded-[12px] border border-badsoft bg-badsoft px-4 py-3.5 text-[13px] text-bad">
-        <ArrowRight className="h-5 w-5 shrink-0" />
-        <p>Your membership is cancelled. Reactivate to regain access to classes and check-ins.</p>
-        <Link to="/membership" className="ml-auto shrink-0 font-semibold underline underline-offset-2">
+      <div className="flex items-start gap-3 rounded-[12px] border border-badsoft bg-badsoft px-4 py-3.5 text-[13px] leading-snug text-bad">
+        <ArrowRight className="mt-px h-5 w-5 shrink-0" />
+        <p className="flex-1">Your membership is cancelled. Reactivate to regain access to classes and check-ins.</p>
+        <Link to="/membership" className="mt-px shrink-0 font-semibold underline underline-offset-2">
           Reactivate
         </Link>
       </div>

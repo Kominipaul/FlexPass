@@ -11,7 +11,6 @@ import { AdminLayout } from '@/components/layout/AdminLayout'
 
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
-import { VerifyCodePage } from '@/pages/auth/VerifyCodePage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 
@@ -22,7 +21,7 @@ import { MembershipPage } from '@/pages/MembershipPage'
 import { UpgradePlanPage } from '@/pages/UpgradePlanPage'
 import { BillingPage } from '@/pages/BillingPage'
 import { ClassesPage } from '@/pages/ClassesPage'
-import { CheckInsPage } from '@/pages/CheckInsPage'
+import { ProgressPage } from '@/pages/ProgressPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -70,7 +69,6 @@ export default function App() {
             <Route element={<GuestRoute />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/verify-code" element={<VerifyCodePage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Route>
@@ -85,11 +83,12 @@ export default function App() {
                 <Route path="/membership/upgrade" element={<UpgradePlanPage />} />
                 <Route path="/billing" element={<BillingPage />} />
                 <Route path="/classes" element={<ClassesPage />} />
-                <Route path="/check-ins" element={<CheckInsPage />} />
+                <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                {/* Legacy path from before the redesign — kept working for old links/bookmarks. */}
+                {/* Legacy paths from before the redesign — kept working for old links/bookmarks. */}
                 <Route path="/card" element={<Navigate to="/" replace />} />
+                <Route path="/check-ins" element={<Navigate to="/progress" replace />} />
               </Route>
             </Route>
           </Route>

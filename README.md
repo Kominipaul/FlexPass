@@ -8,7 +8,7 @@
 
 A mobile-first member portal that lands on a genuine, camera-scannable,
 cryptographically signed QR code — and a completely separate staff
-dashboard that scans it for real. Two real products, one demo.
+dashboard that scans it for real. Two real products, one database.
 
 <p>
   <img alt="React 18" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=0b0e14" />
@@ -42,7 +42,7 @@ dashboard that scans it for real. Two real products, one demo.
 ## Why FlexPass
 
 - 🔐 **Real crypto, not a picture of a QR code.** Each code is an HMAC-SHA256-signed,
-  20-second-rotating token, rendered as an actual scannable QR bitmap.
+  60-second-rotating token, rendered as an actual scannable QR bitmap.
 - 📷 **Real camera scanner, not a dropdown.** The front desk asks for the
   device camera and decodes live video with `jsQR` — a general-purpose
   reader with no idea what FlexPass is.
@@ -51,8 +51,17 @@ dashboard that scans it for real. Two real products, one demo.
   with a thumb-friendly bottom tab bar instead of a squeezed-down desktop nav.
 - 🧑‍💼 **Genuinely two apps.** Separate login, separate auth, separate layout —
   a member never sees staff chrome and a staffer never sees member chrome.
+- 🔑 **One way in, and a backup that can't be shared.** The reader has no
+  keypad. A member without their phone asks the desk, staff find *them* by
+  name, and only then does a keypad appear — accepting that one member's PIN,
+  three tries, five minutes. A PIN never says who you are, so four digits
+  stays safe at any member count.
+- 🔥 **A streak you can actually keep.** The member sets their own target —
+  "4 days a week" — and the streak counts weeks they hit it. Days the club
+  was closed come out of the week first, and the live week can never be a
+  miss. Entirely skippable in one switch.
 - 🏋️ **Every feature a real gym app needs** — plans and upgrades, freeze/cancel,
-  drop-in classes *and* ongoing groups (Pilates included), billing, streaks,
+  drop-in classes *and* ongoing groups (Pilates included), billing, progression,
   notifications, and a full staff-side member/class/insights suite.
 
 ## See it in action
@@ -61,10 +70,12 @@ dashboard that scans it for real. Two real products, one demo.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/03-classes-mobile.png" width="100%" alt="Classes and groups list on mobile, with category filters" /></td>
-<td width="50%"><img src="docs/screenshots/02-membership-mobile.png" width="100%" alt="Membership page on mobile, showing plan details and freeze/cancel options" /></td>
+<td width="33%"><img src="docs/screenshots/14-progress-mobile.png" width="100%" alt="The Progress page on mobile, showing a three-week streak, this week's day strip with the club's closed day marked, and a twelve-week history" /></td>
+<td width="33%"><img src="docs/screenshots/03-classes-mobile.png" width="100%" alt="Classes and groups list on mobile, with category filters" /></td>
+<td width="33%"><img src="docs/screenshots/02-membership-mobile.png" width="100%" alt="Membership page on mobile, showing plan details and freeze/cancel options" /></td>
 </tr>
 <tr>
+<td align="center"><sub>Your goal, your streak, closed days and all</sub></td>
 <td align="center"><sub>Drop-in classes & ongoing groups</sub></td>
 <td align="center"><sub>Plan, billing cycle, freeze & cancel</sub></td>
 </tr>
@@ -113,18 +124,34 @@ dashboard that scans it for real. Two real products, one demo.
 
 ## Quick start
 
+You need **PostgreSQL** running locally. Create the role and database once:
+
 ```bash
-npm install
-npm run dev
+sudo -u postgres psql -c "CREATE ROLE flexpass LOGIN PASSWORD 'flexpass';"
+sudo -u postgres psql -c "CREATE DATABASE flexpass OWNER flexpass;"
 ```
 
-Open the printed local URL — it lands on the **member portal** login. Sign
-in with the seeded demo member:
+Then:
+
+```bash
+npm install                 # web app
+npm --prefix server install # API
+cp server/.env.example server/.env   # adjust DATABASE_URL if yours differs
+npm run setup               # create tables + seed reference data and a demo roster
+npm run dev                 # starts the API (:3000) and the web app (:5173)
+```
+
+`npm run dev` runs both processes together. The web app proxies `/api` to
+the API, so everything is served from one origin — including for a phone on
+your LAN, which needs no extra configuration.
+
+Open the printed URL — it lands on the **member portal** login. Sign in with
+the seeded demo member:
 
 - **Email:** `demo@flexpass.app`
 - **Password:** `flexpass123`
-- This account has two-factor sign-in enabled — the verification code screen
-  shows the demo code directly in a banner (no real SMS/email is sent).
+
+Sign-in is email + password. There is no SMS step and no authenticator app.
 
 Or tap **"Create an account"** to sign up as a brand new member and pick
 your own starting plan.
@@ -150,14 +177,14 @@ npm run lint      # eslint
 <summary><b>🔬 How the real, verifiable check-in codes work</b></summary>
 <br />
 
-The QR on the Check In page and the PIN beneath it aren't decorative demo
-stand-ins — this is what actually happens:
+The QR on the Check In page isn't a decorative demo stand-in — this is what
+actually happens:
 
 1. **Signing** (`src/lib/accessToken.ts`, member's browser). Every member has
    a random 256-bit `checkInSecret`, generated once at signup/seed time. The
    Check In page signs a compact token — `{uid, iat, exp}`, base64url-encoded
    — with real **HMAC-SHA256** (via the browser's SubtleCrypto), valid for a
-   20-second window. It's re-signed automatically the moment the window
+   60-second window. It's re-signed automatically the moment the window
    rolls over, derived from wall-clock time — not a timer that resets
    whenever the page happens to mount, so it can't be kept "alive" by just
    not closing the tab.
@@ -180,19 +207,85 @@ stand-ins — this is what actually happens:
    stale/replayed screenshot all fail right here, and it's still logged as a
    denied scan, same as a real reader rejecting a bad badge read.
 
-**The one honest limit:** there's no backend yet, so the signing key a
-member's code is signed with lives in the same client-side store their own
-app reads it from, rather than only ever living on a server the client never
-sees. In production that's the one thing that moves — server holds the
-secret and signs on request, client displays what it's given, scanner
-verifies against the server — without changing this token format, the QR
-rendering, or the scanner at all. Everything else here (the crypto, the real
+**Where the key lives:** on the server, and only there. The member's app
+holds no signing key and cannot mint a token for anybody — it asks
+`GET /api/checkin/token` once per rotation window and renders whatever comes
+back. The front desk posts the scanned string to `POST /api/admin/scan`, and
+the server re-derives the signature from the key in Postgres before any
+membership rule runs. That is what lets a phone the front desk has never
+seen check in correctly. Everything else here (the crypto, the real
 image, the real camera decode, the real signature check, the real per-member
 access decision) is exactly what a production build would still be doing.
 
 *(Camera access requires a secure context — `https://` or `localhost` — same
 as any real site; this is a browser platform requirement, not something this
 app can opt out of.)*
+
+</details>
+
+<details>
+<summary><b>🔑 Why a 4-digit backup PIN is still safe at 10,000 members</b></summary>
+<br />
+
+The obvious objection to a short PIN is arithmetic: past 9,999 members two
+people share one, and "who just checked in?" has no answer. The answer is
+that **a PIN never identifies anybody here.**
+
+There is no keypad on the reader. A member who turns up without their phone
+asks the desk; the staffer finds *them* in the member list — by name, member
+ID or email, with a photo-ID check if they want one — and opens a window
+against that one user id (`adminOpenPinUnlock`). Only then does a keypad
+appear on the reader, and the digits typed into it are compared against that
+member's PIN and nobody else's (`adminAttemptPinUnlock`). The PIN answers
+"is this you?", never "who are you?", so a collision between two members is
+a non-event and the member count is irrelevant.
+
+The rest falls out of that:
+
+- **Three wrong tries** burns the window; it closes itself and the desk has
+  to deliberately reopen it. Every wrong try is logged as a denied door scan
+  against the named member, so somebody being probed is visible.
+- **Five minutes** and the window times out on its own.
+- **Three backup entries per 30 days** (`src/lib/pinPolicy.ts`). Past that
+  the desk can still let someone in, but it takes a deliberate override
+  that's stamped with the staffer's name — which is what stops "just tell
+  them my PIN" from quietly becoming somebody's daily way in, and is the
+  whole reason the rotating QR isn't decoration.
+- **Telling a friend your PIN gets them nowhere**, because they'd first have
+  to get a staffer to open a window in *your* name, standing in front of
+  them.
+
+<img src="docs/screenshots/15-scanner-pin-desktop.png" width="100%" alt="The staff Backup entry dialog: the member found by name, their backup allowance shown as 0 of 3 used, and an Open keypad button" />
+
+<sub>Step one is a person, not a keypad: the staffer finds the member, sees how
+much of their monthly allowance is left, and only then opens the reader.</sub>
+
+</details>
+
+<details>
+<summary><b>🔥 Progression: a streak you can actually keep</b></summary>
+<br />
+
+"Days in a row" is a broken metric for a gym. Nobody trains seven days a
+week, so it resets every week and stops meaning anything by Tuesday. So the
+member sets their own target — *"I train 4 days a week"* — and the streak
+counts **weeks they hit it** (`src/lib/progress.ts`).
+
+Two rules keep it honest:
+
+- **Days the club was shut don't count against you.** Each club carries
+  `closedDays` (the demo's Downtown is closed Sundays) and `closedDates`
+  (holidays, maintenance). Those come out of the week first, and the week's
+  target is capped at what was actually available — aiming for 6 in a week
+  with 5 open days needs 5, not 6.
+- **The current week is never a miss.** It's live until Sunday, so it can
+  only ever extend the streak, never break it.
+
+On top of that: rest days the member nominates, a 12-week history where each
+bar carries its own moving target line, nine badges, and consistency as a
+percentage of weeks on goal. And it's **entirely skippable** — one switch in
+the goal sheet turns the whole thing off and Progress becomes a plain visit
+history, for the members who just want the list.
 
 </details>
 
@@ -207,9 +300,11 @@ app can opt out of.)*
   frames on the scanner — the only two libraries doing anything the rest of
   the app couldn't do by hand.
 - **Mobile-first member nav**: on `<lg` viewports the member app uses a fixed
-  bottom tab bar (`MobileTabBar`) — Check In, Home, Classes, Activity, and a
+  bottom tab bar (`MobileTabBar`) — Check In, Home, Classes, Progress, and a
   More tab that opens the full nav drawer — instead of a desktop sidebar
   squeezed into a hamburger menu. The sidebar takes over at `lg` and up.
+  Sheets and the More drawer are dragged away with a thumb
+  (`useSwipeDismiss`), not just tapped shut.
 - **Two apps, one router**: `App.tsx` nests two independent route subtrees —
   a member subtree (`AuthProvider` → `GymDataProvider`) and an admin subtree
   under `/admin` (`StaffAuthProvider` → `AdminDataProvider`). Each has its
@@ -218,18 +313,21 @@ app can opt out of.)*
   They only share `ToastProvider` and the browser router itself — cross-app
   navigation is two plain links ("Staff sign in →" / "Member sign in →") on
   the two login screens.
-- **Mock backend** (`src/lib/db.ts` + `src/lib/seedData.ts`): simulates a
-  real API — async functions with network-like latency, seeded realistic
-  data (multiple locations, a 12-member roster covering every membership
-  status, staff accounts, door-scan history), persisted to `localStorage`.
-  Swapping this for real `fetch` calls against the Go backend later
-  shouldn't require touching any page — the four contexts are the only
-  things that talk to it.
+- **API** (`server/`): Fastify + PostgreSQL. Passwords are argon2id;
+  sessions are opaque random tokens in an HttpOnly cookie, stored only as a
+  SHA-256 hash. `server/src/domain/` holds the rules that decide whether a
+  door opens, and the check-in token signing that never leaves the process.
+- **API client** (`src/lib/db.ts`): one thin module over `fetch`. Every page
+  and context talks to this and nothing else, so the app has no idea where
+  its data comes from.
+- **Shared types** (`src/types/`) and **reference data**
+  (`src/lib/reference.ts`) are imported by *both* the app and the server's
+  seed script, so the two can't drift apart.
 - **State**: `AuthContext` owns the member session; `DataContext` owns
   everything else for the signed-in member. `StaffAuthContext` owns the
-  staff session (a separate `localStorage` key, so a member and a staffer
-  can be signed in simultaneously in one browser); `AdminDataContext` owns
-  the location-scoped operational data staff act on.
+  staff session (a separate cookie, so a member and a staffer can be signed
+  in simultaneously in one browser); `AdminDataContext` owns the
+  location-scoped operational data staff act on.
 - **Design system**: a dark, industrial "iron & volt" theme — CSS custom
   properties in `src/index.css` (background/surface/ink tones, a volt-yellow
   primary accent, an ember secondary accent, status colors) mapped into
@@ -245,9 +343,15 @@ src/
     layout/         AppLayout/AuthLayout/MobileTabBar (member), AdminLayout/AdminAuthLayout (staff)
   context/          AuthContext, DataContext, StaffAuthContext, AdminDataContext, ToastContext
   hooks/            useCameraQrScanner — the real getUserMedia + jsQR capture loop
-  lib/              mock backend, access-control logic, accessToken (sign/verify), formatting, validation
+  lib/              API client (db.ts), reference data, access-control display logic, formatting, validation
   pages/            one file per member route, plus pages/admin/ for staff routes
-  types/            shared domain types
+  types/            domain types — shared with the server
+server/
+  src/
+    routes/         auth, member, classes, checkin, admin
+    domain/         access rules, PIN policy, check-in token signing (server-only)
+    schema.sql      the database
+    seed.ts         reference data + a demo roster
 ```
 
 </details>
@@ -256,13 +360,16 @@ src/
 <summary><b>📓 Notes</b></summary>
 <br />
 
-- This is a **client-side demo**: all "network" calls are mocked with
-  artificial latency, and data lives in your browser's `localStorage`. Use
-  **Settings → Danger zone → Reset demo data** (member side) to start over;
-  clearing site data resets the staff side too, since it's the same origin.
-- Two-factor and password-reset codes are shown directly on screen (labeled
-  "Demo mode") since there's no real email/SMS backend yet — the UX flow is
-  otherwise exactly what a production version would look like.
+- Data lives in PostgreSQL and is shared by every device that connects to
+  the same API — sign up on a phone and the member is on the front desk's
+  roster immediately. `npm run db:reset` drops every table and re-seeds.
+- Password-reset codes come back in the API response rather than by email,
+  because no mail transport is wired up. That is the one place this build
+  knowingly stands in for infrastructure; swapping in a mailer is a change
+  to one route.
+- `server/.env` holds `CHECKIN_SIGNING_KEY`. Rotating it invalidates every
+  outstanding check-in code at once. It is gitignored — generate a fresh one
+  for anything real.
 - Fonts (Geologica / IBM Plex Sans / IBM Plex Mono) load from Google Fonts
   with a system-font fallback stack, so the app still looks and reads fine
   in network-restricted environments.
@@ -272,5 +379,5 @@ src/
 <br />
 
 <div align="center">
-<sub>Multi-location gym management platform. This repository is the client-side front end; the production API is Go + PostgreSQL.</sub>
+<sub>Multi-location gym management platform — React web apps and a Fastify + PostgreSQL API.</sub>
 </div>

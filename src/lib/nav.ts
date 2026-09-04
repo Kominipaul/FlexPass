@@ -1,9 +1,9 @@
 import {
   BadgeCheck,
   Bell,
-  ClipboardCheck,
   CreditCard,
   Dumbbell,
+  Flame,
   LayoutDashboard,
   QrCode,
   Settings2,
@@ -28,7 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/home', label: 'Home', icon: LayoutDashboard },
   { path: '/membership', label: 'Membership', icon: BadgeCheck },
   { path: '/classes', label: 'Classes & Groups', icon: Dumbbell },
-  { path: '/check-ins', label: 'Check-in History', icon: ClipboardCheck },
+  { path: '/progress', label: 'Progress', icon: Flame },
   { path: '/billing', label: 'Billing', icon: CreditCard },
   { path: '/notifications', label: 'Notifications', icon: Bell, badgeKey: 'notifications' },
   { path: '/profile', label: 'Profile', icon: UserCircle },
@@ -48,12 +48,5 @@ export const MOBILE_TAB_ITEMS: MobileTabItem[] = [
   { path: '/', label: 'Check In', icon: QrCode, end: true },
   { path: '/home', label: 'Home', icon: LayoutDashboard, end: true },
   { path: '/classes', label: 'Classes', icon: Dumbbell },
-  { path: '/check-ins', label: 'Activity', icon: ClipboardCheck },
+  { path: '/progress', label: 'Progress', icon: Flame },
 ]
-
-export function pageTitleForPath(pathname: string): string {
-  const exact = NAV_ITEMS.find((item) => item.path === pathname)
-  if (exact) return exact.label
-  if (pathname.startsWith('/membership/upgrade')) return 'Upgrade Plan'
-  return 'FlexPass'
-}

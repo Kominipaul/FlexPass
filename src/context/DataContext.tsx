@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -12,21 +13,24 @@ import type {
   AppNotification,
   BillingCycle,
   CheckIn,
-  CheckInMethod,
   ClassBooking,
   FreezeRecord,
   GroupMembership,
   Invoice,
+  Location,
   Membership,
   PaymentMethod,
   Plan,
+  TrainingGoal,
 } from '@/types'
 import * as db from '@/lib/db'
+import { pinAllowanceFrom, type PinAllowance } from '@/lib/pinPolicy'
 import { useAuth } from './AuthContext'
 
 interface GymDataState {
   loading: boolean
   plans: Plan[]
+  locations: Location[]
   activities: Activity[]
   membership: Membership | null
   classBookings: ClassBooking[]
@@ -35,11 +39,13 @@ interface GymDataState {
   invoices: Invoice[]
   paymentMethods: PaymentMethod[]
   notifications: AppNotification[]
+  trainingGoal: TrainingGoal | null
 }
 
 const EMPTY_STATE: GymDataState = {
   loading: true,
   plans: [],
+  locations: [],
   activities: [],
   membership: null,
   classBookings: [],
@@ -48,10 +54,15 @@ const EMPTY_STATE: GymDataState = {
   invoices: [],
   paymentMethods: [],
   notifications: [],
+  trainingGoal: null,
 }
 
 interface GymDataContextValue extends GymDataState {
   currentPlan: Plan | undefined
+  /** The club the member belongs to — its opening days drive the progression system. */
+  homeLocation: Location | null
+  /** Backup-PIN entries left this month, derived from the member's own check-ins. */
+  pinAllowance: PinAllowance
   unreadNotificationCount: number
   refresh: () => Promise<void>
   upgradePlan: (planId: string, billingCycle: BillingCycle) => Promise<void>
@@ -64,7 +75,7 @@ interface GymDataContextValue extends GymDataState {
   cancelBooking: (bookingId: string) => Promise<void>
   joinGroup: (activityId: string) => Promise<void>
   leaveGroup: (membershipId: string) => Promise<void>
-  checkIn: (method: CheckInMethod, location: string) => Promise<void>
+  setTrainingGoal: (patch: Partial<Omit<TrainingGoal, 'userId'>>) => Promise<void>
   addPaymentMethod: (input: db.AddPaymentMethodInput) => Promise<void>
   removePaymentMethod: (id: string) => Promise<void>
   setDefaultPaymentMethod: (id: string) => Promise<void>
@@ -78,16 +89,20 @@ const GymDataContext = createContext<GymDataContextValue | undefined>(undefined)
 export function GymDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [state, setState] = useState<GymDataState>(EMPTY_STATE)
+  // Reference data is session-scoped; see refresh().
+  const loadedReference = useRef(false)
 
   const refresh = useCallback(async () => {
     if (!user) {
+      loadedReference.current = false
       setState(EMPTY_STATE)
       return
     }
-    setState((prev) => ({ ...prev, loading: true }))
+    // Reference data (plans, locations, timetable) is the same for everyone
+    // and changes only when staff edit it, so it is fetched once per session
+    // rather than after every button press.
+    const needsReference = !loadedReference.current
     const [
-      plans,
-      activities,
       membership,
       classBookings,
       groupMemberships,
@@ -95,21 +110,28 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       invoices,
       paymentMethods,
       notifications,
+      trainingGoal,
+      reference,
     ] = await Promise.all([
-      db.listPlans(),
-      db.listActivities(),
-      db.getMembership(user.id),
-      db.listClassBookings(user.id),
-      db.listGroupMemberships(user.id),
-      db.listCheckIns(user.id),
-      db.listInvoices(user.id),
-      db.listPaymentMethods(user.id),
-      db.listNotifications(user.id),
+      db.getMembership(),
+      db.listClassBookings(),
+      db.listGroupMemberships(),
+      db.listCheckIns(),
+      db.listInvoices(),
+      db.listPaymentMethods(),
+      db.listNotifications(),
+      db.getTrainingGoal(),
+      needsReference
+        ? Promise.all([db.listPlans(), db.listLocations(), db.listActivities()])
+        : Promise.resolve(null),
     ])
-    setState({
+    if (reference) loadedReference.current = true
+
+    setState((prev) => ({
       loading: false,
-      plans,
-      activities,
+      plans: reference ? reference[0] : prev.plans,
+      locations: reference ? reference[1] : prev.locations,
+      activities: reference ? reference[2] : prev.activities,
       membership: membership ?? null,
       classBookings,
       groupMemberships,
@@ -117,7 +139,8 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       invoices,
       paymentMethods,
       notifications,
-    })
+      trainingGoal,
+    }))
   }, [user])
 
   useEffect(() => {
@@ -125,147 +148,162 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
-  const requireUserId = useCallback((): string => {
-    if (!user) throw new Error('Not signed in.')
-    return user.id
-  }, [user])
-
-  // Every mutation below follows the same shape: call the mock API, then
-  // reload state from it. The data set is tiny (localStorage-backed), so a
+  // Every mutation below follows the same shape: call the API, then reload
+  // state from it. The per-member data set is small, so a
   // full refresh after each write is cheap and keeps every screen that
   // reads from this context trivially consistent — no hand-patched state.
   const upgradePlan = useCallback(
     async (planId: string, billingCycle: BillingCycle) => {
-      await db.upgradePlan(requireUserId(), planId, billingCycle)
+      await db.upgradePlan(planId, billingCycle)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const setAutoRenew = useCallback(
     async (autoRenew: boolean) => {
-      await db.setAutoRenew(requireUserId(), autoRenew)
+      await db.setAutoRenew(autoRenew)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const freezeMembership = useCallback(
     async (record: Omit<FreezeRecord, 'id'>) => {
-      await db.freezeMembership(requireUserId(), record)
+      // The server owns the arithmetic — it decides the end date and how far
+      // the renewal date moves, so a client clock can't buy free days.
+      const days = Math.max(
+        1,
+        Math.round(
+          (new Date(record.endDate).getTime() - new Date(record.startDate).getTime()) / 86400000,
+        ),
+      )
+      await db.freezeMembership(days, record.reason)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const unfreezeMembership = useCallback(async () => {
-    await db.unfreezeMembership(requireUserId())
+    await db.unfreezeMembership()
     await refresh()
-  }, [requireUserId, refresh])
+  }, [refresh])
 
   const cancelMembership = useCallback(
     async (immediate: boolean) => {
-      await db.cancelMembership(requireUserId(), immediate)
+      await db.cancelMembership(immediate)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const reactivateMembership = useCallback(async () => {
-    await db.reactivateMembership(requireUserId())
+    await db.reactivateMembership()
     await refresh()
-  }, [requireUserId, refresh])
+  }, [refresh])
 
   const bookClass = useCallback(
     async (activityId: string, date: string) => {
-      const booking = await db.bookClass(requireUserId(), activityId, date)
+      const booking = await db.bookClass(activityId, date)
       await refresh()
       return booking
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const cancelBooking = useCallback(
     async (bookingId: string) => {
-      await db.cancelBooking(bookingId, requireUserId())
+      await db.cancelBooking(bookingId)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const joinGroup = useCallback(
     async (activityId: string) => {
-      await db.joinGroup(requireUserId(), activityId)
+      await db.joinGroup(activityId)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const leaveGroup = useCallback(
     async (membershipId: string) => {
-      await db.leaveGroup(membershipId, requireUserId())
+      await db.leaveGroup(membershipId)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
-  const checkIn = useCallback(
-    async (method: CheckInMethod, location: string) => {
-      await db.checkIn(requireUserId(), method, location)
-      await refresh()
+  const setTrainingGoal = useCallback(
+    async (patch: Partial<Omit<TrainingGoal, 'userId'>>) => {
+      const current = state.trainingGoal
+      const next = await db.saveTrainingGoal(
+        patch.daysPerWeek ?? current?.daysPerWeek ?? 3,
+        patch.restDays ?? current?.restDays ?? [],
+        patch.enabled ?? current?.enabled ?? true,
+      )
+      setState((prev) => ({ ...prev, trainingGoal: next }))
     },
-    [requireUserId, refresh],
+    [state.trainingGoal],
   )
 
   const addPaymentMethod = useCallback(
     async (input: db.AddPaymentMethodInput) => {
-      await db.addPaymentMethod(requireUserId(), input)
+      await db.addPaymentMethod(input)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const removePaymentMethod = useCallback(
     async (id: string) => {
-      await db.removePaymentMethod(id, requireUserId())
+      await db.removePaymentMethod(id)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const setDefaultPaymentMethod = useCallback(
     async (id: string) => {
-      await db.setDefaultPaymentMethod(id, requireUserId())
+      await db.setDefaultPaymentMethod(id)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const payInvoice = useCallback(
     async (id: string) => {
-      await db.payInvoice(id, requireUserId())
+      await db.payInvoice(id)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const markNotificationRead = useCallback(
     async (id: string) => {
-      await db.markNotificationRead(id, requireUserId())
+      await db.markNotificationRead(id)
       await refresh()
     },
-    [requireUserId, refresh],
+    [refresh],
   )
 
   const markAllNotificationsRead = useCallback(async () => {
-    await db.markAllNotificationsRead(requireUserId())
+    await db.markAllNotificationsRead()
     await refresh()
-  }, [requireUserId, refresh])
+  }, [refresh])
 
   const currentPlan = useMemo(
     () => state.plans.find((p) => p.id === state.membership?.planId),
     [state.plans, state.membership],
   )
+
+  const homeLocation = useMemo(
+    () => state.locations.find((l) => l.name === state.membership?.homeLocation) ?? null,
+    [state.locations, state.membership],
+  )
+
+  const pinAllowance = useMemo(() => pinAllowanceFrom(state.checkIns), [state.checkIns])
 
   const unreadNotificationCount = useMemo(
     () => state.notifications.filter((n) => !n.read).length,
@@ -276,6 +314,8 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
     () => ({
       ...state,
       currentPlan,
+      homeLocation,
+      pinAllowance,
       unreadNotificationCount,
       refresh,
       upgradePlan,
@@ -288,7 +328,7 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       cancelBooking,
       joinGroup,
       leaveGroup,
-      checkIn,
+      setTrainingGoal,
       addPaymentMethod,
       removePaymentMethod,
       setDefaultPaymentMethod,
@@ -299,6 +339,8 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
     [
       state,
       currentPlan,
+      homeLocation,
+      pinAllowance,
       unreadNotificationCount,
       refresh,
       upgradePlan,
@@ -311,7 +353,7 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       cancelBooking,
       joinGroup,
       leaveGroup,
-      checkIn,
+      setTrainingGoal,
       addPaymentMethod,
       removePaymentMethod,
       setDefaultPaymentMethod,

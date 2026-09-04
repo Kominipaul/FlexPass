@@ -9,15 +9,19 @@ import {
 } from 'react'
 import type { StaffUser } from '@/types'
 import * as db from '@/lib/db'
-import { clearStaffSession, loadStaffSession, saveStaffSession } from '@/lib/staffSession'
 
 type StaffAuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
+/**
+ * Front-desk session — a wholly separate identity from the member one, on
+ * its own cookie. That separation is what lets one browser hold both at
+ * once: the member app in one tab, the scanner in another.
+ */
 interface StaffAuthContextValue {
   status: StaffAuthStatus
   staff: StaffUser | null
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const StaffAuthContext = createContext<StaffAuthContextValue | undefined>(undefined)
@@ -27,34 +31,25 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
   const [staff, setStaff] = useState<StaffUser | null>(null)
 
   useEffect(() => {
-    const existingId = loadStaffSession()
-    if (!existingId) {
-      setStatus('unauthenticated')
-      return
-    }
-    db.getStaffUser(existingId).then((found) => {
-      if (found) {
-        setStaff(found)
-        setStatus('authenticated')
-      } else {
-        clearStaffSession()
-        setStatus('unauthenticated')
-      }
+    let cancelled = false
+    db.getCurrentStaff().then((found) => {
+      if (cancelled) return
+      setStaff(found)
+      setStatus(found ? 'authenticated' : 'unauthenticated')
     })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const found = await db.findStaffByEmail(email)
-    if (!found) throw new Error('No staff account matches that email address.')
-    const ok = await db.verifyStaffPassword(found, password)
-    if (!ok) throw new Error('Incorrect password. Please try again.')
-    saveStaffSession(found.id)
+    const found = await db.staffLogin(email, password, true)
     setStaff(found)
     setStatus('authenticated')
   }, [])
 
-  const logout = useCallback(() => {
-    clearStaffSession()
+  const logout = useCallback(async () => {
+    await db.staffLogout().catch(() => {})
     setStaff(null)
     setStatus('unauthenticated')
   }, [])

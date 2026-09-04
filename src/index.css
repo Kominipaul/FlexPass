@@ -201,6 +201,22 @@
     transform: scaleY(1);
   }
 }
+@keyframes pl-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes pl-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 @keyframes pl-shine {
   0% {
     transform: translateX(-120%);
@@ -228,6 +244,19 @@
 .a-bar {
   animation: pl-bars 0.7s ease-in-out infinite;
   transform-origin: center;
+}
+.a-slide-in-left {
+  animation: pl-slide-in-left 0.24s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+/* One class, two entrances: a bottom sheet slides up from the edge it's
+   anchored to, the same dialog centred on a desktop just rises a little. */
+.a-sheet-in {
+  animation: pl-rise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@media (max-width: 639px) {
+  .a-sheet-in {
+    animation: pl-sheet-up 0.26s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+  }
 }
 .a-shine {
   animation: pl-shine 4.5s ease-in-out infinite;

@@ -1,6 +1,6 @@
 import type { DoorReasonCode, Membership, Plan } from '@/types'
 import { daysUntil } from './format'
-import { locationIdFromName } from './seedData'
+import { locationIdFromName } from './reference'
 
 export type MemberDisplayStatus = 'active' | 'expiring' | 'expired' | 'frozen' | 'cancelled'
 
@@ -48,6 +48,7 @@ const REASON_TEXT: Record<DoorReasonCode, string> = {
   active: 'Active membership',
   code_invalid: 'Not a valid FlexPass code',
   code_expired: 'Code expired — reopen the app and rescan',
+  pin_incorrect: 'Wrong backup PIN entered',
 }
 
 export function reasonText(result: { reasonCode: DoorReasonCode; daysLeft?: number }): string {

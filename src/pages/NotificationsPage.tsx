@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoader } from '@/components/ui/Spinner'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -41,18 +42,23 @@ export function NotificationsPage() {
   const mutedCount = notifications.length - enabled.length
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-display text-[22px] font-extrabold text-ink">Notifications</h2>
-          <p className="mt-1 text-[13px] text-dim">Renewals, class reminders, billing and security alerts.</p>
-        </div>
-        {unreadNotificationCount > 0 && (
-          <Button size="sm" variant="quiet" onClick={() => markAllNotificationsRead()} iconLeft={<CheckCheck className="h-3.5 w-3.5" />}>
-            Mark all as read
-          </Button>
-        )}
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title="Notifications"
+        subtitle="Renewals, class reminders, billing and security alerts."
+        action={
+          unreadNotificationCount > 0 ? (
+            <Button
+              size="sm"
+              variant="quiet"
+              onClick={() => markAllNotificationsRead()}
+              iconLeft={<CheckCheck className="h-3.5 w-3.5" />}
+            >
+              Mark all as read
+            </Button>
+          ) : undefined
+        }
+      />
 
       <Tabs
         items={[

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoader, Spinner } from '@/components/ui/Spinner'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -62,11 +63,8 @@ export function ClassesPage() {
   if (loading) return <PageLoader label="Loading classes & groups…" />
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-display text-[22px] font-extrabold text-ink">Classes &amp; Groups</h2>
-        <p className="mt-1 text-[13px] text-dim">Book drop-in classes or join an ongoing group.</p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader title="Classes & Groups" subtitle="Book drop-in classes or join an ongoing group." />
 
       <Tabs
         items={[
