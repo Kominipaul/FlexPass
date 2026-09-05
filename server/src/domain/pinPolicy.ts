@@ -27,3 +27,15 @@ export function pinAllowanceFrom(checkIns: CheckIn[], nowMs: number = Date.now()
     overLimit: used >= PIN_ALLOWANCE,
   }
 }
+
+/** Mirrors src/lib/pinPolicy.ts — this copy is the one actually enforced on a member-chosen PIN. */
+const PIN_SEQUENCES = [
+  '0123', '1234', '2345', '3456', '4567', '5678', '6789',
+  '9876', '8765', '7654', '6543', '5432', '4321', '3210',
+]
+
+export function isWeakPin(pin: string): boolean {
+  if (!/^\d{4}$/.test(pin)) return true
+  if (new Set(pin).size === 1) return true
+  return PIN_SEQUENCES.includes(pin)
+}

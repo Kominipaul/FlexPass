@@ -1,19 +1,45 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Building2, Dumbbell, LogOut, Menu, ShieldCheck, X } from 'lucide-react'
-import { ADMIN_NAV_ITEMS, adminPageTitle } from '@/lib/adminNav'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Building2, Dumbbell, Lock, LogOut, Menu, ShieldCheck, X } from 'lucide-react'
+import { ADMIN_NAV_ITEMS, adminPageTitleKey } from '@/lib/adminNav'
 import { useStaffAuth } from '@/context/StaffAuthContext'
 import { useAdminData } from '@/context/AdminDataContext'
+import { useKiosk } from '@/context/KioskContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { Avatar } from '@/components/ui/Avatar'
 import { Select } from '@/components/ui/Select'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { UnlockKioskDialog } from '@/components/admin/UnlockKioskDialog'
 
 export function AdminLayout() {
   const { staff } = useStaffAuth()
   const { locations, atLocationId, setAtLocationId } = useAdminData()
+  const { kiosk } = useKiosk()
+  const { t } = useLanguage()
   const location = useLocation()
   const [navOpen, setNavOpen] = useState(false)
 
   if (!staff) return null
+
+  // Kiosk mode only ever shows the scanner — a tablet locked to the stand
+  // has no business exposing a URL bar shortcut into the member roster.
+  if (kiosk && location.pathname !== '/admin') {
+    return <Navigate to="/admin" replace />
+  }
+
+  if (kiosk) {
+    return (
+      <div className="min-h-screen bg-bg">
+        <main className="min-h-screen p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
+        <KioskUnlockCorner />
+      </div>
+    )
+  }
 
   const activeLocation = locations.find((l) => l.id === atLocationId)
 
@@ -36,9 +62,9 @@ export function AdminLayout() {
               {isActive && <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-volt" />}
               <item.icon className="h-4 w-4" />
               <span className="font-display flex-1 text-left text-[11.5px] font-bold uppercase tracking-[.05em]">
-                {item.label}
+                {t(item.labelKey)}
               </span>
-              <span className="text-[10px] text-mute">{item.hint}</span>
+              <span className="text-[10px] text-mute">{t(item.hintKey)}</span>
             </>
           )}
         </NavLink>
@@ -52,13 +78,13 @@ export function AdminLayout() {
       <aside className="hidden w-[236px] shrink-0 flex-col gap-4 border-r border-line bg-surface p-3 lg:flex">
         <SidebarHeader />
         <div>
-          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[.1em] text-mute">Operations</p>
+          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[.1em] text-mute">{t('adminNav.operations')}</p>
           {navList}
         </div>
         <div className="mt-auto flex flex-col gap-3">
           <div>
-            <p className="px-1 pb-2 text-[10px] font-semibold uppercase tracking-[.1em] text-mute">Desk location</p>
-            <Select value={atLocationId} onChange={(e) => setAtLocationId(e.target.value)} aria-label="Desk location">
+            <p className="px-1 pb-2 text-[10px] font-semibold uppercase tracking-[.1em] text-mute">{t('adminNav.deskLocation')}</p>
+            <Select value={atLocationId} onChange={(e) => setAtLocationId(e.target.value)} aria-label={t('adminNav.deskLocation')}>
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
@@ -73,7 +99,7 @@ export function AdminLayout() {
                 {activeLocation.name}
               </p>
               <p className="mt-1.5 text-[11px] text-dim">{activeLocation.address}</p>
-              <p className="text-[11px] text-dim">Open {activeLocation.hours}</p>
+              <p className="text-[11px] text-dim">{t('adminNav.openHours', { hours: activeLocation.hours })}</p>
             </div>
           )}
           <StaffFooter />
@@ -87,15 +113,15 @@ export function AdminLayout() {
             type="button"
             onClick={() => setNavOpen((v) => !v)}
             className="rounded-[6px] p-1.5 text-dim hover:bg-raised hover:text-ink"
-            aria-label="Toggle menu"
+            aria-label={t('adminNav.toggleMenu')}
           >
             {navOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <span className="font-display text-[13px] font-bold uppercase tracking-[.04em] text-ink">
-            {adminPageTitle(location.pathname)}
+            {t(adminPageTitleKey(location.pathname))}
           </span>
           <div className="ml-auto w-40">
-            <Select value={atLocationId} onChange={(e) => setAtLocationId(e.target.value)} aria-label="Desk location">
+            <Select value={atLocationId} onChange={(e) => setAtLocationId(e.target.value)} aria-label={t('adminNav.deskLocation')}>
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
@@ -123,7 +149,32 @@ export function AdminLayout() {
   )
 }
 
+/**
+ * A single, deliberately quiet control — not a labelled "Exit kiosk mode"
+ * button a member would notice and wonder about, just a lock icon low in
+ * the corner, the same weight as any other utility chrome. It opens the
+ * password prompt; it doesn't unlock anything by itself.
+ */
+function KioskUnlockCorner() {
+  const [open, setOpen] = useState(false)
+  const { t } = useLanguage()
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={t('adminNav.unlockTablet')}
+        className="fixed bottom-3 right-3 z-40 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface/70 text-mute backdrop-blur transition-colors hover:text-ink"
+      >
+        <Lock className="h-3.5 w-3.5" />
+      </button>
+      <UnlockKioskDialog open={open} onClose={() => setOpen(false)} />
+    </>
+  )
+}
+
 function SidebarHeader() {
+  const { t } = useLanguage()
   return (
     <div className="flex items-center gap-2.5 px-1 py-1">
       <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-volt text-voltink">
@@ -131,7 +182,7 @@ function SidebarHeader() {
       </span>
       <div className="leading-none">
         <p className="font-display text-[13px] font-extrabold uppercase tracking-[.04em] text-ink">FlexPass</p>
-        <p className="mt-1 text-[10px] text-mute">Staff dashboard</p>
+        <p className="mt-1 text-[10px] text-mute">{t('adminNav.staffDashboard')}</p>
       </div>
     </div>
   )
@@ -139,6 +190,9 @@ function SidebarHeader() {
 
 function StaffFooter() {
   const { staff, logout } = useStaffAuth()
+  const { lock } = useKiosk()
+  const { t } = useLanguage()
+  const [lockConfirmOpen, setLockConfirmOpen] = useState(false)
   if (!staff) return null
   return (
     <div>
@@ -148,18 +202,44 @@ function StaffFooter() {
           <p className="truncate text-[12.5px] font-semibold text-ink">{staff.name}</p>
           <p className="flex items-center gap-1 truncate text-[10.5px] text-mute">
             <ShieldCheck className="h-3 w-3" />
-            {staff.role === 'manager' ? 'Manager' : 'Front desk'}
+            {staff.role === 'manager' ? t('adminNav.manager') : t('adminNav.frontDeskRole')}
           </p>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setLockConfirmOpen(true)}
+        className="mt-2 flex w-full items-center gap-2.5 rounded-[6px] px-3 py-2.5 text-[12.5px] font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
+      >
+        <Lock className="h-[17px] w-[17px]" />
+        {t('adminNav.lockTablet')}
+      </button>
       <button
         type="button"
         onClick={logout}
-        className="mt-2 flex w-full items-center gap-2.5 rounded-[6px] px-3 py-2.5 text-[12.5px] font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
+        className="flex w-full items-center gap-2.5 rounded-[6px] px-3 py-2.5 text-[12.5px] font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
       >
         <LogOut className="h-[17px] w-[17px]" />
-        Log out
+        {t('adminNav.logOut')}
       </button>
+
+      <div className="mt-3 border-t border-linesoft pt-3">
+        <LanguageSwitcher />
+      </div>
+
+      <ConfirmDialog
+        open={lockConfirmOpen}
+        onClose={() => setLockConfirmOpen(false)}
+        icon={<Lock className="h-4 w-4" />}
+        title={t('adminNav.lockConfirmTitle')}
+        description={t('adminNav.lockConfirmDesc')}
+        confirmLabel={t('adminNav.lockConfirmButton')}
+        onConfirm={() => {
+          lock()
+          setLockConfirmOpen(false)
+        }}
+      />
     </div>
   )
 }

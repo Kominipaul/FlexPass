@@ -6,7 +6,8 @@ import { makeId } from '../id.ts'
 import {
   toCheckIn, toInvoice, toMembership, toNotification, toPaymentMethod, toTrainingGoal, toUser,
 } from '../mappers.ts'
-import { pinAllowanceFrom } from '../domain/pinPolicy.ts'
+import { isWeakPin, pinAllowanceFrom } from '../domain/pinPolicy.ts'
+import { NOTIFICATION_TTL_DAYS } from '../domain/notificationPolicy.ts'
 import { MEMBER_COOKIE, checkPassword, clearSessionCookie, destroyAllSessions, hashPassword, requireMember } from '../auth.ts'
 
 async function notify(userId: string, type: string, title: string, message: string) {
@@ -64,11 +65,32 @@ export default async function memberRoutes(app: FastifyInstance) {
     return { user: toUser(row) }
   })
 
-  app.post('/api/me/checkin-pin/regenerate', async (req, reply) => {
+  /**
+   * Sets the member's backup PIN — to a value they choose, or, with no `pin`
+   * in the body, to a random one (the "generate one for me" path). Either
+   * way it's the member deciding, and either way they can call this again
+   * later to change it; there's no separate "first time" step.
+   */
+  app.post('/api/me/checkin-pin', async (req, reply) => {
     const me = await requireMember(req, reply); if (!me) return
-    const pin = String(1000 + Math.floor(Math.random() * 9000))
+    const body = z.object({
+      pin: z.string().regex(/^\d{4}$/, 'Use exactly 4 digits.').optional(),
+    }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ error: body.error.issues[0].message })
+
+    let pin = body.data.pin
+    if (pin) {
+      if (isWeakPin(pin)) {
+        return reply.code(400).send({ error: "Choose 4 digits that aren't all the same or a simple run like 1234." })
+      }
+    } else {
+      do {
+        pin = String(1000 + Math.floor(Math.random() * 9000))
+      } while (isWeakPin(pin))
+    }
+
     await query('UPDATE users SET check_in_pin = $2 WHERE id = $1', [me.id, pin])
-    await notify(me.id, 'security', 'Backup PIN regenerated', 'Your door backup PIN was changed from your account settings.')
+    await notify(me.id, 'security', 'Backup PIN changed', 'Your door backup PIN was changed from your account settings.')
     return { pin }
   })
 
@@ -90,27 +112,17 @@ export default async function memberRoutes(app: FastifyInstance) {
     return { membership: row ? toMembership(row) : null }
   })
 
+  // Plan changes bill a different amount, and there is no online payment
+  // provider wired up (see README "What's stubbed") to actually collect it —
+  // this used to update the membership and drop a 'due' invoice nobody ever
+  // paid, which let a member "upgrade" to a pricier plan for free. Until a
+  // real payment flow exists, only the front desk can do this, after taking
+  // payment in person: POST /api/admin/members/:id/plan.
   app.post('/api/me/membership/plan', async (req, reply) => {
     const me = await requireMember(req, reply); if (!me) return
-    const body = z.object({ planId: z.string(), billingCycle: z.enum(['monthly', 'yearly']) }).safeParse(req.body)
-    if (!body.success) return reply.code(400).send({ error: 'Pick a plan and a billing cycle.' })
-
-    const plan = await one<any>('SELECT * FROM plans WHERE id = $1', [body.data.planId])
-    if (!plan) return reply.code(400).send({ error: 'That plan no longer exists.' })
-
-    const row = await one(
-      `UPDATE memberships SET plan_id = $2, billing_cycle = $3, status =
-         CASE WHEN status IN ('cancelled','pending_cancellation') THEN 'active' ELSE status END
-       WHERE user_id = $1 RETURNING *`,
-      [me.id, plan.id, body.data.billingCycle],
-    )
-    const amount = body.data.billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly
-    await query(
-      `INSERT INTO invoices (id,user_id,description,amount,status,method) VALUES ($1,$2,$3,$4,'due','Pending')`,
-      [makeId('inv'), me.id, `${plan.name} plan — ${body.data.billingCycle} membership`, amount],
-    )
-    await notify(me.id, 'billing', `Switched to ${plan.name}`, `Your membership is now on the ${plan.name} plan, billed ${body.data.billingCycle}.`)
-    return { membership: toMembership(row) }
+    return reply.code(403).send({
+      error: 'Plan changes go through the front desk for now — we don\'t take payment online yet.',
+    })
   })
 
   app.post('/api/me/membership/auto-renew', async (req, reply) => {
@@ -167,21 +179,15 @@ export default async function memberRoutes(app: FastifyInstance) {
     return { membership: toMembership(row) }
   })
 
+  // Reactivating resumes billing on a membership that had stopped being
+  // paid for — the same online-payment gap as plan changes above, and it
+  // used to happen with no invoice at all. Staff reactivate from the front
+  // desk after taking payment: POST /api/admin/members/:id/reactivate.
   app.post('/api/me/membership/reactivate', async (req, reply) => {
     const me = await requireMember(req, reply); if (!me) return
-    const current = await one<any>('SELECT * FROM memberships WHERE user_id = $1', [me.id])
-    if (!current) return reply.code(404).send({ error: 'Membership not found.' })
-    // An expired membership needs a fresh term, not just a status flip.
-    const expired = new Date(current.renewal_date).getTime() <= Date.now()
-    const renewal = expired
-      ? new Date(Date.now() + (current.billing_cycle === 'yearly' ? 365 : 30) * 86400000)
-      : new Date(current.renewal_date)
-    const row = await one(
-      `UPDATE memberships SET status = 'active', auto_renew = true, renewal_date = $2 WHERE user_id = $1 RETURNING *`,
-      [me.id, renewal],
-    )
-    await notify(me.id, 'renewal', 'Membership reactivated', 'Your membership is active again.')
-    return { membership: toMembership(row) }
+    return reply.code(403).send({
+      error: 'Reactivating your membership goes through the front desk for now — we don\'t take payment online yet.',
+    })
   })
 
   // ---- check-in history, allowance, training goal ----
@@ -313,6 +319,12 @@ export default async function memberRoutes(app: FastifyInstance) {
 
   app.get('/api/me/notifications', async (req, reply) => {
     const me = await requireMember(req, reply); if (!me) return
+    // Swept lazily on read rather than by a scheduled job — the same
+    // pattern an expired PIN window uses above. Global, not scoped to this
+    // member: whoever happens to load their notifications first pays for
+    // clearing everyone's stale rows, which is cheap and keeps the table
+    // from growing forever without needing any background process at all.
+    await query(`DELETE FROM notifications WHERE created_at <= now() - ($1 || ' days')::interval`, [String(NOTIFICATION_TTL_DAYS)])
     const rows = await query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [me.id])
     return { notifications: rows.map(toNotification) }
   })
@@ -326,6 +338,21 @@ export default async function memberRoutes(app: FastifyInstance) {
   app.post('/api/me/notifications/read-all', async (req, reply) => {
     const me = await requireMember(req, reply); if (!me) return
     await query('UPDATE notifications SET read = true WHERE user_id = $1', [me.id])
+    return { ok: true }
+  })
+
+  // A member's own notifications are theirs to clear — nothing else in the
+  // app reads them back once gone, so deleting one is just that, not a
+  // "soft delete" hiding a row someone else still needs.
+  app.delete('/api/me/notifications/:id', async (req, reply) => {
+    const me = await requireMember(req, reply); if (!me) return
+    await query('DELETE FROM notifications WHERE id = $1 AND user_id = $2', [(req.params as any).id, me.id])
+    return { ok: true }
+  })
+
+  app.delete('/api/me/notifications', async (req, reply) => {
+    const me = await requireMember(req, reply); if (!me) return
+    await query('DELETE FROM notifications WHERE user_id = $1', [me.id])
     return { ok: true }
   })
 }

@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { MOBILE_TAB_ITEMS } from '@/lib/nav'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface MobileTabBarProps {
   onMore: () => void
@@ -15,6 +16,7 @@ interface MobileTabBarProps {
  * indicator.
  */
 export function MobileTabBar({ onMore, moreOpen }: MobileTabBarProps) {
+  const { t } = useLanguage()
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 backdrop-blur lg:hidden"
@@ -35,7 +37,7 @@ export function MobileTabBar({ onMore, moreOpen }: MobileTabBarProps) {
           {({ isActive }) => (
             <>
               <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
-              {item.label}
+              {t(item.labelKey)}
             </>
           )}
         </NavLink>
@@ -43,14 +45,14 @@ export function MobileTabBar({ onMore, moreOpen }: MobileTabBarProps) {
       <button
         type="button"
         onClick={onMore}
-        aria-label="More"
+        aria-label={t('nav.more')}
         aria-pressed={moreOpen}
         className={`flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-[.03em] transition-colors ${
           moreOpen ? 'text-volt' : 'text-mute active:text-ink'
         }`}
       >
         <Menu className="h-5 w-5" strokeWidth={moreOpen ? 2.5 : 2} />
-        More
+        {t('nav.more')}
       </button>
     </nav>
   )

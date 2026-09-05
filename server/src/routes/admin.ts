@@ -93,13 +93,19 @@ export default async function adminRoutes(app: FastifyInstance) {
     return { doorScans: rows.map(toDoorScan) }
   })
 
+  // days can be negative — that's "remove days", the undo for a misclicked
+  // extension (or any other length correction). A negative value must not
+  // also run the cancelled→active line below: that's meant for someone
+  // topping up an expired membership, not for reversing a mistake, and a
+  // negative days value should never be able to reactivate a cancelled
+  // membership for free.
   app.post('/api/admin/members/:id/extend', async (req, reply) => {
     const staff = await requireStaff(req, reply); if (!staff) return
     const days = Number((req.body as any)?.days ?? 0)
     if (!Number.isFinite(days) || days === 0) return reply.code(400).send({ error: 'Enter a number of days.' })
     const row = await one(
       `UPDATE memberships SET renewal_date = GREATEST(renewal_date, now()) + ($2 || ' days')::interval,
-         status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END
+         status = CASE WHEN status = 'cancelled' AND $2::int > 0 THEN 'active' ELSE status END
        WHERE user_id = $1 RETURNING *`,
       [(req.params as any).id, String(days)],
     )
@@ -115,6 +121,116 @@ export default async function adminRoutes(app: FastifyInstance) {
     const frozen = Boolean((req.body as any)?.frozen)
     const row = await one(`UPDATE memberships SET status = $2 WHERE user_id = $1 RETURNING *`,
       [(req.params as any).id, frozen ? 'frozen' : 'active'])
+    if (!row) return reply.code(404).send({ error: 'Membership not found.' })
+    return { membership: toMembership(row) }
+  })
+
+  // Plan changes and reactivations bill the member, and there's no online
+  // payment provider yet — so unlike the member-side actions above, these
+  // are staff-only, and staff only call them once payment has actually been
+  // taken in person at the desk. See server/src/routes/member.ts for the
+  // matching self-service endpoints these replaced.
+  app.post('/api/admin/members/:id/plan', async (req, reply) => {
+    const staff = await requireStaff(req, reply); if (!staff) return
+    const userId = (req.params as any).id
+    const body = z.object({ planId: z.string(), billingCycle: z.enum(['monthly', 'yearly']) }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ error: 'Pick a plan and a billing cycle.' })
+
+    const plan = await one<any>('SELECT * FROM plans WHERE id = $1', [body.data.planId])
+    if (!plan) return reply.code(400).send({ error: 'That plan no longer exists.' })
+
+    const row = await one(
+      `UPDATE memberships SET plan_id = $2, billing_cycle = $3, status =
+         CASE WHEN status IN ('cancelled','pending_cancellation') THEN 'active' ELSE status END
+       WHERE user_id = $1 RETURNING *`,
+      [userId, plan.id, body.data.billingCycle],
+    )
+    if (!row) return reply.code(404).send({ error: 'Membership not found.' })
+
+    const invoiceId = makeId('inv')
+    const amount = body.data.billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly
+    await query(
+      `INSERT INTO invoices (id,user_id,description,amount,status,method) VALUES ($1,$2,$3,$4,'paid','Front desk')`,
+      [invoiceId, userId, `${plan.name} plan — ${body.data.billingCycle} membership`, amount],
+    )
+    await query('INSERT INTO notifications (id,user_id,type,title,message) VALUES ($1,$2,$3,$4,$5)',
+      [makeId('ntf'), userId, 'billing', `Switched to ${plan.name}`,
+       `The front desk moved your membership to the ${plan.name} plan, billed ${body.data.billingCycle}.`])
+    // The client holds onto invoiceId so a same-session misclick can be
+    // undone below without re-charging or leaving a phantom paid invoice.
+    return { membership: toMembership(row), invoiceId }
+  })
+
+  // Undoes exactly one /plan call: restores the prior plan/cycle and
+  // refunds the specific invoice that call created. Scoped tight on
+  // purpose — it only ever touches an invoice that is still 'paid' and
+  // billed 'Front desk', so it can correct a misclick but can't become a
+  // second way to hand out a plan change for free.
+  app.post('/api/admin/members/:id/plan/undo', async (req, reply) => {
+    const staff = await requireStaff(req, reply); if (!staff) return
+    const userId = (req.params as any).id
+    const body = z.object({
+      planId: z.string(), billingCycle: z.enum(['monthly', 'yearly']), invoiceId: z.string(),
+    }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ error: 'Could not undo that plan change.' })
+
+    const plan = await one<any>('SELECT * FROM plans WHERE id = $1', [body.data.planId])
+    if (!plan) return reply.code(400).send({ error: 'That plan no longer exists.' })
+
+    const invoice = await one(
+      `UPDATE invoices SET status = 'refunded' WHERE id = $1 AND user_id = $2 AND status = 'paid' AND method = 'Front desk' RETURNING *`,
+      [body.data.invoiceId, userId],
+    )
+    if (!invoice) return reply.code(400).send({ error: 'That charge was already handled — refresh and try again.' })
+
+    const row = await one(
+      `UPDATE memberships SET plan_id = $2, billing_cycle = $3 WHERE user_id = $1 RETURNING *`,
+      [userId, plan.id, body.data.billingCycle],
+    )
+    await query('INSERT INTO notifications (id,user_id,type,title,message) VALUES ($1,$2,$3,$4,$5)',
+      [makeId('ntf'), userId, 'billing', 'Plan change undone',
+       `The front desk corrected a plan change back to ${plan.name} and refunded the charge.`])
+    return { membership: toMembership(row) }
+  })
+
+  app.post('/api/admin/members/:id/reactivate', async (req, reply) => {
+    const staff = await requireStaff(req, reply); if (!staff) return
+    const userId = (req.params as any).id
+    const current = await one<any>('SELECT * FROM memberships WHERE user_id = $1', [userId])
+    if (!current) return reply.code(404).send({ error: 'Membership not found.' })
+
+    // An expired membership needs a fresh term, not just a status flip.
+    const expired = new Date(current.renewal_date).getTime() <= Date.now()
+    const renewal = expired
+      ? new Date(Date.now() + (current.billing_cycle === 'yearly' ? 365 : 30) * 86400000)
+      : new Date(current.renewal_date)
+    const row = await one(
+      `UPDATE memberships SET status = 'active', auto_renew = true, renewal_date = $2 WHERE user_id = $1 RETURNING *`,
+      [userId, renewal],
+    )
+    await query('INSERT INTO notifications (id,user_id,type,title,message) VALUES ($1,$2,$3,$4,$5)',
+      [makeId('ntf'), userId, 'renewal', 'Membership reactivated', 'The front desk reactivated your membership.'])
+    return { membership: toMembership(row) }
+  })
+
+  // Undoes exactly one /reactivate call: restores the status, auto-renew
+  // flag and renewal date it overwrote. Reactivate never touches plan_id
+  // or billing_cycle, and neither does this — it can't be used to slip in
+  // a plan change, only to put a wrongly-reactivated membership back.
+  app.post('/api/admin/members/:id/reactivate/undo', async (req, reply) => {
+    const staff = await requireStaff(req, reply); if (!staff) return
+    const userId = (req.params as any).id
+    const body = z.object({
+      status: z.enum(['active', 'frozen', 'cancelled', 'pending_cancellation']),
+      autoRenew: z.boolean(),
+      renewalDate: z.string(),
+    }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ error: 'Could not undo that reactivation.' })
+
+    const row = await one(
+      `UPDATE memberships SET status = $2, auto_renew = $3, renewal_date = $4 WHERE user_id = $1 RETURNING *`,
+      [userId, body.data.status, body.data.autoRenew, body.data.renewalDate],
+    )
     if (!row) return reply.code(404).send({ error: 'Membership not found.' })
     return { membership: toMembership(row) }
   })

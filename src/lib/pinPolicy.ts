@@ -54,3 +54,22 @@ export function pinAllowanceFrom(checkIns: CheckIn[], nowMs: number = Date.now()
     overLimit: used >= PIN_ALLOWANCE,
   }
 }
+
+/** The four-digit runs and repeats worth steering a member away from when they pick their own. */
+const PIN_SEQUENCES = [
+  '0123', '1234', '2345', '3456', '4567', '5678', '6789',
+  '9876', '8765', '7654', '6543', '5432', '4321', '3210',
+]
+
+/**
+ * A PIN a staff member could guess in a couple of tries without knowing
+ * anything about the member — all one digit, or a straight run. Not a
+ * password-strength check: PIN_MAX_ATTEMPTS already burns the window after
+ * three wrong guesses, so this only rules out the handful of values someone
+ * would try first.
+ */
+export function isWeakPin(pin: string): boolean {
+  if (!/^\d{4}$/.test(pin)) return true
+  if (new Set(pin).size === 1) return true
+  return PIN_SEQUENCES.includes(pin)
+}

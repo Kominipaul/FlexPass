@@ -12,6 +12,15 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      A plain, render-blocking stylesheet link rather than the
+      preload+onload-swap trick: that pattern needs an inline event-handler
+      attribute, which under this app's CSP (script-src 'self', no
+      'unsafe-inline') would either get blocked or force a CSP hole just for
+      a paint-timing shave. `display=swap` on the request already keeps text
+      visible in the fallback font while this loads, which is most of that
+      trick's benefit without the CSP trade-off.
+    -->
     <link
       href="https://fonts.googleapis.com/css2?family=Geologica:wght@500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"

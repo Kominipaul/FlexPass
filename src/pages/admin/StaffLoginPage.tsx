@@ -5,6 +5,7 @@ import { AdminAuthLayout } from '@/components/layout/AdminAuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useStaffAuth } from '@/context/StaffAuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { isValidEmail } from '@/lib/validators'
 
 const DEMO_EMAIL = 'staff@flexpass.app'
@@ -12,6 +13,7 @@ const DEMO_PASSWORD = 'flexpass123'
 
 export function StaffLoginPage() {
   const { login } = useStaffAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -23,11 +25,11 @@ export function StaffLoginPage() {
     e.preventDefault()
     setError(null)
     if (!isValidEmail(email)) {
-      setError('Enter a valid email address.')
+      setError(t('staffLogin.emailInvalid'))
       return
     }
     if (!password) {
-      setError('Enter your password.')
+      setError(t('staffLogin.passwordRequired'))
       return
     }
     setLoading(true)
@@ -35,7 +37,7 @@ export function StaffLoginPage() {
       await login(email, password)
       navigate('/admin', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof Error ? err.message : t('staffLogin.genericError'))
     } finally {
       setLoading(false)
     }
@@ -48,7 +50,7 @@ export function StaffLoginPage() {
   }
 
   return (
-    <AdminAuthLayout title="Staff sign in" subtitle="Sign in to run the front desk.">
+    <AdminAuthLayout title={t('staffLogin.title')} subtitle={t('staffLogin.subtitle')}>
       <button
         type="button"
         onClick={fillDemoCredentials}
@@ -56,7 +58,8 @@ export function StaffLoginPage() {
       >
         <Sparkles className="h-4 w-4 shrink-0 text-volt" />
         <span>
-          <span className="font-semibold text-volt">Demo staff account:</span> tap to fill {DEMO_EMAIL}.
+          <span className="font-semibold text-volt">{t('staffLogin.demoLabel')}</span>{' '}
+          {t('staffLogin.demoText', { email: DEMO_EMAIL })}
         </span>
       </button>
 
@@ -69,7 +72,7 @@ export function StaffLoginPage() {
         )}
 
         <Input
-          label="Email"
+          label={t('staffLogin.email')}
           type="email"
           autoComplete="email"
           placeholder="staff@flexpass.app"
@@ -78,7 +81,7 @@ export function StaffLoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Password"
+          label={t('staffLogin.password')}
           type="password"
           autoComplete="current-password"
           placeholder="••••••••"
@@ -88,7 +91,7 @@ export function StaffLoginPage() {
         />
 
         <Button type="submit" size="lg" loading={loading} iconLeft={<LogIn className="h-4 w-4" />}>
-          Sign in
+          {t('staffLogin.signIn')}
         </Button>
       </form>
     </AdminAuthLayout>

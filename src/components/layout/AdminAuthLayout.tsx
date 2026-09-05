@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart3, CalendarDays, Dumbbell, ScanLine, Smartphone } from 'lucide-react'
+import { useLanguage, type TranslationKey } from '@/context/LanguageContext'
 
-const HIGHLIGHTS = [
-  { icon: ScanLine, text: 'Scan members in and see the verdict instantly' },
-  { icon: CalendarDays, text: 'Manage classes, capacity and rosters in one place' },
-  { icon: BarChart3, text: 'Live traffic, fill rate and membership insights' },
+const HIGHLIGHTS: { icon: typeof ScanLine; textKey: TranslationKey }[] = [
+  { icon: ScanLine, textKey: 'authShared.staffHighlight1' },
+  { icon: CalendarDays, textKey: 'authShared.staffHighlight2' },
+  { icon: BarChart3, textKey: 'authShared.staffHighlight3' },
 ]
 
 export function AdminAuthLayout({
@@ -17,6 +18,7 @@ export function AdminAuthLayout({
   title: string
   subtitle?: string
 }) {
+  const { t } = useLanguage()
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-bg p-10 text-ink lg:flex">
@@ -34,36 +36,34 @@ export function AdminAuthLayout({
           </span>
           <div className="leading-none">
             <span className="font-display block text-lg font-extrabold uppercase tracking-[.04em]">FlexPass</span>
-            <span className="mt-1 block text-[10px] text-mute">Staff dashboard</span>
+            <span className="mt-1 block text-[10px] text-mute">{t('adminNav.staffDashboard')}</span>
           </div>
         </Link>
 
         <div className="relative">
           <h2 className="font-display max-w-md text-3xl font-extrabold leading-tight">
-            Run the front desk from one screen.
+            {t('authShared.staffTagline')}
           </h2>
           <ul className="mt-8 space-y-4">
             {HIGHLIGHTS.map((h) => (
-              <li key={h.text} className="flex items-center gap-3 text-dim">
+              <li key={h.textKey} className="flex items-center gap-3 text-dim">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] border border-line bg-raised">
                   <h.icon className="h-4 w-4 text-volt" />
                 </span>
-                <span className="text-[13px]">{h.text}</span>
+                <span className="text-[13px]">{t(h.textKey)}</span>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="relative flex items-center justify-between gap-4">
-          <p className="text-[11px] text-mute">
-            FlexPass staff dashboard — client-side demo. Separate from the member portal entirely.
-          </p>
+          <p className="text-[11px] text-mute">{t('authShared.staffDemoBlurb')}</p>
           <Link
             to="/login"
             className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-mute transition-colors hover:text-volt"
           >
             <Smartphone className="h-3.5 w-3.5" />
-            Member sign in
+            {t('authShared.memberSignIn')}
           </Link>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function AdminAuthLayout({
             className="mt-8 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-mute transition-colors hover:text-volt lg:hidden"
           >
             <Smartphone className="h-3.5 w-3.5" />
-            Member sign in
+            {t('authShared.memberSignIn')}
           </Link>
         </div>
       </div>

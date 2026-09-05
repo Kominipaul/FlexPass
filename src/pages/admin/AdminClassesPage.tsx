@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarPlus, ClipboardList, Dumbbell, Trash2 } from 'lucide-react'
+import { AlertTriangle, CalendarPlus, ClipboardList, Dumbbell, Trash2 } from 'lucide-react'
 import { useAdminData } from '@/context/AdminDataContext'
 import { useToast } from '@/context/ToastContext'
 import { PageLoader } from '@/components/ui/Spinner'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Field, inputCls } from '@/components/admin/Field'
 import { Select } from '@/components/ui/Select'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -44,6 +45,7 @@ export function AdminClassesPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [draft, setDraft] = useState<NewActivityInput>(() => blankDraft(atLocationId))
   const [rosterFor, setRosterFor] = useState<Activity | null>(null)
+  const [dropTarget, setDropTarget] = useState<Activity | null>(null)
   const [fillMap, setFillMap] = useState<Record<string, { booked: number; cap: number }>>({})
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export function AdminClassesPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleDrop(activity)}
+                    onClick={() => setDropTarget(activity)}
                     aria-label="Cancel class"
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-mute transition-colors hover:bg-badsoft hover:text-bad"
                   >
@@ -331,6 +333,30 @@ export function AdminClassesPage() {
           <RosterList activity={rosterFor} userIds={rosterUserIds(rosterFor)} members={members} />
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={!!dropTarget}
+        onClose={() => setDropTarget(null)}
+        title={dropTarget ? `Cancel ${dropTarget.name}?` : ''}
+        tone="danger"
+        icon={<AlertTriangle className="h-4 w-4" />}
+        confirmLabel="Cancel class"
+        description={
+          dropTarget
+            ? (() => {
+                const affected = rosterUserIds(dropTarget).length
+                return affected > 0
+                  ? `This removes it from the schedule for good — there's no undo. ${affected} member${affected === 1 ? '' : 's'} currently booked or enrolled will be notified and cleared automatically.`
+                  : "This removes it from the schedule for good — there's no undo. Nobody is currently booked or enrolled."
+              })()
+            : undefined
+        }
+        onConfirm={async () => {
+          if (!dropTarget) return
+          await handleDrop(dropTarget)
+          setDropTarget(null)
+        }}
+      />
     </div>
   )
 }

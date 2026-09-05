@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import jsQR from 'jsqr'
+import type jsQR from 'jsqr'
 
 export type CameraScanStatus = 'idle' | 'starting' | 'scanning' | 'error'
 
@@ -25,6 +25,11 @@ export interface UseCameraQrScannerResult {
  * the current frame to an offscreen canvas and runs it through jsQR — an
  * actual QR image decoder, not a simulated result. `onDecode` fires with
  * whatever string jsQR reads out of the frame, throttled by `cooldownMs`.
+ *
+ * jsQR (~55KB gzipped, the single largest dependency in the app) is loaded
+ * with a dynamic import rather than a static one, so it's fetched only when
+ * a scan actually starts — in parallel with the getUserMedia prompt, not
+ * bundled into every visitor's initial download.
  */
 export function useCameraQrScanner({
   active,
@@ -70,6 +75,7 @@ export function useCameraQrScanner({
     let rafId = 0
     let workCanvas: HTMLCanvasElement | null = null
     let lastDecodeAt = 0
+    let decode: typeof jsQR | null = null
 
     setStatus('starting')
     setError(null)
@@ -79,7 +85,7 @@ export function useCameraQrScanner({
     // above) is still non-null wherever these close over it, since neither
     // can run before that narrowing is established.
     const tick = () => {
-      if (cancelled) return
+      if (cancelled || !decode) return
       if (video.readyState >= video.HAVE_CURRENT_DATA && video.videoWidth > 0) {
         if (!workCanvas) workCanvas = document.createElement('canvas')
         if (workCanvas.width !== video.videoWidth) workCanvas.width = video.videoWidth
@@ -88,7 +94,7 @@ export function useCameraQrScanner({
         if (ctx) {
           ctx.drawImage(video, 0, 0, workCanvas.width, workCanvas.height)
           const frame = ctx.getImageData(0, 0, workCanvas.width, workCanvas.height)
-          const code = jsQR(frame.data, frame.width, frame.height, { inversionAttempts: 'dontInvert' })
+          const code = decode(frame.data, frame.width, frame.height, { inversionAttempts: 'dontInvert' })
           const now = performance.now()
           if (code?.data && now - lastDecodeAt > cooldownMs) {
             lastDecodeAt = now
@@ -101,10 +107,18 @@ export function useCameraQrScanner({
 
     const start = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
-          audio: false,
-        })
+        // Fetching the decoder and asking for camera permission don't depend
+        // on each other, so run them concurrently — the permission prompt
+        // (user-facing, often slower than the module fetch) hides the load.
+        const [mediaStream, jsQRModule] = await Promise.all([
+          navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false,
+          }),
+          import('jsqr'),
+        ])
+        stream = mediaStream
+        decode = jsQRModule.default
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
           return

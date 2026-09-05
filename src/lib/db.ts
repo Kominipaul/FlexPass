@@ -15,7 +15,7 @@
 import type {
   Activity, AppNotification, BillingCycle, CheckIn, ClassBooking, DoorScan,
   EmergencyContact, GroupMembership, Invoice, Location, Membership,
-  PaymentMethod, PinUnlock, Plan, StaffUser, TrainingGoal, User,
+  MembershipStatus, PaymentMethod, PinUnlock, Plan, StaffUser, TrainingGoal, User,
 } from '@/types'
 import type { PinAllowance } from './pinPolicy'
 
@@ -140,8 +140,9 @@ export async function setTwoFactorEnabled(enabled: boolean): Promise<User> {
   return (await post<{ user: User }>('/me/two-factor', { enabled })).user
 }
 
-export async function regenerateCheckInPin(): Promise<string> {
-  return (await post<{ pin: string }>('/me/checkin-pin/regenerate')).pin
+/** Sets the backup PIN to `pin` if given, or asks the server to pick a random one otherwise. */
+export async function setCheckInPin(pin?: string): Promise<string> {
+  return (await post<{ pin: string }>('/me/checkin-pin', pin ? { pin } : {})).pin
 }
 
 export async function deleteAccount(): Promise<void> {
@@ -174,9 +175,9 @@ export async function getCheckInPin(): Promise<string> {
 export async function getMembership(): Promise<Membership | undefined> {
   return (await get<{ membership: Membership | null }>('/me/membership')).membership ?? undefined
 }
-export async function upgradePlan(planId: string, billingCycle: BillingCycle): Promise<Membership> {
-  return (await post<{ membership: Membership }>('/me/membership/plan', { planId, billingCycle })).membership
-}
+// Plan changes and reactivation are staff-only for now — see
+// adminChangePlan / adminReactivateMembership below. Both bill the member,
+// and there's no online payment provider to actually collect that yet.
 export async function setAutoRenew(autoRenew: boolean): Promise<Membership> {
   return (await post<{ membership: Membership }>('/me/membership/auto-renew', { autoRenew })).membership
 }
@@ -188,9 +189,6 @@ export async function unfreezeMembership(): Promise<Membership> {
 }
 export async function cancelMembership(immediate: boolean): Promise<Membership> {
   return (await post<{ membership: Membership }>('/me/membership/cancel', { immediate })).membership
-}
-export async function reactivateMembership(): Promise<Membership> {
-  return (await post<{ membership: Membership }>('/me/membership/reactivate')).membership
 }
 
 // ---------------------------------------------------------------------------
@@ -281,6 +279,12 @@ export async function markNotificationRead(id: string): Promise<void> {
 export async function markAllNotificationsRead(): Promise<void> {
   await post('/me/notifications/read-all')
 }
+export async function deleteNotification(id: string): Promise<void> {
+  await del(`/me/notifications/${id}`)
+}
+export async function clearAllNotifications(): Promise<void> {
+  await del('/me/notifications')
+}
 
 // ---------------------------------------------------------------------------
 // Staff auth
@@ -330,6 +334,34 @@ export async function adminExtendMembership(userId: string, days: number): Promi
 }
 export async function adminSetFrozen(userId: string, frozen: boolean): Promise<Membership> {
   return (await post<{ membership: Membership }>(`/admin/members/${userId}/frozen`, { frozen })).membership
+}
+// Staff call these only after collecting payment in person — see
+// server/src/routes/admin.ts for why plan changes and reactivation moved
+// here instead of staying member self-service.
+//
+// Both return enough of the pre-change state (or, for plan changes, the
+// invoice they just created) for the caller to offer an immediate one-click
+// Undo — see adminUndoChangePlan / adminUndoReactivateMembership below.
+export async function adminChangePlan(
+  userId: string, planId: string, billingCycle: BillingCycle,
+): Promise<{ membership: Membership; invoiceId: string }> {
+  return await post(`/admin/members/${userId}/plan`, { planId, billingCycle })
+}
+export async function adminUndoChangePlan(
+  userId: string, planId: string, billingCycle: BillingCycle, invoiceId: string,
+): Promise<Membership> {
+  return (await post<{ membership: Membership }>(`/admin/members/${userId}/plan/undo`, { planId, billingCycle, invoiceId })).membership
+}
+export async function adminReactivateMembership(userId: string): Promise<Membership> {
+  return (await post<{ membership: Membership }>(`/admin/members/${userId}/reactivate`)).membership
+}
+export interface ReactivateSnapshot {
+  status: MembershipStatus
+  autoRenew: boolean
+  renewalDate: string
+}
+export async function adminUndoReactivateMembership(userId: string, snapshot: ReactivateSnapshot): Promise<Membership> {
+  return (await post<{ membership: Membership }>(`/admin/members/${userId}/reactivate/undo`, snapshot)).membership
 }
 
 export interface NewActivityInput {

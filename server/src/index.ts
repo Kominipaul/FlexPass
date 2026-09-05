@@ -1,5 +1,7 @@
 import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
+import helmet from '@fastify/helmet'
+import rateLimit from '@fastify/rate-limit'
 import { env } from './env.ts'
 import { pool } from './db.ts'
 import authRoutes from './routes/auth.ts'
@@ -23,6 +25,21 @@ const app = Fastify({
 })
 
 await app.register(cookie)
+
+// This API is JSON-only and same-origin (the Vite dev proxy, and whatever
+// serves the built SPA in production, sit in front of it) — helmet's
+// defaults cover the headers that matter regardless: nosniff, a denied
+// frame-ancestors/X-Frame-Options so the API itself can't be framed, HSTS,
+// and a referrer policy that doesn't leak full URLs cross-origin. CSP is
+// left at helmet's default (relevant mainly to HTML responses, which this
+// server never sends) rather than tuned here — the SPA's own CSP lives in
+// vite.config.ts, next to the markup it actually governs.
+await app.register(helmet)
+
+// Applies to every route by default; the auth routes below tighten this
+// further for the endpoints actually worth brute-forcing (login, PIN and
+// password-reset codes).
+await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
 
 app.get('/api/health', async () => {
   const r = await pool.query('SELECT now() AS now')

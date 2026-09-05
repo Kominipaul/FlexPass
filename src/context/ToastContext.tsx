@@ -1,17 +1,29 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { CheckCircle2, Info, TriangleAlert, X } from 'lucide-react'
 import { makeId } from '@/lib/id'
+import { useLanguage } from '@/context/LanguageContext'
 
 type ToastKind = 'success' | 'error' | 'info'
+
+interface ToastAction {
+  label: string
+  onClick: () => void
+}
 
 interface Toast {
   id: string
   kind: ToastKind
   message: string
+  action?: ToastAction
 }
 
 interface ToastContextValue {
-  showToast: (message: string, kind?: ToastKind) => void
+  /**
+   * `action` gives a toast a one-click reversal for whatever it just
+   * confirmed — e.g. Undo on a staff mutation right after it lands. Stays
+   * up longer than a plain toast so there's actually time to click it.
+   */
+  showToast: (message: string, kind?: ToastKind, action?: ToastAction) => void
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined)
@@ -36,16 +48,18 @@ const ICON_STYLES: Record<ToastKind, string> = {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const { t } = useLanguage()
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
   const showToast = useCallback(
-    (message: string, kind: ToastKind = 'success') => {
+    (message: string, kind: ToastKind = 'success', action?: ToastAction) => {
       const id = makeId('toast')
-      setToasts((prev) => [...prev, { id, kind, message }])
-      window.setTimeout(() => dismiss(id), 4200)
+      setToasts((prev) => [...prev, { id, kind, message, action }])
+      // Give an actionable toast (Undo, etc.) real time to be clicked.
+      window.setTimeout(() => dismiss(id), action ? 8000 : 4200)
     },
     [dismiss],
   )
@@ -67,11 +81,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             >
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${ICON_STYLES[toast.kind]}`} />
               <p className="flex-1 text-sm font-medium leading-snug">{toast.message}</p>
+              {toast.action && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.action?.onClick()
+                    dismiss(toast.id)
+                  }}
+                  className="shrink-0 rounded-md px-1.5 py-0.5 text-sm font-bold underline decoration-2 underline-offset-2 hover:opacity-70"
+                >
+                  {toast.action.label}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
                 className="shrink-0 rounded-md p-0.5 text-current/60 hover:text-current"
-                aria-label="Dismiss notification"
+                aria-label={t('common.dismissNotification')}
               >
                 <X className="h-4 w-4" />
               </button>

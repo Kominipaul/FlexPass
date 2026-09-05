@@ -4,6 +4,7 @@ import { Dumbbell, LogOut } from 'lucide-react'
 import { NAV_ITEMS } from '@/lib/nav'
 import { useAuth } from '@/context/AuthContext'
 import { useGymData } from '@/context/DataContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { useSwipeDismiss } from '@/hooks/useSwipeDismiss'
 import { Avatar } from '@/components/ui/Avatar'
 
@@ -68,6 +69,7 @@ function MobileNavDrawer({ onClose }: { onClose: () => void }) {
 function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
   const { user, logout } = useAuth()
   const { unreadNotificationCount, currentPlan } = useGymData()
+  const { t } = useLanguage()
   if (!user) return null
 
   return (
@@ -78,7 +80,7 @@ function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
         </span>
         <div className="leading-none">
           <p className="font-display text-[13px] font-extrabold uppercase tracking-[.04em] text-ink">FlexPass</p>
-          <p className="mt-1 text-[10px] text-mute">Member Portal</p>
+          <p className="mt-1 text-[10px] text-mute">{t('nav.memberPortal')}</p>
         </div>
       </div>
 
@@ -102,7 +104,7 @@ function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
                   {isActive && <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-volt" />}
                   <span className="flex min-w-0 items-center gap-3">
                     <item.icon className="h-[17px] w-[17px] shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{t(item.labelKey)}</span>
                   </span>
                   {badgeCount > 0 && (
                     <NavBadge>{badgeCount}</NavBadge>
@@ -122,7 +124,7 @@ function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
           <Avatar name={user.name} tone={user.avatarColor} size="sm" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[12.5px] font-semibold text-ink">{user.name}</p>
-            <p className="truncate text-[11px] text-mute">{currentPlan?.name ?? '—'} plan</p>
+            <p className="truncate text-[11px] text-mute">{t('nav.planSuffix', { plan: currentPlan?.name ?? '—' })}</p>
           </div>
         </div>
         <button
@@ -131,7 +133,7 @@ function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
           className="mt-2 flex w-full items-center gap-3 rounded-[7px] px-3 py-2.5 text-[13px] font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
         >
           <LogOut className="h-[17px] w-[17px]" />
-          Log out
+          {t('nav.logOut')}
         </button>
       </div>
     </div>

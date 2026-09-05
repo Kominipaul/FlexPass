@@ -8,7 +8,7 @@ import {
   History,
   RefreshCcw,
   Snowflake,
-  Sparkles,
+  Store,
   XCircle,
 } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
@@ -30,7 +30,7 @@ import { TONES, toneOf } from '@/lib/colors'
 const FREEZE_REASONS = ['Travel', 'Injury / medical', 'Financial', 'Moving', 'Other']
 
 export function MembershipPage() {
-  const { loading, membership, currentPlan, setAutoRenew, freezeMembership, unfreezeMembership, cancelMembership, reactivateMembership } =
+  const { loading, membership, currentPlan, setAutoRenew, freezeMembership, unfreezeMembership, cancelMembership } =
     useGymData()
   const { showToast } = useToast()
   const navigate = useNavigate()
@@ -38,7 +38,6 @@ export function MembershipPage() {
   const [freezeOpen, setFreezeOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [unfreezeOpen, setUnfreezeOpen] = useState(false)
-  const [reactivateOpen, setReactivateOpen] = useState(false)
 
   if (loading || !membership || !currentPlan) return <PageLoader label="Loading your membership…" />
 
@@ -57,10 +56,10 @@ export function MembershipPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Membership"
-        subtitle="Manage your plan, billing cycle and membership status."
+        subtitle="Manage your billing cycle and membership status."
         action={
-          <Button onClick={() => navigate('/membership/upgrade')} iconLeft={<Sparkles className="h-3.5 w-3.5" />}>
-            Change plan
+          <Button variant="quiet" onClick={() => navigate('/membership/upgrade')} iconLeft={<Store className="h-3.5 w-3.5" />}>
+            Compare plans
           </Button>
         }
       />
@@ -145,9 +144,10 @@ export function MembershipPage() {
               )}
 
               {membership.status === 'cancelled' || membership.status === 'pending_cancellation' ? (
-                <Button onClick={() => setReactivateOpen(true)} iconLeft={<RefreshCcw className="h-3.5 w-3.5" />}>
-                  Reactivate membership
-                </Button>
+                <p className="flex items-start gap-2 rounded-[9px] border border-line bg-raised p-3 text-[12px] text-dim">
+                  <Store className="mt-0.5 h-3.5 w-3.5 shrink-0 text-mute" />
+                  Reactivating goes through the front desk — we don't take payment online yet.
+                </p>
               ) : (
                 <Button
                   variant="ghost"
@@ -209,24 +209,6 @@ export function MembershipPage() {
             showToast(err instanceof Error ? err.message : 'Could not unfreeze membership.', 'error')
           } finally {
             setUnfreezeOpen(false)
-          }
-        }}
-      />
-
-      <ConfirmDialog
-        open={reactivateOpen}
-        onClose={() => setReactivateOpen(false)}
-        title="Reactivate membership?"
-        description="Your plan will resume billing on its next cycle."
-        confirmLabel="Reactivate"
-        onConfirm={async () => {
-          try {
-            await reactivateMembership()
-            showToast('Membership reactivated. Welcome back!')
-          } catch (err) {
-            showToast(err instanceof Error ? err.message : 'Could not reactivate membership.', 'error')
-          } finally {
-            setReactivateOpen(false)
           }
         }}
       />

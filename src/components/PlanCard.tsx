@@ -9,9 +9,11 @@ interface PlanCardProps {
   selected?: boolean
   current?: boolean
   onSelect?: () => void
+  /** Browsing only — no click does anything. Used where switching plans isn't self-service. */
+  readOnly?: boolean
 }
 
-export function PlanCard({ plan, billingCycle, selected, current, onSelect }: PlanCardProps) {
+export function PlanCard({ plan, billingCycle, selected, current, onSelect, readOnly }: PlanCardProps) {
   const classes = TONES[toneOf(plan.color)]
   const price = billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly
   const period = billingCycle === 'yearly' ? '/year' : '/month'
@@ -20,10 +22,10 @@ export function PlanCard({ plan, billingCycle, selected, current, onSelect }: Pl
     <button
       type="button"
       onClick={onSelect}
-      disabled={current}
+      disabled={current || readOnly}
       className={`relative flex w-full flex-col rounded-[12px] border-2 p-5 text-left transition-all ${
         selected ? 'border-volt bg-voltsoft/40 shadow-glow' : 'border-line bg-surface hover:border-voltline'
-      } ${current ? 'cursor-default' : 'cursor-pointer'}`}
+      } ${current || readOnly ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {plan.popular && !current && (
         <span className="font-display absolute -top-3 left-5 flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[.04em] text-bg">
@@ -59,10 +61,10 @@ export function PlanCard({ plan, billingCycle, selected, current, onSelect }: Pl
 
       <div
         className={`font-display mt-5 flex h-10 items-center justify-center rounded-[7px] text-[11.5px] font-bold uppercase tracking-[.05em] ${
-          current ? 'bg-goodsoft text-good' : selected ? 'bg-volt text-voltink' : 'bg-raised text-dim'
+          current ? 'bg-goodsoft text-good' : readOnly ? 'bg-raised text-mute' : selected ? 'bg-volt text-voltink' : 'bg-raised text-dim'
         }`}
       >
-        {current ? 'Your plan' : selected ? 'Selected' : 'Select plan'}
+        {current ? 'Your plan' : readOnly ? 'Ask the front desk' : selected ? 'Selected' : 'Select plan'}
       </div>
     </button>
   )

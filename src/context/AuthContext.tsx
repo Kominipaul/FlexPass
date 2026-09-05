@@ -35,7 +35,7 @@ interface AuthContextValue {
   updateProfile: (patch: db.ProfileUpdate) => Promise<void>
   changePassword: (current: string, next: string) => Promise<void>
   setTwoFactorEnabled: (enabled: boolean) => Promise<void>
-  regenerateCheckInPin: () => Promise<string>
+  setCheckInPin: (pin?: string) => Promise<string>
   deleteAccount: () => Promise<void>
 }
 
@@ -96,11 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await db.setTwoFactorEnabled(enabled))
   }, [])
 
-  const regenerateCheckInPin = useCallback(async () => {
-    const pin = await db.regenerateCheckInPin()
-    await refreshUser()
-    return pin
-  }, [refreshUser])
+  const setCheckInPin = useCallback(
+    async (pin?: string) => {
+      const applied = await db.setCheckInPin(pin)
+      await refreshUser()
+      return applied
+    },
+    [refreshUser],
+  )
 
   const deleteAccount = useCallback(async () => {
     await db.deleteAccount()
@@ -111,11 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       status, user, login, signup, logout, refreshUser, updateProfile,
-      changePassword, setTwoFactorEnabled, regenerateCheckInPin, deleteAccount,
+      changePassword, setTwoFactorEnabled, setCheckInPin, deleteAccount,
     }),
     [
       status, user, login, signup, logout, refreshUser, updateProfile,
-      changePassword, setTwoFactorEnabled, regenerateCheckInPin, deleteAccount,
+      changePassword, setTwoFactorEnabled, setCheckInPin, deleteAccount,
     ],
   )
 

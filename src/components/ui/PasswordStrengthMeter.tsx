@@ -1,9 +1,18 @@
 import { Check, X } from 'lucide-react'
 import { checkPasswordStrength } from '@/lib/validators'
+import { useLanguage } from '@/context/LanguageContext'
 
 const BAR_COLORS = ['bg-bad', 'bg-ember', 'bg-warn', 'bg-good', 'bg-volt']
+const LABEL_KEYS = [
+  'passwordStrength.veryWeak',
+  'passwordStrength.weak',
+  'passwordStrength.fair',
+  'passwordStrength.strong',
+  'passwordStrength.veryStrong',
+] as const
 
 export function PasswordStrengthMeter({ password }: { password: string }) {
+  const { t } = useLanguage()
   if (!password) return null
   const strength = checkPasswordStrength(password)
 
@@ -20,11 +29,13 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">
-        <span className="font-display font-bold uppercase tracking-[.04em] text-ink">{strength.label}</span>
-        <RequirementChip met={strength.checks.length} label="8+ characters" />
-        <RequirementChip met={strength.checks.upper} label="Uppercase" />
-        <RequirementChip met={strength.checks.number} label="Number" />
-        <RequirementChip met={strength.checks.symbol} label="Symbol" />
+        <span className="font-display font-bold uppercase tracking-[.04em] text-ink">
+          {t(LABEL_KEYS[strength.score])}
+        </span>
+        <RequirementChip met={strength.checks.length} label={t('passwordStrength.chars8')} />
+        <RequirementChip met={strength.checks.upper} label={t('passwordStrength.uppercase')} />
+        <RequirementChip met={strength.checks.number} label={t('passwordStrength.number')} />
+        <RequirementChip met={strength.checks.symbol} label={t('passwordStrength.symbol')} />
       </div>
     </div>
   )

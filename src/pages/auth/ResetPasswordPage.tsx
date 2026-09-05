@@ -6,6 +6,7 @@ import { OtpInput } from '@/components/ui/OtpInput'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
+import { useLanguage } from '@/context/LanguageContext'
 import { resetPassword } from '@/lib/db'
 import { isValidPassword } from '@/lib/validators'
 
@@ -17,6 +18,7 @@ interface ResetState {
 export function ResetPasswordPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const state = location.state as ResetState | null
 
   const [code, setCode] = useState('')
@@ -34,15 +36,15 @@ export function ResetPasswordPage() {
 
   async function handleSubmit() {
     if (code.trim().length < 6) {
-      setError('Enter the 6-digit code.')
+      setError(t('resetPassword.codeTooShort'))
       return
     }
     if (!isValidPassword(password)) {
-      setError('Use 8+ characters with a mix of letters & numbers.')
+      setError(t('resetPassword.passwordWeak'))
       return
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t('resetPassword.passwordMismatch'))
       return
     }
     setError(null)
@@ -51,7 +53,7 @@ export function ResetPasswordPage() {
       await resetPassword(state!.email, code.trim(), password)
       setDone(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not reset your password.')
+      setError(err instanceof Error ? err.message : t('resetPassword.genericError'))
     } finally {
       setLoading(false)
     }
@@ -59,13 +61,13 @@ export function ResetPasswordPage() {
 
   if (done) {
     return (
-      <AuthLayout title="Password updated" subtitle="You can now sign in with your new password.">
+      <AuthLayout title={t('resetPassword.doneTitle')} subtitle={t('resetPassword.doneSubtitle')}>
         <div className="flex flex-col items-start gap-4">
           <span className="flex h-12 w-12 items-center justify-center rounded-[12px] border border-goodsoft bg-goodsoft text-good">
             <CheckCircle2 className="h-6 w-6" />
           </span>
           <Button fullWidth size="lg" onClick={() => navigate('/login', { replace: true })}>
-            Continue to sign in
+            {t('resetPassword.continueToSignIn')}
           </Button>
         </div>
       </AuthLayout>
@@ -73,12 +75,10 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <AuthLayout title="Reset your password" subtitle={`Enter the code we sent for ${state.email}.`}>
+    <AuthLayout title={t('resetPassword.title')} subtitle={t('resetPassword.subtitle', { email: state.email })}>
       <div className="mb-6 flex items-start gap-2.5 rounded-[9px] border border-dashed border-voltline bg-voltsoft px-4 py-3 text-[13px] text-ink">
         <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
-        <p>
-          Demo mode — your code is <span className="font-mono font-bold tracking-wider">{state.code}</span>.
-        </p>
+        <p>{t('resetPassword.demoText', { code: state.code })}</p>
       </div>
 
       {error && (
@@ -90,13 +90,13 @@ export function ResetPasswordPage() {
 
       <div className="flex flex-col gap-5">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.08em] text-mute">Reset code</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.08em] text-mute">{t('resetPassword.resetCodeLabel')}</p>
           <OtpInput value={code} onChange={setCode} error={!!error} disabled={loading} />
         </div>
 
         <div>
           <Input
-            label="New password"
+            label={t('resetPassword.newPassword')}
             type="password"
             autoComplete="new-password"
             iconLeft={<Lock className="h-4 w-4" />}
@@ -108,7 +108,7 @@ export function ResetPasswordPage() {
           </div>
         </div>
         <Input
-          label="Confirm new password"
+          label={t('resetPassword.confirmNewPassword')}
           type="password"
           autoComplete="new-password"
           iconLeft={<Lock className="h-4 w-4" />}
@@ -117,13 +117,13 @@ export function ResetPasswordPage() {
         />
 
         <Button size="lg" loading={loading} onClick={handleSubmit} iconLeft={<KeyRound className="h-4 w-4" />}>
-          Reset password
+          {t('resetPassword.resetPassword')}
         </Button>
       </div>
 
       <p className="mt-6 text-center text-[12.5px] text-dim">
         <Link to="/login" className="font-semibold text-volt hover:brightness-125">
-          Back to sign in
+          {t('resetPassword.backToSignIn')}
         </Link>
       </p>
     </AuthLayout>

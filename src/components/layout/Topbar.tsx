@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Bell, Dumbbell } from 'lucide-react'
 import { useGymData } from '@/context/DataContext'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { Avatar } from '@/components/ui/Avatar'
 
 // No mobile menu button here — on <lg the bottom MobileTabBar's "More" tab
@@ -15,6 +16,7 @@ import { Avatar } from '@/components/ui/Avatar'
 export function Topbar() {
   const { unreadNotificationCount } = useGymData()
   const { user } = useAuth()
+  const { t } = useLanguage()
 
   if (!user) return null
 
@@ -33,14 +35,14 @@ export function Topbar() {
         <Link
           to="/notifications"
           className="relative rounded-[7px] p-2 text-dim hover:bg-raised hover:text-ink"
-          aria-label="Notifications"
+          aria-label={t('nav.notifications')}
         >
           <Bell className="h-5 w-5" />
           {unreadNotificationCount > 0 && (
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-bad ring-2 ring-surface" />
           )}
         </Link>
-        <Link to="/profile" className="rounded-full" aria-label="Your profile">
+        <Link to="/profile" className="rounded-full" aria-label={t('nav.profileAria')}>
           <Avatar name={user.name} tone={user.avatarColor} size="sm" />
         </Link>
       </div>

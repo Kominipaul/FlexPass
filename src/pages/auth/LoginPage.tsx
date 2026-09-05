@@ -5,6 +5,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { isValidEmail } from '@/lib/validators'
 
 const DEMO_EMAIL = 'demo@flexpass.app'
@@ -12,6 +13,7 @@ const DEMO_PASSWORD = 'flexpass123'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -27,11 +29,11 @@ export function LoginPage() {
     e.preventDefault()
     setError(null)
     if (!isValidEmail(email)) {
-      setError('Enter a valid email address.')
+      setError(t('login.emailInvalid'))
       return
     }
     if (!password) {
-      setError('Enter your password.')
+      setError(t('login.passwordRequired'))
       return
     }
     setLoading(true)
@@ -39,7 +41,7 @@ export function LoginPage() {
       await login(email, password, remember)
       navigate(from, { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof Error ? err.message : t('login.genericError'))
     } finally {
       setLoading(false)
     }
@@ -52,7 +54,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to manage your membership.">
+    <AuthLayout title={t('login.title')} subtitle={t('login.subtitle')}>
       <button
         type="button"
         onClick={fillDemoCredentials}
@@ -60,8 +62,8 @@ export function LoginPage() {
       >
         <Sparkles className="h-4 w-4 shrink-0 text-volt" />
         <span>
-          <span className="font-semibold text-volt">Demo account:</span> tap to fill {DEMO_EMAIL}. This account
-          has secure sign-in codes enabled.
+          <span className="font-semibold text-volt">{t('login.demoLabel')}</span>{' '}
+          {t('login.demoText', { email: DEMO_EMAIL })}
         </span>
       </button>
 
@@ -74,7 +76,7 @@ export function LoginPage() {
         )}
 
         <Input
-          label="Email"
+          label={t('login.email')}
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
@@ -83,7 +85,7 @@ export function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Password"
+          label={t('login.password')}
           type="password"
           autoComplete="current-password"
           placeholder="••••••••"
@@ -100,22 +102,22 @@ export function LoginPage() {
               onChange={(e) => setRemember(e.target.checked)}
               className="h-4 w-4 rounded border-line bg-sunk text-volt focus:ring-0 focus:ring-offset-0"
             />
-            Remember me
+            {t('login.rememberMe')}
           </label>
           <Link to="/forgot-password" className="text-[12.5px] font-semibold text-volt hover:brightness-125">
-            Forgot password?
+            {t('login.forgotPassword')}
           </Link>
         </div>
 
         <Button type="submit" size="lg" loading={loading} iconLeft={<LogIn className="h-4 w-4" />}>
-          Sign in
+          {t('login.signIn')}
         </Button>
       </form>
 
       <p className="mt-6 text-center text-[12.5px] text-dim">
-        New to FlexPass?{' '}
+        {t('login.newToFlexPass')}{' '}
         <Link to="/signup" className="font-semibold text-volt hover:brightness-125">
-          Create an account
+          {t('login.createAccount')}
         </Link>
       </p>
     </AuthLayout>

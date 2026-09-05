@@ -8,6 +8,7 @@ import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
 import { PlanCard } from '@/components/PlanCard'
 import { BillingCycleToggle } from '@/components/BillingCycleToggle'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { PLANS } from '@/lib/reference'
 import { isValidEmail, isValidPassword, isValidPhone, type FieldErrors } from '@/lib/validators'
 import type { BillingCycle } from '@/types'
@@ -16,6 +17,7 @@ type StepOneField = 'name' | 'email' | 'phone' | 'password' | 'confirmPassword'
 
 export function SignupPage() {
   const { signup } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const [step, setStep] = useState<1 | 2>(1)
@@ -34,11 +36,11 @@ export function SignupPage() {
 
   function validateStepOne(): boolean {
     const errors: FieldErrors<StepOneField> = {}
-    if (name.trim().length < 2) errors.name = 'Enter your full name.'
-    if (!isValidEmail(email)) errors.email = 'Enter a valid email address.'
-    if (!isValidPhone(phone)) errors.phone = 'Enter a valid phone number.'
-    if (!isValidPassword(password)) errors.password = 'Use 8+ characters with a mix of letters & numbers.'
-    if (confirmPassword !== password) errors.confirmPassword = 'Passwords do not match.'
+    if (name.trim().length < 2) errors.name = t('signup.nameRequired')
+    if (!isValidEmail(email)) errors.email = t('signup.emailInvalid')
+    if (!isValidPhone(phone)) errors.phone = t('signup.phoneInvalid')
+    if (!isValidPassword(password)) errors.password = t('signup.passwordWeak')
+    if (confirmPassword !== password) errors.confirmPassword = t('signup.passwordMismatch')
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -58,7 +60,7 @@ export function SignupPage() {
       await signup({ name, email, phone, password, planId, billingCycle })
       navigate('/', { replace: true })
     } catch (err) {
-      setTopError(err instanceof Error ? err.message : 'Could not create your account.')
+      setTopError(err instanceof Error ? err.message : t('signup.createAccountError'))
       setStep(1)
     } finally {
       setSubmitting(false)
@@ -67,12 +69,8 @@ export function SignupPage() {
 
   return (
     <AuthLayout
-      title={step === 1 ? 'Create your account' : 'Choose your plan'}
-      subtitle={
-        step === 1
-          ? 'Join FlexPass to book classes, track visits and manage your membership.'
-          : 'You can change plans anytime from your dashboard.'
-      }
+      title={step === 1 ? t('signup.titleStep1') : t('signup.titleStep2')}
+      subtitle={step === 1 ? t('signup.subtitleStep1') : t('signup.subtitleStep2')}
     >
       <div className="mb-6 flex items-center gap-2">
         <StepDot label="1" current={step === 1} done={step > 1} />
@@ -90,7 +88,7 @@ export function SignupPage() {
       {step === 1 ? (
         <form onSubmit={handleStepOneSubmit} className="flex flex-col gap-4" noValidate>
           <Input
-            label="Full name"
+            label={t('signup.fullName')}
             placeholder="Jamie Rivera"
             autoComplete="name"
             iconLeft={<User className="h-4 w-4" />}
@@ -99,7 +97,7 @@ export function SignupPage() {
             error={fieldErrors.name}
           />
           <Input
-            label="Email"
+            label={t('signup.email')}
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
@@ -109,7 +107,7 @@ export function SignupPage() {
             error={fieldErrors.email}
           />
           <Input
-            label="Phone number"
+            label={t('signup.phone')}
             type="tel"
             placeholder="(555) 123-4567"
             autoComplete="tel"
@@ -120,7 +118,7 @@ export function SignupPage() {
           />
           <div>
             <Input
-              label="Password"
+              label={t('signup.password')}
               type="password"
               placeholder="••••••••"
               autoComplete="new-password"
@@ -134,7 +132,7 @@ export function SignupPage() {
             </div>
           </div>
           <Input
-            label="Confirm password"
+            label={t('signup.confirmPassword')}
             type="password"
             placeholder="••••••••"
             autoComplete="new-password"
@@ -145,7 +143,7 @@ export function SignupPage() {
           />
 
           <Button type="submit" size="lg" iconLeft={<UserPlus className="h-4 w-4" />}>
-            Continue
+            {t('signup.continue')}
           </Button>
         </form>
       ) : (
@@ -165,7 +163,7 @@ export function SignupPage() {
 
           <div className="flex gap-3">
             <Button variant="quiet" onClick={() => setStep(1)} iconLeft={<ArrowLeft className="h-4 w-4" />}>
-              Back
+              {t('signup.back')}
             </Button>
             <Button
               className="flex-1"
@@ -174,7 +172,7 @@ export function SignupPage() {
               onClick={handleCreateAccount}
               iconLeft={<UserPlus className="h-4 w-4" />}
             >
-              Create account
+              {t('signup.createAccount')}
             </Button>
           </div>
         </div>
@@ -182,9 +180,9 @@ export function SignupPage() {
 
       {step === 1 && (
         <p className="mt-6 text-center text-[12.5px] text-dim">
-          Already have an account?{' '}
+          {t('signup.alreadyHaveAccount')}{' '}
           <Link to="/login" className="font-semibold text-volt hover:brightness-125">
-            Sign in
+            {t('signup.signIn')}
           </Link>
         </p>
       )}

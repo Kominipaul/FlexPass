@@ -11,7 +11,6 @@ import {
 import type {
   Activity,
   AppNotification,
-  BillingCycle,
   CheckIn,
   ClassBooking,
   FreezeRecord,
@@ -65,12 +64,12 @@ interface GymDataContextValue extends GymDataState {
   pinAllowance: PinAllowance
   unreadNotificationCount: number
   refresh: () => Promise<void>
-  upgradePlan: (planId: string, billingCycle: BillingCycle) => Promise<void>
+  // Plan changes and reactivation are staff-only for now — no online payment
+  // provider exists to actually charge a member for either. See MembershipPage.
   setAutoRenew: (autoRenew: boolean) => Promise<void>
   freezeMembership: (record: Omit<FreezeRecord, 'id'>) => Promise<void>
   unfreezeMembership: () => Promise<void>
   cancelMembership: (immediate: boolean) => Promise<void>
-  reactivateMembership: () => Promise<void>
   bookClass: (activityId: string, date: string) => Promise<ClassBooking>
   cancelBooking: (bookingId: string) => Promise<void>
   joinGroup: (activityId: string) => Promise<void>
@@ -82,6 +81,8 @@ interface GymDataContextValue extends GymDataState {
   payInvoice: (id: string) => Promise<void>
   markNotificationRead: (id: string) => Promise<void>
   markAllNotificationsRead: () => Promise<void>
+  deleteNotification: (id: string) => Promise<void>
+  clearAllNotifications: () => Promise<void>
 }
 
 const GymDataContext = createContext<GymDataContextValue | undefined>(undefined)
@@ -152,14 +153,6 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
   // state from it. The per-member data set is small, so a
   // full refresh after each write is cheap and keeps every screen that
   // reads from this context trivially consistent — no hand-patched state.
-  const upgradePlan = useCallback(
-    async (planId: string, billingCycle: BillingCycle) => {
-      await db.upgradePlan(planId, billingCycle)
-      await refresh()
-    },
-    [refresh],
-  )
-
   const setAutoRenew = useCallback(
     async (autoRenew: boolean) => {
       await db.setAutoRenew(autoRenew)
@@ -196,11 +189,6 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
     },
     [refresh],
   )
-
-  const reactivateMembership = useCallback(async () => {
-    await db.reactivateMembership()
-    await refresh()
-  }, [refresh])
 
   const bookClass = useCallback(
     async (activityId: string, date: string) => {
@@ -293,6 +281,19 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
+  const deleteNotification = useCallback(
+    async (id: string) => {
+      await db.deleteNotification(id)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const clearAllNotifications = useCallback(async () => {
+    await db.clearAllNotifications()
+    await refresh()
+  }, [refresh])
+
   const currentPlan = useMemo(
     () => state.plans.find((p) => p.id === state.membership?.planId),
     [state.plans, state.membership],
@@ -318,12 +319,10 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       pinAllowance,
       unreadNotificationCount,
       refresh,
-      upgradePlan,
       setAutoRenew,
       freezeMembership,
       unfreezeMembership,
       cancelMembership,
-      reactivateMembership,
       bookClass,
       cancelBooking,
       joinGroup,
@@ -335,6 +334,8 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       payInvoice,
       markNotificationRead,
       markAllNotificationsRead,
+      deleteNotification,
+      clearAllNotifications,
     }),
     [
       state,
@@ -343,12 +344,10 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       pinAllowance,
       unreadNotificationCount,
       refresh,
-      upgradePlan,
       setAutoRenew,
       freezeMembership,
       unfreezeMembership,
       cancelMembership,
-      reactivateMembership,
       bookClass,
       cancelBooking,
       joinGroup,
@@ -360,6 +359,8 @@ export function GymDataProvider({ children }: { children: ReactNode }) {
       payInvoice,
       markNotificationRead,
       markAllNotificationsRead,
+      deleteNotification,
+      clearAllNotifications,
     ],
   )
 

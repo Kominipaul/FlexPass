@@ -33,11 +33,17 @@ const signupSchema = z.object({
   billingCycle: z.enum(['monthly', 'yearly']),
 })
 
+// The global rate limit (server/src/index.ts) is sized for ordinary traffic.
+// These are the endpoints an attacker would actually want to hammer —
+// guessing a password, a 6-digit reset code, or a staff password — so they
+// get a much tighter per-IP cap independent of that default.
+const strictRateLimit = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }
+
 export default async function authRoutes(app: FastifyInstance) {
   const isHttps = (req: { protocol: string; headers: Record<string, any> }) =>
     req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https'
 
-  app.post('/api/auth/signup', async (req, reply) => {
+  app.post('/api/auth/signup', strictRateLimit, async (req, reply) => {
     const parsed = signupSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
     const input = parsed.data
@@ -92,7 +98,7 @@ export default async function authRoutes(app: FastifyInstance) {
     return { user: toUser(row) }
   })
 
-  app.post('/api/auth/login', async (req, reply) => {
+  app.post('/api/auth/login', strictRateLimit, async (req, reply) => {
     const parsed = loginSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
     const { email, password, remember } = parsed.data
@@ -120,22 +126,27 @@ export default async function authRoutes(app: FastifyInstance) {
     return { user }
   })
 
-  app.post('/api/auth/password-reset/request', async (req, reply) => {
+  app.post('/api/auth/password-reset/request', strictRateLimit, async (req, reply) => {
     const email = String((req.body as any)?.email ?? '').trim().toLowerCase()
-    const row = await one<{ id: string }>('SELECT id FROM users WHERE lower(email) = $1', [email])
-    if (!row) return { sent: true }
     const code = String(100000 + Math.floor(Math.random() * 900000))
+    // Written unconditionally, whether or not `email` belongs to an account:
+    // branching on that (the old code returned `{ sent: true }` with no
+    // `code` for an unknown email, and `{ sent: true, code }` for a known
+    // one) let an attacker enumerate registered emails purely from the
+    // response shape. confirm() below still checks the email against
+    // `users`, so a row written for an address nobody owns just sits there
+    // unused — nothing to actually reset. No mail transport is wired up
+    // (see README), so the code comes back in the response either way —
+    // the one place this build knowingly stands in for infrastructure.
     await query(
       `INSERT INTO password_resets (email, code, expires_at) VALUES ($1,$2, now() + interval '15 minutes')
        ON CONFLICT (email) DO UPDATE SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at`,
       [email, code],
     )
-    // No mail transport wired up, so the code comes back in the response —
-    // the one place this build knowingly stands in for infrastructure.
     return { sent: true, code }
   })
 
-  app.post('/api/auth/password-reset/confirm', async (req, reply) => {
+  app.post('/api/auth/password-reset/confirm', strictRateLimit, async (req, reply) => {
     const body = z.object({
       email: z.string().email(),
       code: z.string().min(4),
@@ -163,7 +174,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // ---- staff ----
 
-  app.post('/api/staff/login', async (req, reply) => {
+  app.post('/api/staff/login', strictRateLimit, async (req, reply) => {
     const parsed = loginSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
     const { email, password, remember } = parsed.data

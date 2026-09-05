@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLanguage } from '@/context/LanguageContext'
 import { Modal } from './Modal'
 import { Button } from './Button'
 
@@ -21,13 +22,14 @@ export function ConfirmDialog({
   onConfirm,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   tone = 'solid',
   icon,
   children,
 }: ConfirmDialogProps) {
   const [loading, setLoading] = useState(false)
+  const { t } = useLanguage()
 
   async function handleConfirm() {
     setLoading(true)
@@ -49,10 +51,10 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="quiet" onClick={onClose} disabled={loading}>
-            {cancelLabel}
+            {cancelLabel ?? t('common.cancel')}
           </Button>
           <Button variant={tone === 'danger' ? 'danger' : 'solid'} onClick={handleConfirm} loading={loading}>
-            {confirmLabel}
+            {confirmLabel ?? t('common.confirm')}
           </Button>
         </>
       }

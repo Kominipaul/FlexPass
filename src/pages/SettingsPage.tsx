@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Bell,
   Flame,
+  Globe,
   KeyRound,
   Lock,
   ShieldCheck,
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useGymData } from '@/context/DataContext'
 import { useToast } from '@/context/ToastContext'
+import { useLanguage, type TranslationKey } from '@/context/LanguageContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -19,24 +21,26 @@ import { Input } from '@/components/ui/Input'
 import { Switch } from '@/components/ui/Switch'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { formatDate } from '@/lib/format'
 import { isValidPassword } from '@/lib/validators'
 import { getNotificationPrefs, setNotificationPref, type NotificationPrefs } from '@/lib/notificationPrefs'
 import type { NotificationType } from '@/types'
 
-const PREF_LABELS: { key: NotificationType; label: string; description: string }[] = [
-  { key: 'renewal', label: 'Renewal reminders', description: 'Your membership is about to renew.' },
-  { key: 'class', label: 'Class & group reminders', description: 'Upcoming bookings and waitlist updates.' },
-  { key: 'billing', label: 'Billing receipts', description: 'Payments, invoices and plan changes.' },
-  { key: 'security', label: 'Security alerts', description: 'Password changes and sign-in security.' },
-  { key: 'achievement', label: 'Streaks & achievements', description: 'Visit streaks and milestones.' },
-  { key: 'general', label: 'General announcements', description: 'Everything else from FlexPass.' },
+const PREF_LABEL_KEYS: { key: NotificationType; labelKey: TranslationKey; descKey: TranslationKey }[] = [
+  { key: 'renewal', labelKey: 'settings.prefRenewalLabel', descKey: 'settings.prefRenewalDesc' },
+  { key: 'class', labelKey: 'settings.prefClassLabel', descKey: 'settings.prefClassDesc' },
+  { key: 'billing', labelKey: 'settings.prefBillingLabel', descKey: 'settings.prefBillingDesc' },
+  { key: 'security', labelKey: 'settings.prefSecurityLabel', descKey: 'settings.prefSecurityDesc' },
+  { key: 'achievement', labelKey: 'settings.prefAchievementLabel', descKey: 'settings.prefAchievementDesc' },
+  { key: 'general', labelKey: 'settings.prefGeneralLabel', descKey: 'settings.prefGeneralDesc' },
 ]
 
 export function SettingsPage() {
   const { user, changePassword, setTwoFactorEnabled, deleteAccount } = useAuth()
   const { trainingGoal, setTrainingGoal, pinAllowance } = useGymData()
   const { showToast } = useToast()
+  const { t } = useLanguage()
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -54,27 +58,27 @@ export function SettingsPage() {
 
   async function handleChangePassword() {
     if (!currentPassword) {
-      setPasswordError('Enter your current password.')
+      setPasswordError(t('settings.enterCurrentPassword'))
       return
     }
     if (!isValidPassword(newPassword)) {
-      setPasswordError('Use 8+ characters with a mix of letters & numbers.')
+      setPasswordError(t('settings.passwordWeak'))
       return
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match.')
+      setPasswordError(t('settings.passwordMismatch'))
       return
     }
     setPasswordError(null)
     setSavingPassword(true)
     try {
       await changePassword(currentPassword, newPassword)
-      showToast('Password updated.')
+      showToast(t('settings.passwordUpdated'))
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Could not update your password.')
+      setPasswordError(err instanceof Error ? err.message : t('settings.passwordUpdateError'))
     } finally {
       setSavingPassword(false)
     }
@@ -84,9 +88,9 @@ export function SettingsPage() {
     setTwoFactorBusy(true)
     try {
       await setTwoFactorEnabled(next)
-      showToast(next ? 'Two-factor authentication enabled.' : 'Two-factor authentication disabled.')
+      showToast(next ? t('settings.twoFactorEnabled') : t('settings.twoFactorDisabled'))
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not update security settings.', 'error')
+      showToast(err instanceof Error ? err.message : t('settings.twoFactorError'), 'error')
     } finally {
       setTwoFactorBusy(false)
     }
@@ -100,9 +104,9 @@ export function SettingsPage() {
     setProgressionBusy(true)
     try {
       await setTrainingGoal({ enabled: next })
-      showToast(next ? 'Progression turned on.' : 'Progression turned off.')
+      showToast(next ? t('settings.progressionOn') : t('settings.progressionOff'))
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not update progression.', 'error')
+      showToast(err instanceof Error ? err.message : t('settings.progressionError'), 'error')
     } finally {
       setProgressionBusy(false)
     }
@@ -110,15 +114,19 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" subtitle="Security, progression, notifications and account controls." />
+      <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
       <Card>
-        <CardHeader icon={<Lock className="h-4 w-4" />} title="Password" description={`Last changed ${formatDate(user.security.lastPasswordChange)}`} />
+        <CardHeader
+          icon={<Lock className="h-4 w-4" />}
+          title={t('settings.passwordTitle')}
+          description={t('settings.lastChanged', { date: formatDate(user.security.lastPasswordChange) })}
+        />
         <CardBody>
           <div className="grid grid-cols-1 gap-4 sm:max-w-md">
             {passwordError && <p className="text-[12.5px] font-medium text-bad">{passwordError}</p>}
             <Input
-              label="Current password"
+              label={t('settings.currentPassword')}
               type="password"
               autoComplete="current-password"
               value={currentPassword}
@@ -126,7 +134,7 @@ export function SettingsPage() {
             />
             <div>
               <Input
-                label="New password"
+                label={t('settings.newPassword')}
                 type="password"
                 autoComplete="new-password"
                 value={newPassword}
@@ -137,28 +145,28 @@ export function SettingsPage() {
               </div>
             </div>
             <Input
-              label="Confirm new password"
+              label={t('settings.confirmNewPassword')}
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <Button className="self-start" loading={savingPassword} onClick={handleChangePassword} iconLeft={<KeyRound className="h-3.5 w-3.5" />}>
-              Update password
+              {t('settings.updatePassword')}
             </Button>
           </div>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title="Two-factor authentication" />
+        <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title={t('settings.twoFactorTitle')} />
         <CardBody>
           <Switch
             checked={user.security.twoFactorEnabled}
             onChange={handleToggleTwoFactor}
             disabled={twoFactorBusy}
-            label="Require a secure code at sign-in"
-            description="Adds a 6-digit code step after your password when you log in."
+            label={t('settings.twoFactorLabel')}
+            description={t('settings.twoFactorDesc')}
           />
         </CardBody>
       </Card>
@@ -166,84 +174,97 @@ export function SettingsPage() {
       <Card>
         <CardHeader
           icon={<Flame className="h-4 w-4" />}
-          title="Progression"
-          description="Streaks, badges and your weekly training goal."
+          title={t('settings.progressionTitle')}
+          description={t('settings.progressionDesc')}
         />
         <CardBody className="flex flex-col gap-4">
           <Switch
             checked={trainingGoal?.enabled ?? true}
             onChange={handleToggleProgression}
             disabled={progressionBusy || !trainingGoal}
-            label="Track a weekly goal"
-            description="Off means no streak and no badges — Progress becomes a plain list of your visits."
+            label={t('settings.progressionLabel')}
+            description={t('settings.progressionSwitchDesc')}
           />
-          {trainingGoal?.enabled && (
-            <p className="text-[12px] text-mute">
-              Currently aiming for{' '}
-              <span className="font-semibold text-ink">{trainingGoal.daysPerWeek} days a week</span>. Change it on
-              the{' '}
-              <Link to="/progress" className="font-semibold text-volt hover:brightness-125">
-                Progress page
-              </Link>
-              .
-            </p>
-          )}
+          {trainingGoal?.enabled && (() => {
+            const [before, after] = t('settings.currentlyAiming', { days: trainingGoal.daysPerWeek }).split('{link}')
+            return (
+              <p className="text-[12px] text-mute">
+                {before}
+                <Link to="/progress" className="font-semibold text-volt hover:brightness-125">
+                  {t('settings.progressPageLink')}
+                </Link>
+                {after}
+              </p>
+            )
+          })()}
         </CardBody>
       </Card>
 
       <Card>
         <CardHeader
           icon={<KeyRound className="h-4 w-4" />}
-          title="Backup PIN"
-          description="For the day you turn up without your phone."
+          title={t('settings.backupPinTitle')}
+          description={t('settings.backupPinDesc')}
         />
         <CardBody className="flex flex-col gap-3">
-          <p className="text-[12.5px] leading-relaxed text-dim">
-            Your PIN can't be typed at the reader on its own — there's no keypad until a staff member looks you up
-            and opens one for you. That's why four digits is enough, and why giving your PIN to someone else
-            doesn't get them in.
-          </p>
+          <p className="text-[12.5px] leading-relaxed text-dim">{t('settings.backupPinExplain')}</p>
           <div className="flex items-center justify-between rounded-[9px] border border-line bg-raised px-4 py-3">
-            <span className="text-[12.5px] text-dim">Backup check-ins used</span>
+            <span className="text-[12.5px] text-dim">{t('settings.backupCheckInsUsed')}</span>
             <span className={`font-mono tnum text-[13px] font-semibold ${pinAllowance.overLimit ? 'text-warn' : 'text-ink'}`}>
               {pinAllowance.used} / {pinAllowance.limit}
             </span>
           </div>
-          <p className="text-[11.5px] text-mute">
-            Resets on a rolling {pinAllowance.windowDays} days. View or regenerate your PIN on the{' '}
-            <Link to="/" className="font-semibold text-volt hover:brightness-125">
-              Check In page
-            </Link>
-            .
-          </p>
+          {(() => {
+            const [before, after] = t('settings.resetsOn', { days: pinAllowance.windowDays }).split('{link}')
+            return (
+              <p className="text-[11.5px] text-mute">
+                {before}
+                <Link to="/" className="font-semibold text-volt hover:brightness-125">
+                  {t('settings.checkInPageLink')}
+                </Link>
+                {after}
+              </p>
+            )
+          })()}
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader icon={<Bell className="h-4 w-4" />} title="Notification preferences" description="Controls what appears in your notification center." />
+        <CardHeader
+          icon={<Bell className="h-4 w-4" />}
+          title={t('settings.notificationPrefsTitle')}
+          description={t('settings.notificationPrefsDesc')}
+        />
         <CardBody className="flex flex-col gap-4">
-          {PREF_LABELS.map((p) => (
+          {PREF_LABEL_KEYS.map((p) => (
             <Switch
               key={p.key}
               checked={prefs[p.key]}
               onChange={(value) => handleTogglePref(p.key, value)}
-              label={p.label}
-              description={p.description}
+              label={t(p.labelKey)}
+              description={t(p.descKey)}
             />
           ))}
         </CardBody>
       </Card>
 
+      <Card>
+        <CardHeader icon={<Globe className="h-4 w-4" />} title={t('settings.languageTitle')} description={t('settings.languageDesc')} />
+        <CardBody>
+          <LanguageSwitcher className="max-w-xs" />
+        </CardBody>
+      </Card>
+
       <Card className="border-badsoft">
-        <CardHeader icon={<AlertTriangle className="h-4 w-4 text-bad" />} title="Danger zone" />
+        <CardHeader icon={<AlertTriangle className="h-4 w-4 text-bad" />} title={t('settings.dangerZone')} />
         <CardBody className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[9px] border border-badsoft bg-badsoft/40 p-4">
             <div>
-              <p className="text-[13px] font-semibold text-bad">Delete account</p>
-              <p className="text-[11.5px] text-bad/80">Permanently deletes your profile, bookings and billing history.</p>
+              <p className="text-[13px] font-semibold text-bad">{t('settings.deleteAccountTitle')}</p>
+              <p className="text-[11.5px] text-bad/80">{t('settings.deleteAccountDesc')}</p>
             </div>
             <Button variant="danger" onClick={() => setDeleteOpen(true)} iconLeft={<Trash2 className="h-3.5 w-3.5" />}>
-              Delete account
+              {t('settings.deleteAccountButton')}
             </Button>
           </div>
         </CardBody>
@@ -253,15 +274,15 @@ export function SettingsPage() {
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         icon={<Trash2 className="h-4 w-4" />}
-        title="Delete your account?"
-        description="This permanently deletes your profile, membership, bookings and billing history. This cannot be undone."
-        confirmLabel="Delete account"
+        title={t('settings.deleteConfirmTitle')}
+        description={t('settings.deleteConfirmDesc')}
+        confirmLabel={t('settings.deleteAccountButton')}
         tone="danger"
         onConfirm={async () => {
           try {
             await deleteAccount()
           } catch (err) {
-            showToast(err instanceof Error ? err.message : 'Could not delete account.', 'error')
+            showToast(err instanceof Error ? err.message : t('settings.deleteAccountError'), 'error')
           } finally {
             setDeleteOpen(false)
           }

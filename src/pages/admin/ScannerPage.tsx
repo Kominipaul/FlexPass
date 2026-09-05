@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useAdminData } from '@/context/AdminDataContext'
 import { useToast } from '@/context/ToastContext'
+import { useKiosk } from '@/context/KioskContext'
 import { useCameraQrScanner } from '@/hooks/useCameraQrScanner'
 import { PageLoader } from '@/components/ui/Spinner'
 import { Card } from '@/components/ui/Card'
@@ -26,6 +27,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Avatar } from '@/components/ui/Avatar'
 import { OtpInput } from '@/components/ui/OtpInput'
 import { StatusPill } from '@/components/admin/StatusPill'
+import { UnlockKioskDialog } from '@/components/admin/UnlockKioskDialog'
 import { reasonText } from '@/lib/access'
 import { daysUntil, formatDateTime, formatMemberId, relativeTime } from '@/lib/format'
 import { PIN_MAX_ATTEMPTS, pinAllowanceFrom, type PinAllowance } from '@/lib/pinPolicy'
@@ -96,11 +98,31 @@ export function ScannerPage() {
   const { loading, members, atLocationId, locations, doorScans, pinUnlocks, recordScanByToken, attemptPinUnlock, cancelPinUnlock, refresh } =
     useAdminData()
   const { showToast } = useToast()
+  const { kiosk } = useKiosk()
 
   const [phase, setPhase] = useState<Phase>('scanning')
   const [result, setResult] = useState<ScanResult | null>(null)
+  // Off by default, and turned off again the instant a code is read — a
+  // camera stream left running all day (decoding every frame through jsQR)
+  // burns power and CPU on a tablet that's idle most of that time, and
+  // points a live feed at whoever's standing there whether or not anyone's
+  // scanning. It only runs for the moment it's actually needed.
+  const [cameraOn, setCameraOn] = useState(false)
   const [muted, setMuted] = useState(false)
   const [staffPanelOpen, setStaffPanelOpen] = useState(false)
+  const [unlockOpen, setUnlockOpen] = useState(false)
+
+  // Kiosk mode locks this exactly like it locks the sidebar: backup entry
+  // is a real way to open the door without a QR at all, so a tablet at the
+  // stand can't offer it to whoever's standing in front of it — it has to
+  // go through the same password prompt that gets the sidebar back.
+  function openBackupEntry() {
+    if (kiosk) {
+      setUnlockOpen(true)
+    } else {
+      setStaffPanelOpen(true)
+    }
+  }
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
   const [pinBusy, setPinBusy] = useState(false)
@@ -146,6 +168,13 @@ export function ScannerPage() {
     setPinError(null)
   }, [unlock?.id])
 
+  // A PIN window opening always wins over a camera left on from before it —
+  // otherwise finishing (or cancelling) the keypad would silently resume a
+  // live feed nobody asked to turn back on.
+  useEffect(() => {
+    if (pinMode) setCameraOn(false)
+  }, [pinMode])
+
   // Gated on !loading too, not just mode: the <video> element below only
   // exists in the DOM once this page is past its loading guard, so the
   // camera must wait for that — otherwise it fires on a still-loading
@@ -153,10 +182,15 @@ export function ScannerPage() {
   // itself part of what would normally re-trigger it) gets permanently
   // stuck reporting a spurious "could not start the camera" error.
   const { videoRef, status: cameraStatus, error: cameraError, retry: retryCamera } = useCameraQrScanner({
-    active: !loading && !pinMode,
+    active: !loading && !pinMode && cameraOn,
     cooldownMs: 3000,
     onDecode: (text) => {
-      if (phase !== 'scanning') return
+      if (phase !== 'scanning' || !cameraOn) return
+      // Off the instant a code is read, not after the result finishes
+      // showing — verifying a token and displaying the outcome never need
+      // the camera, so there's no reason to keep the stream open through
+      // either.
+      setCameraOn(false)
       void runTokenScan(text)
     },
   })
@@ -243,7 +277,7 @@ export function ScannerPage() {
         <Button
           variant="quiet"
           size="sm"
-          onClick={() => setStaffPanelOpen(true)}
+          onClick={openBackupEntry}
           iconLeft={<Lock className="h-3.5 w-3.5" />}
         >
           Staff · backup entry
@@ -284,11 +318,36 @@ export function ScannerPage() {
           </div>
 
           <div className="relative min-h-[360px]">
-            {/* Camera feed — kept mounted whenever no PIN window is open, so the stream doesn't restart between scans. */}
+            {/* <video> stays mounted whenever no PIN window is open — its srcObject
+                is what actually starts/stops (see useCameraQrScanner), driven by
+                `cameraOn`, not by whether this element exists. */}
             {!pinMode && (
               <>
                 <video ref={videoRef} muted playsInline className="absolute inset-0 h-full w-full bg-black object-cover" />
-                {phase === 'scanning' && cameraStatus === 'scanning' && (
+                {phase === 'scanning' && !cameraOn && (
+                  <div className="a-fade absolute inset-0 grid place-items-center p-6">
+                    <div className="text-center">
+                      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-voltline bg-voltsoft text-volt">
+                        <Camera className="h-6 w-6" />
+                      </span>
+                      <p className="font-display mt-4 text-[14px] font-bold uppercase tracking-[.04em] text-ink">
+                        Ready for the next check-in
+                      </p>
+                      <p className="mx-auto mt-1.5 max-w-[15rem] text-[11.5px] leading-snug text-dim">
+                        The camera stays off between scans and only turns on while it's actually reading a code.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => setCameraOn(true)}
+                        iconLeft={<Camera className="h-3.5 w-3.5" />}
+                      >
+                        Scan a member
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {phase === 'scanning' && cameraOn && cameraStatus === 'scanning' && (
                   <div className="a-fade pointer-events-none absolute inset-0 grid place-items-center">
                     <div className="relative h-44 w-44">
                       <span className="absolute left-0 top-0 h-8 w-8 rounded-tl-[10px] border-l-[3px] border-t-[3px] border-volt" />
@@ -302,7 +361,7 @@ export function ScannerPage() {
                     </p>
                   </div>
                 )}
-                {phase === 'scanning' && cameraStatus === 'starting' && (
+                {phase === 'scanning' && cameraOn && cameraStatus === 'starting' && (
                   <div className="absolute inset-0 grid place-items-center bg-bg/85">
                     <div className="a-fade text-center">
                       <Loader2 className="a-spin mx-auto h-6 w-6 animate-spin text-volt" />
@@ -310,7 +369,7 @@ export function ScannerPage() {
                     </div>
                   </div>
                 )}
-                {phase === 'scanning' && cameraStatus === 'error' && (
+                {phase === 'scanning' && cameraOn && cameraStatus === 'error' && (
                   <div className="absolute inset-0 grid place-items-center bg-bg/95 p-6">
                     <div className="a-fade max-w-xs text-center">
                       <CameraOff className="mx-auto h-8 w-8 text-mute" strokeWidth={1.4} />
@@ -319,7 +378,7 @@ export function ScannerPage() {
                         <Button size="sm" variant="quiet" onClick={retryCamera} iconLeft={<Camera className="h-3.5 w-3.5" />}>
                           Try camera again
                         </Button>
-                        <Button size="sm" onClick={() => setStaffPanelOpen(true)} iconLeft={<Lock className="h-3.5 w-3.5" />}>
+                        <Button size="sm" onClick={openBackupEntry} iconLeft={<Lock className="h-3.5 w-3.5" />}>
                           Staff backup entry
                         </Button>
                       </div>
@@ -490,6 +549,8 @@ export function ScannerPage() {
           void refresh()
         }}
       />
+
+      <UnlockKioskDialog open={unlockOpen} onClose={() => setUnlockOpen(false)} />
     </div>
   )
 }

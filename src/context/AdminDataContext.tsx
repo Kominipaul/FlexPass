@@ -10,6 +10,7 @@ import {
 } from 'react'
 import type {
   Activity,
+  BillingCycle,
   CheckIn,
   ClassBooking,
   DoorScan,
@@ -54,6 +55,16 @@ interface AdminDataContextValue extends AdminDataState {
   refresh: () => Promise<void>
   extendMembership: (userId: string, days: number) => Promise<void>
   setFrozen: (userId: string, frozen: boolean) => Promise<void>
+  /**
+   * Only staff can do this — there's no online payment yet to bill the new
+   * plan. Returns the invoice it just billed, so a caller can offer an
+   * immediate Undo (undoChangePlan) that reverts the plan AND refunds it.
+   */
+  changePlan: (userId: string, planId: string, billingCycle: BillingCycle) => Promise<{ invoiceId: string }>
+  undoChangePlan: (userId: string, planId: string, billingCycle: BillingCycle, invoiceId: string) => Promise<void>
+  /** Only staff can do this — reactivating resumes billing on a lapsed membership. */
+  reactivateMembership: (userId: string) => Promise<void>
+  undoReactivateMembership: (userId: string, snapshot: db.ReactivateSnapshot) => Promise<void>
   /** Real path: verifies the scanned QR token's signature before evaluating access. */
   recordScanByToken: (token: string, locationId: string) => ReturnType<typeof db.adminRecordScanByToken>
   /** Backup path, step 1: staff name the member, which is what makes the keypad appear at all. */
@@ -157,6 +168,39 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [refresh],
   )
 
+  const changePlan = useCallback(
+    async (userId: string, planId: string, billingCycle: BillingCycle) => {
+      const { invoiceId } = await db.adminChangePlan(userId, planId, billingCycle)
+      await refresh()
+      return { invoiceId }
+    },
+    [refresh],
+  )
+
+  const undoChangePlan = useCallback(
+    async (userId: string, planId: string, billingCycle: BillingCycle, invoiceId: string) => {
+      await db.adminUndoChangePlan(userId, planId, billingCycle, invoiceId)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const reactivateMembership = useCallback(
+    async (userId: string) => {
+      await db.adminReactivateMembership(userId)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const undoReactivateMembership = useCallback(
+    async (userId: string, snapshot: db.ReactivateSnapshot) => {
+      await db.adminUndoReactivateMembership(userId, snapshot)
+      await refresh()
+    },
+    [refresh],
+  )
+
   const recordScanByToken = useCallback(
     async (token: string, locationId: string) => {
       const result = await db.adminRecordScanByToken(token, locationId)
@@ -218,6 +262,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       extendMembership,
       setFrozen,
+      changePlan,
+      undoChangePlan,
+      reactivateMembership,
+      undoReactivateMembership,
       recordScanByToken,
       openPinUnlock,
       attemptPinUnlock,
@@ -231,6 +279,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       extendMembership,
       setFrozen,
+      changePlan,
+      undoChangePlan,
+      reactivateMembership,
+      undoReactivateMembership,
       recordScanByToken,
       openPinUnlock,
       attemptPinUnlock,
